@@ -21,6 +21,7 @@ parser.add_argument('year', help='year of samples')
 parser.add_argument('title', help='display your observable title')
 parser.add_argument('systematic',nargs='?', help='display your systematic', default='')
 parser.add_argument('subtitle',nargs='?', help='display your observable subtitle', default='')
+parser.add_argument('option',nargs='?', help='display rootfile write option', default='RECREATE')
 
 args = parser.parse_args()
 observable = args.observable
@@ -33,6 +34,7 @@ if(subtitle == ''):
         subtitle = '35.9 fb^{-1} (13TeV)'
     elif year=='2017':
         subtitle = '41.53 fb^{-1} (13TeV)'
+option = args.option
 
 
 nbin = 0
@@ -85,53 +87,29 @@ for l in rootfile_input.GetListOfKeys():
         background_integral_i.append([rootfile_input.Get(l.GetName()).Integral(), l.GetName()])
         background_integral += rootfile_input.Get(l.GetName()).Integral()
 
-'''
 
-## systematics
-if(systematic != ''):
-    hist_systematics_up = TH1F("","", nbin, min_bin, max_bin)
-    hist_systematics_down = TH1F("","", nbin, min_bin, max_bin)
 
-    rootfile = []
-    for i, l in enumerate(ttbar_list):
-        name = l+ '_'+observable+'_'+systematic+'Up'
-        rootfile.append(TFile(results_path(year,'groups/SYST',name+'.root')))
-        foo = rootfile[i].Get(name)
-        syst_up_integral += foo.Integral()
-        hist_systematics_up.Add(foo)
-    del rootfile
+################################################################################
+## Legend stuff
+################################################################################
 
-    rootfile = []
-    for i, l in enumerate(ttbar_list):
-        name = l+ '_'+observable+'_'+systematic+'Down'
-        rootfile.append(TFile(results_path(year,'groups/SYST',name+'.root')))
-        foo = rootfile[i].Get(name)
-        syst_down_integral += foo.Integral()
-        hist_systematics_down.Add(foo)
-    del rootfile
-'''
+legend = TLegend()
+legend.SetHeader(subtitle, "C")
+legend.AddEntry(hist_signal, "t#bar{t} signal", "f")
+legend.AddEntry(hist_background, "non-t#bar{t}", "f")
+legend.AddEntry(hist_data, "data")
+legend_box(legend, legend_coordinates)
+
 ################################################################################
 ## Draw stuff
 ################################################################################
-
-'''
-hist_mc = TH1F("","", nbin, min_bin, max_bin)
-hist_mc.Add(hist_background)
-hist_mc.Add(hist_signal)
-#hist_mc.Draw("E HIST")
-hist_background.Draw("E SAME")
-hist_data.Draw("E SAME")
-'''
 
 stack = THStack()
 stack.Add(hist_background)
 stack.Add(hist_signal)
 stack.Draw("E HIST")
 hist_data.Draw("E SAME")
-if(systematic != ''):
-    hist_systematics_up.Draw(" SAME")
-    hist_systematics_down.Draw(" SAME")
-
+legend.Draw("SAME")
 
 ################################################################################
 ## Set Style
@@ -141,36 +119,32 @@ if(systematic != ''):
 style_histo(hist_signal, 2, 1, 2, 3004, 0)
 style_histo(hist_background, 4, 1, 4, 3005, 0)
 style_histo(hist_data, 1, 1, 0, 3001, 1, 20)
-if(systematic != ''):
-    style_histo(hist_systematics_up, 6, 2, 0, 1000, 0)
-    style_histo(hist_systematics_down, 6, 2, 0, 1000, 0)
+
+style_labels_counting(stack, 'Events', title)
+
 
 ################################################################################
 ## Save
 ################################################################################
-'''
-if(systematic != ''):
-    result_name = results_path(year,'stack',observable+'_'+systematic+'_groups.root')
-else:
-    result_name = results_path(year,'stack',observable+'_groups.root')
-newfile = TFile(result_name, 'RECREATE')
-canvas.Update()
-canvas.Write()
-newfile.Close()
-canvas.SaveAs(result_name)
-canvas.SaveAs("n_bjets_2017.png")
 
-'''
+resultname = './results/'+year+'/comparaison/'+observable
+
+rootfile_output = TFile(resultname+'.root', option)
+canvas.Write()
+canvas.SaveAs(resultname+'.png')
+rootfile_output.Close()
+
+
 print 'Data integral       : ', data_integral
 print 'Signal integral     : ', signal_integral
-print 'Background integral :  ', background_integral
+print 'Background integral : ', background_integral
 print ''
 for i in background_integral_i:
     print i[1],i[0]
 
 if(systematic != ''):
-    print "Systematic up : ", syst_up_integral
-    print "Systematic down : ", syst_down_integral
+    print "Systematic up       : ", syst_up_integral
+    print "Systematic down     : ", syst_down_integral
 print ''
 
 exit = raw_input("Press key to quit : ") 

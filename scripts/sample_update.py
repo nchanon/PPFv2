@@ -13,6 +13,13 @@ year = args.year
 
 ##########
 
+def succeeds_job(percent):
+    return 100./(percent)
+
+################################################################################
+## 2016 
+################################################################################
+
 cross_sec_2016 = [ # alphabetic order
     118.7,                # dibosons WW          
     118.7,                # dibosons WW2         
@@ -50,6 +57,28 @@ cross_sec_2016 = [ # alphabetic order
     #22635.14              # zjets DY 10-50   
 ]
 
+effective_data_event_2016 = [
+    succeeds_job(100.),    #MuonEG_B
+    succeeds_job(100.),    #MuonEG_C
+    succeeds_job(100.),    #MuonEG_D
+    succeeds_job(95.8),    #MuonEG_E
+    succeeds_job(100.),    #MuonEG_F
+    succeeds_job(87.6),    #SingleElectron_B
+    succeeds_job(100.),    #SingleElectron_C
+    succeeds_job(100.),    #SingleElectron_D
+    succeeds_job(83.3),    #SingleElectron_E
+    succeeds_job(76.5),    #SingleElectron_F
+    succeeds_job(100.),    #SingleMuon_B
+    succeeds_job(100.),    #SingleMuon_C
+    succeeds_job(100.),    #SingleMuon_D
+    succeeds_job(100.),    #SingleMuon_E
+    succeeds_job(100.)     #SingleMuon_F
+]
+
+################################################################################
+## 2017
+################################################################################
+
 cross_sec_2017 = [
     118.7,    # dibosons WW
     47.13,    # dibosons WZ
@@ -83,27 +112,6 @@ cross_sec_2017 = [
     6225.4    # zjets DY2         
 ]
 
-def succeeds_job(percent):
-    return 100./(percent)
-
-effective_data_event_2016 = [
-    succeeds_job(100.),    #MuonEG_B
-    succeeds_job(100.),    #MuonEG_C
-    succeeds_job(100.),    #MuonEG_D
-    succeeds_job(95.8),    #MuonEG_E
-    succeeds_job(100.),    #MuonEG_F
-    succeeds_job(87.6),    #SingleElectron_B
-    succeeds_job(100.),    #SingleElectron_C
-    succeeds_job(100.),    #SingleElectron_D
-    succeeds_job(83.3),    #SingleElectron_E
-    succeeds_job(76.5),    #SingleElectron_F
-    succeeds_job(100.),    #SingleMuon_B
-    succeeds_job(100.),    #SingleMuon_C
-    succeeds_job(100.),    #SingleMuon_D
-    succeeds_job(100.),    #SingleMuon_E
-    succeeds_job(100.)     #SingleMuon_F
-]
-
 effective_data_event_2017 = [
     succeeds_job(100.),    #MuonEG_B
     succeeds_job(100.),    #MuonEG_C
@@ -121,6 +129,17 @@ effective_data_event_2017 = [
     succeeds_job(100.),    #SingleMuon_E
     succeeds_job(100.)     #SingleMuon_F
 ]
+
+
+################################################################################
+## 2018 
+################################################################################
+
+#
+#
+
+################################################################################
+################################################################################
 
 effective_data_event = {
     '2016' : effective_data_event_2016,
