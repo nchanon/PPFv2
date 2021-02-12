@@ -2,6 +2,7 @@
 
 #include <string>
 #include <ctime>
+#include <iostream>
 
 void Log(double value);
 void Log(std::string const& message);

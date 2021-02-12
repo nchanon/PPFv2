@@ -199,7 +199,7 @@ void Generator::generateMC(std::string         const& observable_p,
     std::vector<TH1F> list;
     std::vector<TH1F> listUp;    
     std::vector<TH1F> listDown;
-    std::string filename_p = "./results/"+year+"/"+observable_p+".root";
+    std::string filename_p = "./results/"+year+"/flattree/"+observable_p+".root";
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/tree.root";
@@ -269,7 +269,7 @@ void Generator::generateData(std::string         const& observable_p,
     std::vector<TH1F> list;
     std::vector<TH1F> listUp;    
     std::vector<TH1F> listDown;
-    std::string filename_p = "./results/"+year+"/"+observable_p+".root";
+    std::string filename_p = "./results/"+year+"/flattree/"+observable_p+".root";
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         std::string filename = "./inputs/"+year+"/DATA/"+sampleList_p[n]+"/tree.root";
@@ -321,7 +321,7 @@ void Generator::generateDataTimmed(std::string         const& observable_p,
 {
     TH1F::SetDefaultSumw2(1);
     std::vector<TH1F> list;
-    std::string filename_p = "./results/"+year+"/"+observable_p+"_data_timed.root";
+    std::string filename_p = "./results/"+year+"/flattree/"+observable_p+"_data_timed"+std::to_string(nBin_p)+".root";
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         std::string filename = "./inputs/"+year+"/DATA/"+sampleList_p[n]+"/tree.root";

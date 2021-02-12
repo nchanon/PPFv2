@@ -1,7 +1,5 @@
 #include "debug.h"
 
-#include <iostream>
-
 void Log(double value){
     std::cout << "Time : " << value << "s" << std::endl;
 }
