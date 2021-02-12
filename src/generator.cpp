@@ -106,7 +106,7 @@ void Generator::groupingMC(std::vector<TH1F>      & list,
     double max = list[0].GetXaxis()->GetXmax();
 
     for(std::string group : groupList_p){
-        TH1F h(("grp_"+group).c_str(), ("grp_"+group).c_str(), nbin, min, max);
+        TH1F h((group).c_str(), (group).c_str(), nbin, min, max);
         for(size_t i = 0; i < list.size(); ++i){
             if(TString(list[i].GetName()).Contains(group))
                 h.Add(&list[i]);
@@ -171,7 +171,7 @@ void Generator::groupingSystematics(std::vector<TH1F>      & list,
 
     for(std::string group : groupList_p){
         for(std::string syst : systematicsList_p){
-            TH1F h(("grp_"+group+"_"+syst+updown).c_str(), ("grp_"+group+"_"+syst+updown).c_str(), nbin, min, max);  
+            TH1F h((group+"_"+syst+updown).c_str(), (group+"_"+syst+updown).c_str(), nbin, min, max);  
             for(size_t i = 0; i < list.size(); ++i){
                 if(TString(list[i].GetName()).Contains(group) and TString(list[i].GetName()).Contains(syst))
                     h.Add(&list[i]);        
@@ -357,7 +357,7 @@ void Generator::generateDataTimmed(std::string         const& observable_p,
         }
 
         for(size_t i = 0; i < hist.size(); ++i){
-            hist[i]->Scale(correction_p[n]/nBin_p);
+            hist[i]->Scale(correction_p[n]);
             list.push_back(*hist[i]);
             delete hist[i];
         }

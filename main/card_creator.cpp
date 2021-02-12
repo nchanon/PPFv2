@@ -27,7 +27,7 @@ int main(int argc, char** argv){
 
     std::vector<double> integrals;
     double number = 0;
-    std::ifstream f("./combine/"+year+"/one_bin/inputs/"+observable+"_integrals_data_timmed.txt");
+    std::ifstream f("./combine/"+year+"/one_bin/inputs/"+observable+"_integrals_data_timed.txt");
     for(int i = 0; i < nBin; ++i){
         f >> number;
         integrals.push_back(number);
@@ -42,10 +42,11 @@ int main(int argc, char** argv){
                           observable,
                           integrals[i],
                           ttbarList,
-                          systematicList
+                          systematicList,
+                          systematicRate
                          );
     }
-    
+    std::cout << "Finished !!!" << std::endl;
     return 0;
 }
 

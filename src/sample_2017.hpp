@@ -34,6 +34,14 @@ namelist systematicList {
 
 #endif 
 
+namelist systematicRate {
+    "1.3",
+    "1.2",
+    "1.5",
+    "1.5",
+    "1.5"
+};
+
 namelist sampleList_MC_2017 {
     "MC_dibosons_WW",
     "MC_dibosons_WZ",

@@ -75,6 +75,14 @@ effective_data_event_2016 = [
     succeeds_job(100.)     #SingleMuon_F
 ]
 
+systematic_rate_2016 = [
+    1.3,
+    1.2,
+    1.5,
+    1.5,
+    1.5
+]
+
 ################################################################################
 ## 2017
 ################################################################################
@@ -130,6 +138,13 @@ effective_data_event_2017 = [
     succeeds_job(100.)     #SingleMuon_F
 ]
 
+systematic_rate_2017 = [
+    1.3,
+    1.2,
+    1.5,
+    1.5,
+    1.5
+]
 
 ################################################################################
 ## 2018 
@@ -204,6 +219,12 @@ trig_2017 = [
 triggers = {
     '2016' : trig_2016,
     '2017' : trig_2017,
+#    '2018' : trig_2018
+}
+
+systematic_rate = {
+    '2016' : systematic_rate_2016,
+    '2017' : systematic_rate_2017,
 #    '2018' : trig_2018
 }
 
@@ -308,7 +329,7 @@ core += listing('namelist', 'ttbarList', ttbar_list)
 core += listing('namelist', 'systematicList', systematic_list)
 core += '#endif \n\n'
 
-
+core += listing('namelist', 'systematicRate', systematic_rate[year])
 core += listing('namelist', 'sampleList_MC_'+year, sample_MC)
 core += listing('std::vector<double>', 'mc_rescale_'+year, mc_rescale)
 core += listing('namelist', 'sampleList_DATA_'+year, sample_DATA)

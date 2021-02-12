@@ -25,13 +25,13 @@ int main(int argc, char** argv){
     Log(observable);
 
     Generator gen("2017");
-/*
+
     gen.generateMC(observable, 
                    sampleList_MC_2017, triggerList, ttbarList, systematicList, mc_rescale_2017,
                    "RECREATE");
     gen.generateData(observable, 
                      sampleList_DATA_2017, triggerList, data_2017, succedJobs_2017,
-                     "UPDATE");*/
+                     "UPDATE");
     gen.generateDataTimmed(observable, 
                            sampleList_DATA_2017, triggerList, data_2017, succedJobs_2017,
                            24);

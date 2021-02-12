@@ -39,7 +39,7 @@ def getTH1F(input, target):
 
 data_file = TFile('./results/'+year+'/flattree/'+observable+'.root')
 for l in data_file.GetListOfKeys():
-    if TString(l.GetName()).Contains('grp'):
+    if not TString(l.GetName()).Contains('data_obs'):
         hist = data_file.Get(l.GetName())
         hist.Scale(1./nbin)
         histograms.append(hist)
@@ -49,7 +49,10 @@ for n in range(nbin):
 
     time_file = TFile('./results/'+year+'/flattree/'+observable+'_data_timed'+str(nbin)+'.root')
     histograms_timmed = time_file.Get('data_obs_bin'+str(n))
-    data_number_of_event.append(histograms_timmed.GetEntries())
+    data_number_of_event.append(histograms_timmed.Integral())
+    print 'Integral bin '+str(n)+' : '+str(data_number_of_event[n])
+    histograms_timmed.SetName('data_obs')
+    histograms_timmed.SetTitle('data_obs')
 
     output = TFile(out+observable+'_'+str(nbin)+'_'+str(n)+'.root', "RECREATE")
     histograms_timmed.Write()
@@ -62,6 +65,6 @@ file_txt = ''
 for i in data_number_of_event:
     file_txt += str(i)+'\n'
 
-file = open('./combine/'+year+'/one_bin/inputs/'+observable+'_integrals_data_timmed.txt','w') 
+file = open('./combine/'+year+'/one_bin/inputs/'+observable+'_integrals_data_timed.txt','w') 
 file.write(file_txt) 
 file.close() 
