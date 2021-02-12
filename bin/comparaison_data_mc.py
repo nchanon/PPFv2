@@ -4,6 +4,7 @@ import sys
 sys.path.append('./')
 
 from tools.style_manager import *
+from tools.sample_manager import *
 
 import argparse
 
@@ -50,7 +51,7 @@ syst_up_integral = 0
 syst_down_integral = 0
 canvas = TCanvas('stack_'+observable,'stack_'+observable, 1000, 800)
 
-rootfile_input = TFile('./results/'+year+'/'+observable+'.root')
+rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
 
 ################################################################################
 ## Create Histo 
@@ -74,18 +75,20 @@ max_bin = hist_data.GetXaxis().GetXmax()
 ###########
 
 # signal
-hist_signal = rootfile_input.Get('grp_signal')
+hist_signal = rootfile_input.Get('signal')
 signal_integral = hist_signal.Integral()
 
 
 # background
+background_integral = 0
 hist_background  = TH1F("background", "background", nbin, min_bin, max_bin)
 for l in rootfile_input.GetListOfKeys():
-    if(TString(l.GetName()).Contains("grp") and not TString(l.GetName()).Contains("signal")  and not TString(l.GetName()).Contains("Up") and not TString(l.GetName()).Contains("Down")):
-        print l.GetName()
-        hist_background.Add(rootfile_input.Get(l.GetName()))
-        background_integral_i.append([rootfile_input.Get(l.GetName()).Integral(), l.GetName()])
-        background_integral += rootfile_input.Get(l.GetName()).Integral()
+    for s in ttbar_list:
+        if(l.GetName() == s and not l.GetName() == 'signal'):
+            print l.GetName()
+            hist_background.Add(rootfile_input.Get(l.GetName()))
+            background_integral_i.append([rootfile_input.Get(l.GetName()).Integral(), l.GetName()])
+            background_integral += rootfile_input.Get(l.GetName()).Integral()
 
 
 
