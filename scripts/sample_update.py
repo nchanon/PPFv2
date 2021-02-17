@@ -115,9 +115,10 @@ core += '#define COMMON_LIST \n'
 core += listing('namelist', 'triggerList', triggers[year])
 core += listing('namelist', 'ttbarList', ttbar_list)
 core += listing('namelist', 'systematicList', systematic_list)
+core += listing('namelist', 'systematicTimeList', systematic_time_list)
+core += listing('namelist', 'systematicRate', systematic_rate[year])
 core += '#endif \n\n'
 
-core += listing('namelist', 'systematicRate', systematic_rate[year])
 core += listing('namelist', 'sampleList_MC_'+year, sample_MC)
 core += listing('std::vector<double>', 'mc_rescale_'+year, mc_rescale)
 core += listing('namelist', 'sampleList_DATA_'+year, sample_DATA)

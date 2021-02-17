@@ -11,7 +11,8 @@
 
 const double OMEGA_UT1  = 7.2921e-5;
 const double OMEGA_GMST = 7.2722e-5;
-const double T0         = 1483228800.;
+const double T0_2016    = 1451606400.;
+const double T0_2017    = 1483228800.;
 const double PHASE      = 3.2830;
 
 
@@ -19,7 +20,11 @@ const double PHASE      = 3.2830;
 // Constructor
 /////////////////////////////////
 
-Generator::Generator(std::string const& year_p) : year(year_p)
+Generator::Generator(std::string      const& observable_p,
+                     std::vector<int> const& binning_p,
+                     std::string      const& year_p
+                    ) 
+    : observable(observable_p), nBin(binning_p[0]), minBin(binning_p[1]), maxBin(binning_p[2]),  year(year_p)
 {}
 
 /////////////////////////////////
@@ -28,7 +33,10 @@ Generator::Generator(std::string const& year_p) : year(year_p)
 
 double Generator::siderealHour(double time_p)
 {
-    return (OMEGA_UT1 * (time_p - T0))/OMEGA_GMST;
+    if(year == "2017")
+        return (OMEGA_UT1 * (time_p - T0_2017))/OMEGA_GMST;
+    else if(year == "2016")
+        return (OMEGA_UT1 * (time_p - T0_2016))/OMEGA_GMST;
 }
 
 
@@ -186,8 +194,7 @@ void Generator::groupingSystematics(std::vector<TH1F>      & list,
 // Public methods
 /////////////////////////////////
 
-void Generator::generateMC(std::string         const& observable_p,
-                           namelist            const& sampleList_p,
+void Generator::generateMC(namelist            const& sampleList_p,
                            namelist            const& triggerList_p,
                            namelist            const& groupList_p,
                            namelist            const& systematicsList_p,
@@ -199,7 +206,7 @@ void Generator::generateMC(std::string         const& observable_p,
     std::vector<TH1F> list;
     std::vector<TH1F> listUp;    
     std::vector<TH1F> listDown;
-    std::string filename_p = "./results/"+year+"/flattree/"+observable_p+".root";
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+".root";
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/tree.root";
@@ -207,12 +214,12 @@ void Generator::generateMC(std::string         const& observable_p,
         TTree *tree;
         file->GetObject("events", tree);
         TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
-        TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable_p.c_str(), 25, 0, 500);
+        TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
         std::vector<TH1F*> histUp(systematicsList_p.size());
         std::vector<TH1F*> histDown(systematicsList_p.size());
         for(size_t i = 0; i < systematicsList_p.size(); ++i){
-            histUp[i]   = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+"Up").c_str(), (observable_p+"Up").c_str(), 25, 0, 500);
-            histDown[i] = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+"Down").c_str(), (observable_p+"Down").c_str(), 25, 0, 500);
+            histUp[i]   = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+"Up").c_str(), (observable+"Up").c_str(), nBin, minBin, maxBin);
+            histDown[i] = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+"Down").c_str(), (observable+"Down").c_str(), nBin, minBin, maxBin);
         }
 
         std::cout << " -> " << sampleList_p[n] << std::endl;
@@ -220,12 +227,12 @@ void Generator::generateMC(std::string         const& observable_p,
             tree->GetEntry(i);
             double weight = generateWeight(tree);
             if(isTriggerPassed(tree, triggerList_p)){
-                hist->Fill(tree->GetLeaf(observable_p.c_str())->GetValue(0), weight);
+                hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
                 for(size_t j = 0; j < systematicsList_p.size(); ++j){
                     double systUp = generateSystematics(tree, systematicsList_p[j], true);
                     double systDOwn = generateSystematics(tree, systematicsList_p[j], false);
-                    histUp[j]->Fill(tree->GetLeaf(observable_p.c_str())->GetValue(0), weight*systUp);
-                    histDown[j]->Fill(tree->GetLeaf(observable_p.c_str())->GetValue(0), weight*systDOwn);                        
+                    histUp[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systUp);
+                    histDown[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systDOwn);                        
                 }
             }
             if(i % 100000 == 0)
@@ -257,8 +264,7 @@ void Generator::generateMC(std::string         const& observable_p,
     write(filename_p, listDown, "UPDATE");
 }
 
-void Generator::generateData(std::string         const& observable_p,
-                             namelist            const& sampleList_p,
+void Generator::generateData(namelist            const& sampleList_p,
                              namelist            const& triggerList_p,
                              namelist            const& groupList_p,
                              std::vector<double> const& correction_p,
@@ -269,7 +275,7 @@ void Generator::generateData(std::string         const& observable_p,
     std::vector<TH1F> list;
     std::vector<TH1F> listUp;    
     std::vector<TH1F> listDown;
-    std::string filename_p = "./results/"+year+"/flattree/"+observable_p+".root";
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+".root";
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         std::string filename = "./inputs/"+year+"/DATA/"+sampleList_p[n]+"/tree.root";
@@ -277,20 +283,20 @@ void Generator::generateData(std::string         const& observable_p,
         TTree *tree;
         file->GetObject("events", tree);
         TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
-        TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable_p.c_str(), 25, 0, 500);
+        TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
 
         std::cout << " -> " << sampleList_p[n] << std::endl;
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
             if(isTriggerPassed(tree, triggerList_p)){
                 if (sampleList_p[n].find("MuonEG") != std::string::npos){
-                    hist->Fill(tree->GetLeaf(observable_p.c_str())->GetValue(0));
+                    hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
                     continue;
                     if (sampleList_p[n].find("SingleMuon") != std::string::npos){
-                        hist->Fill(tree->GetLeaf(observable_p.c_str())->GetValue(0));
+                        hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
                         continue;
                         if (sampleList_p[n].find("SingleElectron") != std::string::npos){
-                            hist->Fill(tree->GetLeaf(observable_p.c_str())->GetValue(0));
+                            hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
                             continue;
                         }
                     }
@@ -308,11 +314,11 @@ void Generator::generateData(std::string         const& observable_p,
         delete file;
     }
     groupingData(list, groupList_p);
+    std::cout << "" << std::endl;
     write(filename_p, list, rootOption_p);
 }
 
-void Generator::generateDataTimmed(std::string         const& observable_p,
-                                   namelist            const& sampleList_p,
+void Generator::generateDataTimmed(namelist            const& sampleList_p,
                                    namelist            const& triggerList_p,
                                    namelist            const& groupList_p,
                                    std::vector<double> const& correction_p,
@@ -321,7 +327,7 @@ void Generator::generateDataTimmed(std::string         const& observable_p,
 {
     TH1F::SetDefaultSumw2(1);
     std::vector<TH1F> list;
-    std::string filename_p = "./results/"+year+"/flattree/"+observable_p+"_data_timed"+std::to_string(nBin_p)+".root";
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_data_timed"+std::to_string(nBin_p)+".root";
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         std::string filename = "./inputs/"+year+"/DATA/"+sampleList_p[n]+"/tree.root";
@@ -331,7 +337,7 @@ void Generator::generateDataTimmed(std::string         const& observable_p,
         TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
         std::vector<TH1F*> hist(nBin_p);
         for(size_t i = 0; i < hist.size(); ++i){
-            hist[i] = new TH1F((sampleList_p[n]+"_bin"+std::to_string(i)+'.').c_str(), (observable_p+"_bin"+std::to_string(i)+'.').c_str(), 25, 0, 500);
+            hist[i] = new TH1F((sampleList_p[n]+"_bin"+std::to_string(i)+'.').c_str(), (observable+"_bin"+std::to_string(i)+'.').c_str(), nBin, minBin, maxBin);
         }
 
         std::cout << " -> " << sampleList_p[n] << std::endl;
@@ -340,13 +346,13 @@ void Generator::generateDataTimmed(std::string         const& observable_p,
             int whichBin = int(siderealHour(tree->GetLeaf("unix_time")->GetValue(0)))%nBin_p;
             if(isTriggerPassed(tree, triggerList_p)){
                 if (sampleList_p[n].find("MuonEG") != std::string::npos){
-                    hist[whichBin]->Fill(tree->GetLeaf(observable_p.c_str())->GetValue(0));
+                    hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
                     continue;
                     if (sampleList_p[n].find("SingleMuon") != std::string::npos){
-                        hist[whichBin]->Fill(tree->GetLeaf(observable_p.c_str())->GetValue(0));
+                        hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
                         continue;
                         if (sampleList_p[n].find("SingleElectron") != std::string::npos){
-                            hist[whichBin]->Fill(tree->GetLeaf(observable_p.c_str())->GetValue(0));
+                            hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
                             continue;
                         }
                     }

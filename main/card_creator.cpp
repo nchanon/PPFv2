@@ -1,6 +1,7 @@
 #include "../src/card.hpp"
 #include "../src/debug.h"
 #include "../src/sample_2017.hpp"
+#include "../src/sample_2016.hpp"
 
 #include <iostream>
 #include <fstream>
@@ -12,6 +13,7 @@ int main(int argc, char** argv){
 
     if(argc != 3){
         Log("Wrong number of arguments !!!");
+        Log(" missing arguments : observable, year");
         return 0;
     }
     else{
@@ -19,33 +21,44 @@ int main(int argc, char** argv){
          year       = argv[2];
     }
 
-    int nBin;
-    std::cout << "number of bin : ";
-    std::cin >> nBin;
+    int nBin = 24;
+ //   std::cout << "number of bin : ";
+ //   std::cin >> nBin;
 
 // ------------------------------------------------------------- //
 
-    std::vector<double> integrals;
+    std::vector<double> numberOfEvents;
     double number = 0;
-    std::ifstream f("./combine/"+year+"/one_bin/inputs/"+observable+"_integrals_data_timed.txt");
+    std::ifstream f("./combine/"+year+"/one_bin/inputs/"+observable+"_noe_data_timed.txt");
     for(int i = 0; i < nBin; ++i){
         f >> number;
-        integrals.push_back(number);
+        numberOfEvents.push_back(number);
     }
     
-
-    Card card;
     for(int i = 0; i < nBin; ++i){
+        Card datacard;
         std::string name = observable+"_"+std::to_string(nBin)+"_"+std::to_string(i);
-        card.generateCard("./combine/2017/one_bin/inputs/"+name+"_datacard.txt",
-                          name+".root",
-                          observable,
-                          integrals[i],
-                          ttbarList,
-                          systematicList,
-                          systematicRate
-                         );
+
+        datacard.addGlobalParameter(ttbarList);
+        datacard.addSeparator();
+        datacard.addInputsProcess(name+".root");
+        datacard.addSeparator();
+        datacard.addChanels(observable, numberOfEvents[i]);
+        datacard.addSeparator();
+
+        datacard.addProcToCard(observable, ttbarList);
+        datacard.addSeparator();
+        datacard.addRateToCard(ttbarList, systematicRate);
+        for(std::string const& syst : systematicList)
+            datacard.addSystToCard(syst, "shape", ttbarList);
+        //datacard.addSystToCard("lumi", "lnN", groupList_p, "1.023");
+        for(std::string const& syst : systematicTimeList)
+            datacard.addSystToCard(syst, "shape", ttbarList);
+
+        //datacard.printCard();
+        datacard.saveCard("./combine/"+year+"/one_bin/inputs/"+name+"_datacard.txt");
     }
+
     std::cout << "Finished !!!" << std::endl;
     return 0;
 }

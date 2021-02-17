@@ -14,6 +14,8 @@ class Generator{
 
     private:
 
+        std::string observable;
+        int nBin, minBin, maxBin;
         std::string year;
 
         double siderealHour(double time_p);
@@ -61,11 +63,14 @@ class Generator{
 
     public:
 
-        Generator(std::string const& year_p);
+        Generator(std::string     const& observable_p,
+                  std::vector<int> const& binning_p,
+                  std::string     const& year_p
+                 );
+
         ~Generator(){};
 
-        void generateMC(std::string         const& observable_p,
-                        namelist            const& sampleList_p,
+        void generateMC(namelist            const& sampleList_p,
                         namelist            const& triggerList_p,
                         namelist            const& groupList_p,
                         namelist            const& systematicsList_p,
@@ -73,16 +78,14 @@ class Generator{
                         std::string         const& rootOption_p
                        );
 
-        void generateData(std::string         const& observable_p,
-                          namelist            const& sampleList_p,
+        void generateData(namelist            const& sampleList_p,
                           namelist            const& triggerList_p,
                           namelist            const& groupList_p,
                           std::vector<double> const& correction_p,
                           std::string         const& rootOption_p
                          );
 
-        void generateDataTimmed(std::string         const& observable_p,
-                                namelist            const& sampleList_p,
+        void generateDataTimmed(namelist            const& sampleList_p,
                                 namelist            const& triggerList_p,
                                 namelist            const& groupList_p,
                                 std::vector<double> const& correction_p,

@@ -49,18 +49,24 @@ effective_data_event_2016 = [
     succeeds_job(100.),    #MuonEG_B
     succeeds_job(100.),    #MuonEG_C
     succeeds_job(100.),    #MuonEG_D
-    succeeds_job(95.8),    #MuonEG_E
+    succeeds_job(100.),    #MuonEG_E
     succeeds_job(100.),    #MuonEG_F
-    succeeds_job(87.6),    #SingleElectron_B
+    succeeds_job(100.),    #MuonEG_G
+    succeeds_job(100.),    #MuonEG_H
+    succeeds_job(100.),    #SingleElectron_B
     succeeds_job(100.),    #SingleElectron_C
     succeeds_job(100.),    #SingleElectron_D
-    succeeds_job(83.3),    #SingleElectron_E
-    succeeds_job(76.5),    #SingleElectron_F
+    succeeds_job(100.),    #SingleElectron_E
+    succeeds_job(100.),    #SingleElectron_F
+    succeeds_job(100.),    #SingleElectron_G
+    succeeds_job(100.),    #SingleElectron_H
     succeeds_job(100.),    #SingleMuon_B
     succeeds_job(100.),    #SingleMuon_C
     succeeds_job(100.),    #SingleMuon_D
     succeeds_job(100.),    #SingleMuon_E
-    succeeds_job(100.)     #SingleMuon_F
+    succeeds_job(100.),    #SingleMuon_F
+    succeeds_job(100.),    #SingleMuon_G
+    succeeds_job(100.)     #SingleMuon_H
 ]
 
 systematic_rate_2016 = [
@@ -185,6 +191,12 @@ systematic_list = [
     'syst_muon_iso',
     'syst_em_trig',
     'syst_pu'
+]
+
+systematic_time_list = [
+    'lumi_inclusive',
+    'lumi_stability',
+    'lumi_linearity'
 ]
 
 trig_2016 = [

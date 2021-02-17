@@ -32,7 +32,11 @@ namelist systematicList {
     "syst_pu"
 };
 
-#endif 
+namelist systematicTimeList {
+    "lumi_inclusive",
+    "lumi_stability",
+    "lumi_linearity"
+};
 
 namelist systematicRate {
     "1.3",
@@ -41,6 +45,8 @@ namelist systematicRate {
     "1.5",
     "1.5"
 };
+
+#endif 
 
 namelist sampleList_MC_2017 {
     "MC_dibosons_WW",
