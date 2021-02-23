@@ -1,0 +1,8 @@
+#./bin/histograms_creator m_dilep 2017
+echo "  1) rootfile creation for combine"
+python ./bin/combine_inclusive.py $1 $2
+echo "  2) datacard creation for combine"
+./bin/card_creator $1 $2 Unrolled
+cp ./combine/$2/unrolled/inputs/$1_datacard.txt ./combine/$2/inclusive/inputs/
+echo "  3) export to lyoserv"
+python ./scripts/export_combine.py inclusive $2
