@@ -28,7 +28,9 @@ class Card
                                 int             numberOfBins = 1
                                );
 
-        void addInputsProcess(std::string const& rootfile_p);
+        void addInputsProcess(std::string const& directory_p, 
+                              std::string const& rootfile_p
+                             );
 
         void addChanels(std::string const& observable_p,
                         double             numberOfEvents_p

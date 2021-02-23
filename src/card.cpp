@@ -3,6 +3,10 @@
 
 #include <fstream>
 
+unsigned int block_proc = 30;
+unsigned int block_syst = 24;
+unsigned int block_grp  = 15;
+
 /////////////////////////////////
 // Constructor
 /////////////////////////////////
@@ -47,10 +51,12 @@ void Card::addGlobalParameter(namelist const& groupList_p,
     datacard += "kmax * number of nuisance parameters\n";
 }
 
-void Card::addInputsProcess(std::string const& rootfile_p)
+void Card::addInputsProcess(std::string const& directory_p,
+                            std::string const& rootfile_p
+                           )
 {
-    datacard += "shapes * * ./inputs/"+rootfile_p+" $PROCESS $PROCESS_$SYSTEMATIC\n";
-    datacard += "shapes sig * ./inputs/"+rootfile_p+" $PROCESS $PROCESS_$SYSTEMATIC\n";
+    datacard += "shapes * * "+directory_p+rootfile_p+" $PROCESS $PROCESS_$SYSTEMATIC\n";
+    datacard += "shapes sig * "+directory_p+rootfile_p+" $PROCESS $PROCESS_$SYSTEMATIC\n";
 }
 
 void Card::addChanels(std::string const& observable_p,
@@ -66,8 +72,6 @@ void Card::addProcToCard(std::string const& observable_p,
                          namelist    const& groupList_p
                         )
 {
-    unsigned int block_proc = 30;
-    unsigned int block_grp  = 15;
 
     std::string line0 = completeBlock("bin", block_proc);
     std::string line1 = completeBlock("process", block_proc);
@@ -89,9 +93,10 @@ void Card::addSystToCard(std::string const& systName_p,
                             std::string const& value_p
                            )
 {
-    datacard += completeBlock(systName_p, 24) + completeBlock(shape_p, 6);
+    datacard += completeBlock(systName_p, block_syst) 
+             + completeBlock(shape_p, block_proc-block_syst);
     for(size_t i = 0; i < groupList_p.size(); ++i)
-        datacard += completeBlock(value_p, 12);
+        datacard += completeBlock(value_p, block_grp);
     datacard += '\n';
 }
 
@@ -100,12 +105,13 @@ void Card::addRateToCard(namelist    const& groupList_p,
                         )
 {
     for(size_t i = 1; i < groupList_p.size(); ++i){
-        std::string line = completeBlock("r"+groupList_p[i], 24) + completeBlock("lnN", 6);
+        std::string line = completeBlock("r"+groupList_p[i], block_syst) 
+                         + completeBlock("lnN", block_proc-block_syst);
         for(size_t j = 0; j < groupList_p.size(); ++j){
             if(i == j)
-                line += completeBlock(systematicsRate_p[j-1], 12);
+                line += completeBlock(systematicsRate_p[j-1], block_grp);
             else
-                line += completeBlock("0", 12);
+                line += completeBlock("0", block_grp);
         }  
         datacard += line + '\n';
     }

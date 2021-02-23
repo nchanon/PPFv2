@@ -1,8 +1,18 @@
+#!/usr/bin/env python
 
+import sys, os
 ##########
 
 def succeeds_job(percent):
     return 100./(percent)
+
+def inputs_name(path, year, nature):
+    foo = os.listdir('./'+path+'/'+year+'/'+nature+'/')
+    foo.sort()
+    if(not foo):
+        print 'Error : dataset list is empty'
+    return foo
+
 
 ################################################################################
 ## 2016 
@@ -226,4 +236,16 @@ systematic_rate = {
     '2016' : systematic_rate_2016,
     '2017' : systematic_rate_2017,
 #    '2018' : trig_2018
+}
+
+sample_MC = {
+    '2016' : inputs_name('inputs', '2016', 'MC'),
+    '2017' : inputs_name('inputs', '2017', 'MC'),
+#    '2018' : trig_2018    
+}
+
+sample_DATA = {
+    '2016' : inputs_name('inputs', '2016', 'DATA'),
+    '2017' : inputs_name('inputs', '2017', 'DATA'),
+#    '2018' : trig_2018    
 }

@@ -38,24 +38,28 @@ class Generator{
                   );
 
         void groupingMC(std::vector<TH1F>      & list,
-                        namelist          const& groupList_p
+                        namelist          const& groupList_p,
+                        bool                     clean
                        );
 
         void groupingData(std::vector<TH1F>      & list,
-                          namelist          const& groupList_p
+                          namelist          const& groupList_p,                        bool                     clean
                          );
 
 
         void groupingDataTimed(std::vector<TH1F>      & list,
                                namelist          const& groupList_p,
-                               int                      bin
+                               int                      bin,
+                               int                      nBin,
+                               bool                     clean
                               );
 
 
         void groupingSystematics(std::vector<TH1F>      & list,
                                  namelist          const& groupList_p,
                                  namelist          const& systematicsList_p,
-                                 bool                     isUp
+                                 bool                     isUp,
+                                 bool                     clean
                                 );
 
         
@@ -75,21 +79,24 @@ class Generator{
                         namelist            const& groupList_p,
                         namelist            const& systematicsList_p,
                         std::vector<double> const& correction_p,
-                        std::string         const& rootOption_p
+                        std::string         const& rootOption_p,
+                        bool                       clean_p = true
                        );
 
         void generateData(namelist            const& sampleList_p,
                           namelist            const& triggerList_p,
                           namelist            const& groupList_p,
                           std::vector<double> const& correction_p,
-                          std::string         const& rootOption_p
+                          std::string         const& rootOption_p,
+                          bool                       clean_p = true
                          );
 
         void generateDataTimmed(namelist            const& sampleList_p,
                                 namelist            const& triggerList_p,
                                 namelist            const& groupList_p,
                                 std::vector<double> const& correction_p,
-                                int                        nBin_p
+                                int                        nBin_p,
+                                bool                       clean_p = true
                                );
 
 };

@@ -1,3 +1,5 @@
-inputs/
-results/
+*.root
+*.txt
+*.png
+*.pdf
 .vscode/

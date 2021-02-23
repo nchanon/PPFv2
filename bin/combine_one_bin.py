@@ -107,7 +107,6 @@ for n in range(nbin):
     output = TFile(out+observable+'_'+str(nbin)+'_'+str(n)+'.root', "RECREATE")
     histograms_timmed.Write()
     for h in histograms:
-        h.Scale(lumi_histo.GetBinContent(n+1))
         h.Write()
     output.Close()
 
@@ -116,6 +115,6 @@ file_txt = ''
 for i in data_number_of_event:
     file_txt += str(i)+'\n'
 
-file = open('./combine/'+year+'/one_bin/inputs/'+observable+'_noe_data_timed.txt','w') 
+file = open('./combine/'+year+'/'+observable+'_noe_data_timed.txt','w') 
 file.write(file_txt) 
 file.close() 

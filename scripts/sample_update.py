@@ -20,12 +20,6 @@ year = args.year
 ## Functions stuff
 ################################################################################
 
-def inputs_name(path, year, nature):
-    foo = os.listdir('./'+path+'/'+year+'/'+nature+'/')
-    foo.sort()
-    if(not foo):
-        print 'Error : dataset list is empty'
-    return foo
 
 def eventfilter_input(year, nature, sample, filter):
     return './inputs/'+year+'/'+nature+'/'+sample+'/0000/'+sample+'/'+filter+'/SkimReport.txt'
@@ -98,10 +92,8 @@ def listing(cpp_type, name, content):
 ## Code body
 ################################################################################
 
-sample_MC    = inputs_name('inputs', year, 'MC')
-sample_DATA  = inputs_name('inputs', year, 'DATA')
 
-effective_N0 = generate_eventN0(year, sample_MC)
+effective_N0 = generate_eventN0(year, sample_MC[year])
 mc_rescale   = rescaling(year, effective_N0)
 
 core = "// "+year+" samples : \n\n"
@@ -119,9 +111,9 @@ core += listing('namelist', 'systematicTimeList', systematic_time_list)
 core += listing('namelist', 'systematicRate', systematic_rate[year])
 core += '#endif \n\n'
 
-core += listing('namelist', 'sampleList_MC_'+year, sample_MC)
+core += listing('namelist', 'sampleList_MC_'+year, sample_MC[year])
 core += listing('std::vector<double>', 'mc_rescale_'+year, mc_rescale)
-core += listing('namelist', 'sampleList_DATA_'+year, sample_DATA)
+core += listing('namelist', 'sampleList_DATA_'+year, sample_DATA[year])
 core += listing('std::vector<double>', 'succedJobs_'+year, effective_data_event[year])
 core += listing('namelist', 'data_'+year, data_name[year])
 

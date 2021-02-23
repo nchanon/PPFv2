@@ -9,8 +9,8 @@
 #include <TString.h>
 
 
-const double OMEGA_UT1  = 7.2921e-5;
 const double OMEGA_GMST = 7.2722e-5;
+const double OMEGA_UTC  = 7.2921e-5;
 const double T0_2016    = 1451606400.;
 const double T0_2017    = 1483228800.;
 const double PHASE      = 3.2830;
@@ -34,9 +34,11 @@ Generator::Generator(std::string      const& observable_p,
 double Generator::siderealHour(double time_p)
 {
     if(year == "2017")
-        return (OMEGA_UT1 * (time_p - T0_2017))/OMEGA_GMST;
+        return (OMEGA_UTC * (time_p - T0_2017))/OMEGA_GMST;
     else if(year == "2016")
-        return (OMEGA_UT1 * (time_p - T0_2016))/OMEGA_GMST;
+        return (OMEGA_UTC * (time_p - T0_2016))/OMEGA_GMST;
+    else
+        return 0;
 }
 
 
@@ -106,7 +108,7 @@ void Generator::write(std::string       const& filename,
 }
 
 void Generator::groupingMC(std::vector<TH1F>      & list,
-                           namelist          const& groupList_p
+                           namelist          const& groupList_p,                        bool                     clean
                           )
 {
     double nbin = list[0].GetNbinsX();
@@ -121,10 +123,12 @@ void Generator::groupingMC(std::vector<TH1F>      & list,
         }
         list.push_back(h);
     }
+    if(clean)
+        list.erase(list.begin(), list.end()-groupList_p.size());
 }
 
 void Generator::groupingData(std::vector<TH1F>      & list,
-                             namelist          const& groupList_p
+                             namelist          const& groupList_p,                       bool                     clean
                             )
 {
     double nbin = list[0].GetNbinsX();
@@ -139,11 +143,14 @@ void Generator::groupingData(std::vector<TH1F>      & list,
         }
         list.push_back(h);
     }
+    if(clean)
+        list.erase(list.begin(), list.end()-1);
 }
 
 void Generator::groupingDataTimed(std::vector<TH1F>      & list,
                                   namelist          const& groupList_p,
-                                  int                      bin
+                                  int                      bin,            
+                                  int                      nBin,           bool                     clean
                                  )
 {
     double nbin = list[0].GetNbinsX();
@@ -159,12 +166,17 @@ void Generator::groupingDataTimed(std::vector<TH1F>      & list,
         }
         list.push_back(h);
     }
+    if(bin == nBin-1){// To clean after all group histogram creation
+        if(clean)
+            list.erase(list.begin(), list.end()-nBin);
+    }
 }
 
 void Generator::groupingSystematics(std::vector<TH1F>      & list,
                                     namelist          const& groupList_p,
                                     namelist          const& systematicsList_p,
-                                    bool                     isUp
+                                    bool                     isUp,
+                                    bool                     clean
                                    )
 {
     double nbin = list[0].GetNbinsX();
@@ -187,6 +199,8 @@ void Generator::groupingSystematics(std::vector<TH1F>      & list,
             list.push_back(h); 
         }
     }
+    if(clean)
+        list.erase(list.begin(), list.end()-(groupList_p.size()*systematicsList_p.size()));
 }
 
 
@@ -199,14 +213,18 @@ void Generator::generateMC(namelist            const& sampleList_p,
                            namelist            const& groupList_p,
                            namelist            const& systematicsList_p,
                            std::vector<double> const& correction_p,
-                           std::string         const& option_p
+                           std::string         const& option_p,
+                           bool                       clean_p
                           )
 {
     TH1F::SetDefaultSumw2(1);
     std::vector<TH1F> list;
     std::vector<TH1F> listUp;    
     std::vector<TH1F> listDown;
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+".root";
+
+    std::string cleaned;
+    if(!clean_p) cleaned = "_unclean";
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+cleaned+".root";
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/tree.root";
@@ -256,9 +274,9 @@ void Generator::generateMC(namelist            const& sampleList_p,
         delete tree;
         delete file;
     }
-    groupingMC(list, groupList_p);
-    groupingSystematics(listUp, groupList_p, systematicsList_p, true);    // isUp = true
-    groupingSystematics(listDown, groupList_p, systematicsList_p, false); // isUp = false
+    groupingMC(list, groupList_p, clean_p);
+    groupingSystematics(listUp, groupList_p, systematicsList_p, true, clean_p);    // isUp = true
+    groupingSystematics(listDown, groupList_p, systematicsList_p, false, clean_p); // isUp = false
     write(filename_p, list, option_p);
     write(filename_p, listUp, "UPDATE");
     write(filename_p, listDown, "UPDATE");
@@ -268,14 +286,18 @@ void Generator::generateData(namelist            const& sampleList_p,
                              namelist            const& triggerList_p,
                              namelist            const& groupList_p,
                              std::vector<double> const& correction_p,
-                             std::string         const& rootOption_p
+                             std::string         const& rootOption_p,
+                             bool                       clean_p
                             )
 {
     TH1F::SetDefaultSumw2(1);
     std::vector<TH1F> list;
     std::vector<TH1F> listUp;    
     std::vector<TH1F> listDown;
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+".root";
+
+    std::string cleaned;
+    if(!clean_p) cleaned = "_unclean";
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+cleaned+".root";
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         std::string filename = "./inputs/"+year+"/DATA/"+sampleList_p[n]+"/tree.root";
@@ -313,8 +335,8 @@ void Generator::generateData(namelist            const& sampleList_p,
         delete tree;
         delete file;
     }
-    groupingData(list, groupList_p);
-    std::cout << "" << std::endl;
+    groupingData(list, groupList_p, clean_p);
+
     write(filename_p, list, rootOption_p);
 }
 
@@ -322,12 +344,16 @@ void Generator::generateDataTimmed(namelist            const& sampleList_p,
                                    namelist            const& triggerList_p,
                                    namelist            const& groupList_p,
                                    std::vector<double> const& correction_p,
-                                   int                        nBin_p
+                                   int                        nBin_p,
+                                   bool                       clean_p
                                   )
 {
     TH1F::SetDefaultSumw2(1);
     std::vector<TH1F> list;
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_data_timed"+std::to_string(nBin_p)+".root";
+
+    std::string cleaned;
+    if(!clean_p) cleaned = "_unclean";
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_data_timed"+std::to_string(nBin_p)+cleaned+".root";
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         std::string filename = "./inputs/"+year+"/DATA/"+sampleList_p[n]+"/tree.root";
@@ -372,7 +398,7 @@ void Generator::generateDataTimmed(namelist            const& sampleList_p,
         delete file;
     }
     for(int i = 0; i < nBin_p; ++i){
-        groupingDataTimed(list, groupList_p, i);
+        groupingDataTimed(list, groupList_p, i, nBin_p, clean_p);
     }
     write(filename_p, list, "RECREATE");
 }
