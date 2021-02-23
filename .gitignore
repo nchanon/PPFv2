@@ -2,4 +2,5 @@
 *.txt
 *.png
 *.pdf
+inputs/
 .vscode/
