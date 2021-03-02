@@ -18,4 +18,4 @@ year = args.year
 path_out = './combine/'+year+'/'+directory+'/results/'
 path_in  = 'acarle@lyoserv.in2p3.fr:/gridgroup/cms/acarle/CMSSW_8_1_0/src/Analyse/'+directory+'/results/'
 
-os.system('scp '+path_in+'* '+path_out)
+os.system('scp '+path_in+'*'+year+'* '+path_out)

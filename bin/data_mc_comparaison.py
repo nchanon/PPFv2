@@ -11,6 +11,8 @@ import argparse
 from ROOT import TFile, TH1, TCanvas, TH1F, THStack, TString
 from ROOT import TLegend, TApplication, TRatioPlot, TPad
 
+import tools.tdrstyle as tdr
+tdr.setTDRStyle()
 
 ################################################################################
 ## Initialisation stuff
@@ -21,7 +23,6 @@ parser.add_argument('observable', help='display your observable')
 parser.add_argument('year', help='year of samples')
 parser.add_argument('title', help='display your observable title')
 parser.add_argument('systematic',nargs='?', help='display your systematic', default='')
-parser.add_argument('subtitle',nargs='?', help='display your observable subtitle', default='')
 parser.add_argument('option',nargs='?', help='display rootfile write option', default='RECREATE')
 
 args = parser.parse_args()
@@ -29,12 +30,6 @@ observable = args.observable
 year = args.year
 title = args.title
 systematic = args.systematic
-subtitle = args.subtitle
-if(subtitle == ''):
-    if year=='2016':
-        subtitle = '35.9 fb^{-1} (13TeV)'
-    elif year=='2017':
-        subtitle = '41.53 fb^{-1} (13TeV)'
 option = args.option
 
 
@@ -49,7 +44,7 @@ background_integral = 0
 data_integral = 0
 syst_up_integral = 0
 syst_down_integral = 0
-canvas = TCanvas('stack_'+observable,'stack_'+observable, 1000, 800)
+canvas = TCanvas('stack_'+observable,'stack_'+observable, 600, 600)
 
 rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
 
@@ -91,13 +86,12 @@ for l in rootfile_input.GetListOfKeys():
             background_integral += rootfile_input.Get(l.GetName()).Integral()
 
 
-
 ################################################################################
 ## Legend stuff
 ################################################################################
 
-legend = TLegend()
-legend.SetHeader(subtitle, "C")
+legend_args = (0.645, 0.79, 0.985, 0.91, '', 'NDC')
+legend = TLegend(*legend_args)
 legend.AddEntry(hist_signal, "t#bar{t} signal", "f")
 legend.AddEntry(hist_background, "non-t#bar{t}", "f")
 legend.AddEntry(hist_data, "data")
@@ -123,8 +117,8 @@ style_histo(hist_signal, 2, 1, 2, 3004, 0)
 style_histo(hist_background, 4, 1, 4, 3005, 0)
 style_histo(hist_data, 1, 1, 0, 3001, 1, 20)
 
+tdr.cmsPrel(41530., 13.)
 style_labels_counting(stack, 'Events', title)
-
 
 ################################################################################
 ## Save

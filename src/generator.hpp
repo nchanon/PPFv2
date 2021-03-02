@@ -27,6 +27,10 @@ class Generator{
                                    bool               isUp
                                   );
 
+        void generateTimeSystematics(std::vector<double>      & weightsUp,
+                                     std::vector<double>      & weightsDown
+                                    );
+
         
         bool isTriggerPassed(TTree         * tree_p,
                              namelist const& triggerList_p
@@ -78,6 +82,7 @@ class Generator{
                         namelist            const& triggerList_p,
                         namelist            const& groupList_p,
                         namelist            const& systematicsList_p,
+                        namelist            const& systematicsTimeList_p,
                         std::vector<double> const& correction_p,
                         std::string         const& rootOption_p,
                         bool                       clean_p = true
@@ -91,12 +96,12 @@ class Generator{
                           bool                       clean_p = true
                          );
 
-        void generateDataTimmed(namelist            const& sampleList_p,
-                                namelist            const& triggerList_p,
-                                namelist            const& groupList_p,
-                                std::vector<double> const& correction_p,
-                                int                        nBin_p,
-                                bool                       clean_p = true
-                               );
+        void generateDataTimed(namelist            const& sampleList_p,
+                               namelist            const& triggerList_p,
+                               namelist            const& groupList_p,
+                               std::vector<double> const& correction_p,
+                               int                        nBin_p,
+                               bool                       clean_p = true
+                              );
 
 };

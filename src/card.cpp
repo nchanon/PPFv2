@@ -78,10 +78,13 @@ void Card::addProcToCard(std::string const& observable_p,
     std::string line2 = line1;
     std::string line3 = completeBlock("rate", block_proc);
 
-    for(size_t i = 0; i < groupList_p.size(); ++i){
+    for(int i = 0; i < int(groupList_p.size()); ++i){
         line0 += completeBlock(observable_p, block_grp);
         line1 += completeBlock(groupList_p[i], block_grp);
-        line2 += completeBlock(std::to_string(i), block_grp);
+        if(groupList_p[0] == "signal")
+            line2 += completeBlock(std::to_string(i), block_grp);
+        else
+            line2 += completeBlock(std::to_string(i-1), block_grp);
         line3 += completeBlock("-1", block_grp);
     }
     datacard += line0+'\n'+line1+'\n'+line2+'\n'+line3+'\n'; 

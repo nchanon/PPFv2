@@ -32,15 +32,25 @@ TH1.SetDefaultSumw2(1)
 ################################################################################
 
 
+
 ################################################################################
 ## Code body
 ################################################################################
+
+# time dependant
+lumi_syst_up = []
+lumi_syst_down = []
 
 histograms = []
 
 data_file = TFile('./results/'+year+'/flattree/'+observable+'.root')
 for l in data_file.GetListOfKeys():
     hist = data_file.Get(l.GetName())
+    histograms.append(hist)
+
+data_file2 = TFile('./results/'+year+'/flattree/'+observable+'_timed.root')
+for l in data_file2.GetListOfKeys():
+    hist = data_file2.Get(l.GetName())
     histograms.append(hist)
 
 out = './combine/'+year+'/inclusive/inputs/'

@@ -7,7 +7,7 @@
 #include <TCanvas.h>
 #include <TLeaf.h>
 #include <TString.h>
-
+#include <TList.h>
 
 const double OMEGA_GMST = 7.2722e-5;
 const double OMEGA_UTC  = 7.2921e-5;
@@ -79,6 +79,40 @@ double Generator::generateSystematics(TTree            * tree_p,
             return (1+foo);
         else
             return (1-foo);
+    }
+}
+
+
+void Generator::generateTimeSystematics(std::vector<double>      & weightsUp,
+                                        std::vector<double>      & weightsDown
+                                        )
+{
+    std::string timeName = "./inputs/timed/LumiUncertainties_"+year+".root";
+    TFile* timeFile = new TFile(timeName.c_str());
+    std::vector<TH1F*> timeUp;
+    std::vector<TH1F*> timeDown;
+    for(auto const& key : *timeFile->GetListOfKeys()){
+        if(TString(key->GetName()).Contains("Up"))
+            timeUp.push_back((TH1F*)timeFile->Get(key->GetName()));
+        if(TString(key->GetName()).Contains("Down"))
+            timeDown.push_back((TH1F*)timeFile->Get(key->GetName()));
+    }
+    double nbin = timeUp[0]->GetNbinsX();
+    for(size_t i = 0; i < timeUp.size(); ++i){
+        timeUp[i]->Rebin(timeUp[i]->GetNbinsX());
+        timeDown[i]->Rebin(timeDown[i]->GetNbinsX());
+        if(TString(timeUp[i]->GetName()).Contains("Inclusive")){
+            weightsUp[0] = timeUp[i]->Integral()/nbin; 
+            weightsDown[0] = timeDown[i]->Integral()/nbin;
+        }
+        if(TString(timeUp[i]->GetName()).Contains("Stability")){
+            weightsUp[1] = timeUp[i]->Integral()/nbin; 
+            weightsDown[1] = timeDown[i]->Integral()/nbin;
+        }
+        if(TString(timeUp[i]->GetName()).Contains("Linearity")){
+            weightsUp[2] = timeUp[i]->Integral()/nbin; 
+            weightsDown[2] = timeDown[i]->Integral()/nbin;
+        }
     }
 }
 
@@ -212,6 +246,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
                            namelist            const& triggerList_p,
                            namelist            const& groupList_p,
                            namelist            const& systematicsList_p,
+                           namelist            const& systematicsTimeList_p,
                            std::vector<double> const& correction_p,
                            std::string         const& option_p,
                            bool                       clean_p
@@ -221,10 +256,17 @@ void Generator::generateMC(namelist            const& sampleList_p,
     std::vector<TH1F> list;
     std::vector<TH1F> listUp;    
     std::vector<TH1F> listDown;
+    std::vector<TH1F> listTimeUp;    
+    std::vector<TH1F> listTimeDown;
 
     std::string cleaned;
     if(!clean_p) cleaned = "_unclean";
     std::string filename_p = "./results/"+year+"/flattree/"+observable+cleaned+".root";
+    std::string filenameTime_p = "./results/"+year+"/flattree/"+observable+"_timed"+cleaned+".root";
+
+    std::vector<double> timeSystWeightUp(systematicsTimeList_p.size(), 0);
+    std::vector<double> timeSystWeightDown(systematicsTimeList_p.size(), 0);
+    generateTimeSystematics(timeSystWeightUp, timeSystWeightDown);
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/tree.root";
@@ -235,9 +277,15 @@ void Generator::generateMC(namelist            const& sampleList_p,
         TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
         std::vector<TH1F*> histUp(systematicsList_p.size());
         std::vector<TH1F*> histDown(systematicsList_p.size());
+        std::vector<TH1F*> histUpTime(systematicsList_p.size());
+        std::vector<TH1F*> histDownTime(systematicsList_p.size());
         for(size_t i = 0; i < systematicsList_p.size(); ++i){
             histUp[i]   = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+"Up").c_str(), (observable+"Up").c_str(), nBin, minBin, maxBin);
             histDown[i] = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+"Down").c_str(), (observable+"Down").c_str(), nBin, minBin, maxBin);
+        }
+        for(size_t i = 0; i < systematicsTimeList_p.size(); ++i){
+            histUpTime[i]   = new TH1F((sampleList_p[n]+"_"+systematicsTimeList_p[i]+"Up").c_str(), (observable+"Up").c_str(), nBin, minBin, maxBin);
+            histDownTime[i] = new TH1F((sampleList_p[n]+"_"+systematicsTimeList_p[i]+"Down").c_str(), (observable+"Down").c_str(), nBin, minBin, maxBin);
         }
 
         std::cout << " -> " << sampleList_p[n] << std::endl;
@@ -248,10 +296,17 @@ void Generator::generateMC(namelist            const& sampleList_p,
                 hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
                 for(size_t j = 0; j < systematicsList_p.size(); ++j){
                     double systUp = generateSystematics(tree, systematicsList_p[j], true);
-                    double systDOwn = generateSystematics(tree, systematicsList_p[j], false);
+                    double systDown = generateSystematics(tree, systematicsList_p[j], false);
                     histUp[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systUp);
-                    histDown[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systDOwn);                        
+                    histDown[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systDown);                        
                 }
+                for(size_t j = 0; j < systematicsTimeList_p.size(); ++j){
+                    double systUp = timeSystWeightUp[j];
+                    double systDown = timeSystWeightDown[j];
+                    histUpTime[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systUp);
+                    histDownTime[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systDown);                        
+                }
+
             }
             if(i % 100000 == 0)
                 std::cout << "100 000 events passed" << std::endl;
@@ -264,11 +319,20 @@ void Generator::generateMC(namelist            const& sampleList_p,
             listUp.push_back(*histUp[i]);
             listDown.push_back(*histDown[i]);
         }
+        for(size_t i = 0; i < systematicsTimeList_p.size(); ++i){
+            histUpTime[i]->Scale(correction_p[n]);
+            histDownTime[i]->Scale(correction_p[n]);
+            listTimeUp.push_back(*histUpTime[i]);
+            listTimeDown.push_back(*histDownTime[i]);
+        }
+
 
         delete hist;
         for(size_t i = 0; i < systematicsList_p.size(); ++i){
             delete histUp[i];
             delete histDown[i];
+            delete histUpTime[i];
+            delete histDownTime[i];
         }
         delete canvas;
         delete tree;
@@ -277,9 +341,13 @@ void Generator::generateMC(namelist            const& sampleList_p,
     groupingMC(list, groupList_p, clean_p);
     groupingSystematics(listUp, groupList_p, systematicsList_p, true, clean_p);    // isUp = true
     groupingSystematics(listDown, groupList_p, systematicsList_p, false, clean_p); // isUp = false
+    groupingSystematics(listTimeUp, groupList_p, systematicsTimeList_p, true, clean_p);    // isUp = true
+    groupingSystematics(listTimeDown, groupList_p, systematicsTimeList_p, false, clean_p); // isUp = false
     write(filename_p, list, option_p);
     write(filename_p, listUp, "UPDATE");
     write(filename_p, listDown, "UPDATE");
+    write(filenameTime_p, listTimeUp, "RECREATE");
+    write(filenameTime_p, listTimeDown, "UPDATE");
 }
 
 void Generator::generateData(namelist            const& sampleList_p,
@@ -340,13 +408,13 @@ void Generator::generateData(namelist            const& sampleList_p,
     write(filename_p, list, rootOption_p);
 }
 
-void Generator::generateDataTimmed(namelist            const& sampleList_p,
-                                   namelist            const& triggerList_p,
-                                   namelist            const& groupList_p,
-                                   std::vector<double> const& correction_p,
-                                   int                        nBin_p,
-                                   bool                       clean_p
-                                  )
+void Generator::generateDataTimed(namelist            const& sampleList_p,
+                                  namelist            const& triggerList_p,
+                                  namelist            const& groupList_p,
+                                  std::vector<double> const& correction_p,
+                                  int                        nBin_p,
+                                  bool                       clean_p
+                                 )
 {
     TH1F::SetDefaultSumw2(1);
     std::vector<TH1F> list;

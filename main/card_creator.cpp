@@ -11,16 +11,19 @@ int main(int argc, char** argv){
     std::string year;
     std::string observable;
     std::string process;
+    std::string wilson;
 
-    if(argc != 4){
+    if(argc < 4 or argc >5){
         Log("Wrong number of arguments !!!");
-        Log(" missing arguments : observable, year, combine process (OneBin, Unolled)");
+        Log(" missing arguments : observable, year, combine process (OneBin, Unolled), [wilson] (fXX_L, fXZ_C, ...");
         return 0;
     }
     else{
          observable = argv[1];
          year       = argv[2];
          process    = argv[3];
+         if(argc == 5)
+            wilson = argv[4];
     }
 
     int nBin = 24;
@@ -88,14 +91,14 @@ int main(int argc, char** argv){
         datacard.addRateToCard(ttbarList, systematicRate);
         for(std::string const& syst : systematicList)
             datacard.addSystToCard(syst, "shape", ttbarList);
-        datacard.addSystToCard("lumi", "lnN", ttbarList, "1.023");
-        //for(std::string const& syst : systematicTimeList)
-        //    datacard.addSystToCard(syst, "shape", ttbarList);
+        //datacard.addSystToCard("lumi", "lnN", ttbarList, "1.023");
+        for(std::string const& syst : systematicTimeList)
+            datacard.addSystToCard(syst, "shape", ttbarList);
 
         datacard.saveCard("./combine/"+year+"/unrolled/inputs/"+name+"_datacard.txt");
     }
 
-    else if(process == "Interference"){
+    else if(process == "SME"){
 
         ttbarList.push_back("");
         systematicRate.push_back("");
@@ -105,7 +108,7 @@ int main(int argc, char** argv){
         for(size_t i = systematicRate.size(); i > 1 ; --i){
             systematicRate[i+1] = systematicRate[i-2];
         }
-        ttbarList[0] =  "fXX_L";
+        ttbarList[0] =  wilson;
         systematicRate[0] =  "1.0";
 
         double numberOfEvents;
@@ -117,7 +120,7 @@ int main(int argc, char** argv){
         std::string name = observable;
         datacard.addGlobalParameter(ttbarList);
         datacard.addSeparator();
-        datacard.addInputsProcess("./inputs/"+year+"/", name+".root");
+        datacard.addInputsProcess("./inputs/"+year+"/", name+"_"+wilson+".root");
         datacard.addSeparator();
         datacard.addChanels(observable, numberOfEvents);
         datacard.addSeparator();
@@ -127,12 +130,11 @@ int main(int argc, char** argv){
         datacard.addRateToCard(ttbarList, systematicRate);
         for(std::string const& syst : systematicList)
             datacard.addSystToCard(syst, "shape", ttbarList);
-        datacard.addSystToCard("lumi", "lnN", ttbarList, "1.023");
+        //datacard.addSystToCard("lumi", "lnN", ttbarList, "1.023");
+        for(std::string const& syst : systematicTimeList)
+            datacard.addSystToCard(syst, "shape", ttbarList);
 
-        //for(std::string const& syst : systematicTimeList)
-        //    datacard.addSystToCard(syst, "shape", ttbarList);
-
-        datacard.saveCard("./combine/"+year+"/interference/inputs/"+name+"_datacard.txt");
+        datacard.saveCard("./combine/"+year+"/sme/inputs/"+name+"_"+wilson+"_datacard.txt");
     }
 
 

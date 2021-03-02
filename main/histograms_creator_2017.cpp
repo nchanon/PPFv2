@@ -43,21 +43,23 @@ int main(int argc, char** argv){
     Generator gen(observable, binning, "2017");
 
     if(launch == "MC"){
-        gen.generateMC(sampleList_MC_2017, triggerList, ttbarList, systematicList,
+        gen.generateMC(sampleList_MC_2017, triggerList, ttbarList, 
+                       systematicList, systematicTimeList,
                        mc_rescale_2017, "RECREATE", isClean);
         gen.generateData(sampleList_DATA_2017, triggerList, data_2017, 
                          succedJobs_2017, "UPDATE", isClean);      
     }
     else if(launch == "Timed"){
-        gen.generateDataTimmed(sampleList_DATA_2017, triggerList, data_2017, 
+        gen.generateDataTimed(sampleList_DATA_2017, triggerList, data_2017, 
                                succedJobs_2017, 24, isClean);
     }
     else{
-        gen.generateMC(sampleList_MC_2017, triggerList, ttbarList, systematicList,
+        gen.generateMC(sampleList_MC_2017, triggerList, ttbarList, 
+                       systematicList,systematicTimeList,
                        mc_rescale_2017, "RECREATE", isClean);
         gen.generateData(sampleList_DATA_2017, triggerList, data_2017, 
                          succedJobs_2017, "UPDATE", isClean);           
-        gen.generateDataTimmed(sampleList_DATA_2017, triggerList, data_2017, 
+        gen.generateDataTimed(sampleList_DATA_2017, triggerList, data_2017, 
                                succedJobs_2017, 24, isClean);
     }
 

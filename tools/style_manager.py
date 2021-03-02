@@ -71,14 +71,13 @@ def style_ratioplot(ratio, title, limit):
 
 
 
-def style_labels_counting(histo, titleY, titleX):
+def style_labels_counting(histo, titleY, titleX, is_center = True):
     histo.GetXaxis().SetTitle(titleX)
-    histo.GetXaxis().CenterTitle()
     histo.GetYaxis().SetTitle(titleY)
-    histo.GetYaxis().CenterTitle()
-    histo.GetYaxis().SetLabelSize(0.03)
     histo.GetYaxis().SetMaxDigits(4)
-    histo.GetYaxis().SetTitleOffset(1.5)
+    if(is_center):
+        histo.GetXaxis().CenterTitle()
+        histo.GetYaxis().CenterTitle()
 
 def style_histo(histo, line_color, line_width, 
                        fill_color, fill_style, 
@@ -96,21 +95,3 @@ def legend_box(legend, coordinates):
     legend.SetX2(coordinates[2]) 
     legend.SetY2(coordinates[3])
 
-###############################################################################
-## CMS style 
-###############################################################################
-#import sys
-#sys.path.append('./tools/CMS_style')
-#
-#from CMS_lumi import *
-#from tdrstyle import *
-#
-#def CMS_style():
-#    setTDRStyle()
-#    CMS_lumi.lumi_7TeV = "4.8 fb^{-1}"
-#    CMS_lumi.lumi_8TeV = "18.3 fb^{-1}"
-#    CMS_lumi.writeExtraText = 1
-#    CMS_lumi.extraText = "Supplementary"
-#    CMS_lumi.lumi_sqrtS = "13 TeV" # used with iPeriod = 0, e.g. for simulation-only #plots (default is an empty string)
-#    iPos = 11
-#    if( iPos==0 ): CMS_lumi.relPosX = 0.12
