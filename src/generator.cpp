@@ -34,9 +34,9 @@ Generator::Generator(std::string      const& observable_p,
 double Generator::siderealHour(double time_p)
 {
     if(year == "2017")
-        return (OMEGA_UTC * (time_p - T0_2017))/OMEGA_GMST;
+        return (OMEGA_UTC * (time_p - T0_2017) + PHASE)/OMEGA_GMST;
     else if(year == "2016")
-        return (OMEGA_UTC * (time_p - T0_2016))/OMEGA_GMST;
+        return (OMEGA_UTC * (time_p - T0_2016) + PHASE)/OMEGA_GMST;
     else
         return 0;
 }

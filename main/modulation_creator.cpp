@@ -1,5 +1,4 @@
 #include "../src/sme.hpp"
-#include "../src/sample_2017.hpp"
 #include "../src/debug.h"
 
 #include <iostream>
@@ -8,32 +7,26 @@
 #include <TH1F.h>
 
 
-int main(int argc, char** argv){
+int main(){
 
-    std::string year;
+    std::vector<std::string> year{"2016", "2017"};
 
-    if(argc != 2){
-        Log("Wrong number of arguments !!!");
-        return 0;
+    for(size_t i = 0; i < year.size(); ++i)
+    {    
+        TFile * file = new TFile(("./results/"+year[i]+"/flattree/sme.root").c_str(), "RECREATE");
+        std::vector<SME> sme{
+            SME(Wilson::L),
+            SME(Wilson::R),
+            SME(Wilson::C),
+            SME(Wilson::D)
+        };
+        for(size_t i = 0; i < 4; ++i){
+            sme[i].generateModulation(2);
+        }
+
+        file->Close();
+        delete file;
     }
-    else{
-         year       = argv[1];
-    }
-
     
-    TFile * file = new TFile(("./results/"+year+"/flattree/sme.root").c_str(), "RECREATE");
-    std::vector<SME> sme{
-        SME(Wilson::L),
-        SME(Wilson::R),
-        SME(Wilson::C),
-        SME(Wilson::D)
-    };
-    for(size_t i = 0; i < 4; ++i){
-        sme[i].generateModulation(2);
-    }
-
-    file->Close();
-    delete file;
-
     return 0;
 }
