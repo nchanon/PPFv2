@@ -6,20 +6,8 @@ sys.path.append('./')
 from tools.sample_manager import *
 
 ################################################################################
-## Initialisation stuff
-################################################################################
-
-parser = argparse.ArgumentParser()
-parser.add_argument('year', help='year of samples')
-
-args = parser.parse_args()
-year = args.year
-
-
-################################################################################
 ## Functions stuff
 ################################################################################
-
 
 def eventfilter_input(year, nature, sample, filter):
     return './inputs/'+year+'/'+nature+'/'+sample+'/0000/'+sample+'/'+filter+'/SkimReport.txt'
@@ -92,35 +80,40 @@ def listing(cpp_type, name, content):
 ## Code body
 ################################################################################
 
+years = [
+    '2016',
+    '2017'
+]
 
-effective_N0 = generate_eventN0(year, sample_MC[year])
-mc_rescale   = rescaling(year, effective_N0)
+for year in years:
 
-core = "// "+year+" samples : \n\n"
-core += '#include <vector> \n'
-core += '#include <string> \n'
-core += ' \n'
-core += 'using  namelist = std::vector<std::string>; \n'
-core += ' \n'
-core += '#ifndef COMMON_LIST \n'
-core += '#define COMMON_LIST \n'
-core += listing('namelist', 'triggerList', triggers[year])
-core += listing('namelist', 'ttbarList', ttbar_list)
-core += listing('namelist', 'systematicList', systematic_list)
-core += listing('namelist', 'systematicTimeList', systematic_time_list)
-core += listing('namelist', 'systematicRate', systematic_rate[year])
-core += '#endif \n\n'
+    effective_N0 = generate_eventN0(year, sample_MC[year])
+    mc_rescale   = rescaling(year, effective_N0)
 
-core += listing('namelist', 'sampleList_MC_'+year, sample_MC[year])
-core += listing('std::vector<double>', 'mc_rescale_'+year, mc_rescale)
-core += listing('namelist', 'sampleList_DATA_'+year, sample_DATA[year])
-core += listing('std::vector<double>', 'succedJobs_'+year, effective_data_event[year])
-core += listing('namelist', 'data_'+year, data_name[year])
+    core = "// "+year+" samples : \n\n"
+    core += '#include <vector> \n'
+    core += '#include <string> \n'
+    core += ' \n'
+    core += 'using  namelist = std::vector<std::string>; \n'
+    core += ' \n'
+    core += '#ifndef COMMON_LIST \n'
+    core += '#define COMMON_LIST \n'
+    core += listing('namelist', 'ttbarList', ttbar_list)
+    core += listing('namelist', 'systematicList', systematic_list)
+    core += listing('namelist', 'systematicTimeList', systematic_time_list)
+    core += listing('namelist', 'systematicRate', systematic_rate[year])
+    core += '#endif \n\n'
+    core += listing('namelist', 'triggerList_'+year, triggers[year])
+    core += listing('namelist', 'sampleList_MC_'+year, sample_MC[year])
+    core += listing('std::vector<double>', 'mc_rescale_'+year, mc_rescale)
+    core += listing('namelist', 'sampleList_DATA_'+year, sample_DATA[year])
+    core += listing('std::vector<double>', 'succedJobs_'+year, effective_data_event[year])
+    core += listing('namelist', 'data_'+year, data_name[year])
 
 
-file = open("./src/sample_"+year+".hpp",'w') 
-file.write(core) 
-file.close() 
+    file = open("./src/sample_"+year+".hpp",'w') 
+    file.write(core) 
+    file.close() 
 
 ################################################################################
 ## Rebuild project

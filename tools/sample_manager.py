@@ -18,6 +18,39 @@ def inputs_name(path, year, nature):
 ## 2016 
 ################################################################################
 
+cross_section_2016 = {
+    'MC_dibosons_WW'             :118.7,                # dibosons WW          
+    'MC_dibosons_WW2'            :118.7,                # dibosons WW2         
+    'MC_dibosons_WZ'             :47.13,                # dibosons WZ          
+    'MC_dibosons_WZ2'            :47.13,                # dibosons WZ2         
+    'MC_dibosons_ZZ'             :16.523,               # dibosons ZZ          
+    'MC_dibosons_ZZ2'            :16.523,               # dibosons ZZ2         
+    'MC_signal_dilep'            :89.048226,            # signal dilep       
+    'MC_signal_hadronic'         :377.96006,            # signal hadronic    
+    'MC_signal_semilep'          :366.91429,            # signal semilep     
+    'MC_singletop_ST_s'          :10.32,                # singletop STs
+    'MC_singletop_ST_tW_antitop' :35.85,                # singletop STt antitop
+    'MC_singletop_ST_tW_top'     :35.85,                # singletop STt top
+    'MC_singletop_ST_t_antitop'  :80.95,                # singletop tW  antitop
+    'MC_singletop_ST_t_top'      :36.02,                # singletop tW  top
+    'MC_ttx_TTW'                 :0.2043,               # TTX TTW         
+    'MC_ttx_TTW2'                :0.2043,               # TTX TTW2        
+    'MC_ttx_TTW3'                :0.4062,               # TTX TTW3        
+    'MC_ttx_TTZ'                 :0.2529,               # TTX TTZ         
+    'MC_ttx_TTZ2'                :0.2529,               # TTX TTZ2        
+    'MC_ttx_TTZ3'                :0.2529,               # TTX TTZ3        
+    'MC_ttx_TTZ4'                :0.5297,               # TTX TTZ4        
+     #3.697,                # TTX  TTG        
+     #3.697,                # TTX  TTG2        
+    'MC_wjets_WJets'             :61526.7,              # wjets WJets       
+    'MC_wjets_WJets2'            :61526.7,              # wjets WJets2      
+    'MC_zjets_DY_50'             :6225.4,               # zjets DY        
+    #22635.14              # zjets DY 10-50   
+    #22635.14              # zjets DY 10-50   
+    #22635.14              # zjets DY 10-50       
+}
+
+
 cross_sec_2016 = [ # alphabetic order
     118.7,                # dibosons WW          
     118.7,                # dibosons WW2         
@@ -31,10 +64,10 @@ cross_sec_2016 = [ # alphabetic order
     366.91429,            # signal semilep     
 
     10.32,                # singletop STs
-    80.95,                # singletop STt antitop
-    136.02,               # singletop STt top
     35.85,                # singletop tW  antitop
     35.85,                # singletop tW  top
+    80.95,                # singletop STt antitop
+    136.02,               # singletop STt top
 
     0.2043,               # TTX TTW         
     0.2043,               # TTX TTW2        
@@ -79,17 +112,46 @@ effective_data_event_2016 = [
     succeeds_job(100.)     #SingleMuon_H
 ]
 
-systematic_rate_2016 = [
-    1.3,
-    1.2,
-    1.5,
-    1.5,
-    1.5
+systematic_rate_2016 = [ # AN2019-228 v5, TOP-20-006
+    1.2, #ttx
+    1.3, #singletop
+    1.3, #dibosons
+    1.3, #wjets
+    1.2  #zjets
 ]
 
 ################################################################################
 ## 2017
 ################################################################################
+
+cross_section_2017 = {
+    'MC_dibosons_WW'              :118.7,    
+    'MC_dibosons_WZ'              :47.13,    
+    'MC_dibosons_ZZ'              :16.523,   
+    'MC_signal_dilep'             :89.05,    
+    'MC_signal_hadronic'          :380.11,   
+    'MC_signal_semilep'           :364.31,   
+    'MC_singletop_ST_s'           :10.32,    
+    'MC_singletop_ST_s2'          :10.32,    
+    'MC_singletop_ST_tW_antitop'  :35.5,     
+    'MC_singletop_ST_tW_antitop2' :35.5,     
+    'MC_singletop_ST_tW_top'      :35.5,     
+    'MC_singletop_ST_tW_top2'     :35.5,     
+    'MC_singletop_ST_t_antitop'   :80.95,    
+    'MC_singletop_ST_t_top'       :136.02,   
+    'MC_ttx_TTW'                  :0.2043,   
+    'MC_ttx_TTW2'                 :0.2043,   
+    'MC_ttx_TTW3'                 :0.4062,   
+    'MC_ttx_TTZ'                  :0.2529,   
+    'MC_ttx_TTZ2'                 :0.2529,   
+    'MC_ttx_TTZ3'                 :0.5297,   
+    'MC_wjets_WJets'              :0.4062,   
+    'MC_wjets_WJets2'             :0.4062,   
+    'MC_zjets_DY_1050'            :22635.1,  
+    'MC_zjets_DY_50'              :6225.4,   
+    'MC_zjets_DY_502'             :6225.4    
+
+}
 
 cross_sec_2017 = [
     118.7,    # dibosons WW
@@ -142,12 +204,12 @@ effective_data_event_2017 = [
     succeeds_job(100.)     #SingleMuon_F
 ]
 
-systematic_rate_2017 = [
-    1.3,
-    1.2,
-    1.5,
-    1.5,
-    1.5
+systematic_rate_2017 = [ # AN2019-228 v5, TOP-20-006
+    1.2, #ttx
+    1.3, #singletop
+    1.3, #dibosons
+    1.3, #wjets
+    1.2  #zjets
 ]
 
 ################################################################################

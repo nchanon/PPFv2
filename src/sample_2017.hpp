@@ -7,13 +7,6 @@ using  namelist = std::vector<std::string>;
  
 #ifndef COMMON_LIST 
 #define COMMON_LIST 
-namelist triggerList {
-    "trg_muon_electron_mu8ele23DZ_fired",
-    "trg_muon_electron_mu23ele12_fired",
-    "trg_muon_mu27_fired",
-    "trg_electron_ele35_fired"
-};
-
 namelist ttbarList {
     "signal",
     "ttx",
@@ -39,14 +32,21 @@ namelist systematicTimeList {
 };
 
 namelist systematicRate {
-    "1.3",
     "1.2",
-    "1.5",
-    "1.5",
-    "1.5"
+    "1.3",
+    "1.3",
+    "1.3",
+    "1.2"
 };
 
 #endif 
+
+namelist triggerList_2017 {
+    "trg_muon_electron_mu8ele23DZ_fired",
+    "trg_muon_electron_mu23ele12_fired",
+    "trg_muon_mu27_fired",
+    "trg_electron_ele35_fired"
+};
 
 namelist sampleList_MC_2017 {
     "MC_dibosons_WW",

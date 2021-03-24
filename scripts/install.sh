@@ -4,7 +4,7 @@ echo "##########################"
 
 sleep 1
 echo " > Results directory creation"
-mkdir -p results/{2016,2017,2018}/{comparaison,flattree,stats}
+mkdir -p results/{2016,2017,2018}/{comparaison,flattree,stats,systematics}
 
 sleep 1
 echo " > Inputs directory creation"

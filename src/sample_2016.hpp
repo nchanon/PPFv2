@@ -7,16 +7,6 @@ using  namelist = std::vector<std::string>;
  
 #ifndef COMMON_LIST 
 #define COMMON_LIST 
-namelist triggerList {
-    "trg_muon_electron_mu23ele12_fired",
-    "trg_muon_electron_mu23ele12DZ_fired",
-    "trg_muon_electron_mu8ele23_fired",
-    "trg_muon_electron_mu8ele23DZ_fired",
-    "trg_muon_mu24_fired",
-    "trg_muon_mutk24_fired",
-    "trg_electron_ele27_fired"
-};
-
 namelist ttbarList {
     "signal",
     "ttx",
@@ -42,14 +32,24 @@ namelist systematicTimeList {
 };
 
 namelist systematicRate {
-    "1.3",
     "1.2",
-    "1.5",
-    "1.5",
-    "1.5"
+    "1.3",
+    "1.3",
+    "1.3",
+    "1.2"
 };
 
 #endif 
+
+namelist triggerList_2016 {
+    "trg_muon_electron_mu23ele12_fired",
+    "trg_muon_electron_mu23ele12DZ_fired",
+    "trg_muon_electron_mu8ele23_fired",
+    "trg_muon_electron_mu8ele23DZ_fired",
+    "trg_muon_mu24_fired",
+    "trg_muon_mutk24_fired",
+    "trg_electron_ele27_fired"
+};
 
 namelist sampleList_MC_2016 {
     "MC_dibosons_WW",
@@ -89,10 +89,10 @@ std::vector<double> mc_rescale_2016 {
     0.000631102864445,
     0.000406965344278,
     0.0100761139063,
-    0.0166912411643,
-    0.0280786276729,
-    0.0724202541106,
-    0.0404266816701,
+    0.00739198265276,
+    0.00740052052694,
+    0.163526347845,
+    0.153384581332,
     0.00311306057978,
     0.00311306057978,
     0.00618955069753,

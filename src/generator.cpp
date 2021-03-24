@@ -267,8 +267,8 @@ void Generator::generateMC(namelist            const& sampleList_p,
     std::vector<double> timeSystWeightUp(systematicsTimeList_p.size(), 0);
     std::vector<double> timeSystWeightDown(systematicsTimeList_p.size(), 0);
     generateTimeSystematics(timeSystWeightUp, timeSystWeightDown);
-
     for(size_t n = 0; n < sampleList_p.size(); ++n){
+    
         std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/tree.root";
         TFile* file = new TFile(filename.c_str());
         TTree *tree;
@@ -288,7 +288,8 @@ void Generator::generateMC(namelist            const& sampleList_p,
             histDownTime[i] = new TH1F((sampleList_p[n]+"_"+systematicsTimeList_p[i]+"Down").c_str(), (observable+"Down").c_str(), nBin, minBin, maxBin);
         }
 
-        std::cout << " -> " << sampleList_p[n] << std::endl;
+        std::cout << " -> " << sampleList_p[n] << "  " << correction_p[n] << std::endl;
+
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
             double weight = generateWeight(tree);
@@ -306,7 +307,6 @@ void Generator::generateMC(namelist            const& sampleList_p,
                     histUpTime[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systUp);
                     histDownTime[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systDown);                        
                 }
-
             }
             if(i % 100000 == 0)
                 std::cout << "100 000 events passed" << std::endl;

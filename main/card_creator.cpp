@@ -106,7 +106,7 @@ int main(int argc, char** argv){
             ttbarList[i-1] = ttbarList[i-2];
         }
         for(size_t i = systematicRate.size(); i > 1 ; --i){
-            systematicRate[i+1] = systematicRate[i-2];
+            systematicRate[i-1] = systematicRate[i-2];
         }
         ttbarList[0] =  wilson;
         systematicRate[0] =  "1.0";

@@ -9,7 +9,7 @@ from tools.sample_manager import *
 import argparse
 
 from ROOT import TFile, TH1, TCanvas, TH1F, THStack, TString
-from ROOT import TLegend, TApplication, TRatioPlot, TPad
+from ROOT import TLegend, TApplication, TRatioPlot, TPad, TFrame
 
 import tools.tdrstyle as tdr
 tdr.setTDRStyle()
@@ -22,15 +22,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('observable', help='display your observable')
 parser.add_argument('year', help='year of samples')
 parser.add_argument('title', help='display your observable title')
-parser.add_argument('systematic',nargs='?', help='display your systematic', default='')
-parser.add_argument('option',nargs='?', help='display rootfile write option', default='RECREATE')
 
 args = parser.parse_args()
 observable = args.observable
 year = args.year
 title = args.title
-systematic = args.systematic
-option = args.option
 
 
 nbin = 0
@@ -44,13 +40,24 @@ background_integral = 0
 data_integral = 0
 syst_up_integral = 0
 syst_down_integral = 0
-canvas = TCanvas('stack_'+observable,'stack_'+observable, 600, 600)
+canvas = TCanvas('stack_'+observable,'stack_'+observable, 800, 800)
+canvas.UseCurrentStyle()
 
 rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
 
 ################################################################################
 ## Create Histo 
 ################################################################################
+
+
+r = 0.3
+epsilon = 0.1
+
+pad1 = TPad("pad1", "pad1", 0, r-epsilon, 1, 1)
+pad1.SetBottomMargin(epsilon)
+canvas.cd()
+pad1.Draw()
+pad1.cd()
 
 
 ###########
@@ -92,7 +99,7 @@ for l in rootfile_input.GetListOfKeys():
 
 legend_args = (0.645, 0.79, 0.985, 0.91, '', 'NDC')
 legend = TLegend(*legend_args)
-legend.AddEntry(hist_signal, "t#bar{t} signal", "f")
+legend.AddEntry(hist_signal, "t#bar{t} SM", "f")
 legend.AddEntry(hist_background, "non-t#bar{t}", "f")
 legend.AddEntry(hist_data, "data")
 legend_box(legend, legend_coordinates)
@@ -117,16 +124,63 @@ style_histo(hist_signal, 2, 1, 2, 3004, 0)
 style_histo(hist_background, 4, 1, 4, 3005, 0)
 style_histo(hist_data, 1, 1, 0, 3001, 1, 20)
 
-tdr.cmsPrel(41530., 13.)
 style_labels_counting(stack, 'Events', title)
+stack.GetXaxis().SetLabelSize(0)
+stack.GetXaxis().SetTitleSize(0)
+
+if(year=='2016'):
+    tdr.cmsPrel(35900., 13.)
+elif(year=='2017'):
+    tdr.cmsPrel(41530., 13.)
+
+################################################################################
+## Ratio
+################################################################################
+
+pad2 = TPad("pad2", "pad2", 0, 0, 1, r*(1-epsilon))
+pad2.SetTopMargin(0)
+pad2.SetBottomMargin(0.4)
+pad2.SetFillStyle(0)
+canvas.cd()
+pad2.Draw()
+pad2.cd()
+
+ratio_coef = 0.3
+
+h_one = TH1F("one", "one", 1, min_bin, max_bin)
+h_one.SetBinContent(1, 1)
+h_one.SetLineWidth(1)
+h_one.SetLineColor(15)
+h_num = hist_data.Clone()
+h_denom = hist_signal+hist_background
+h_num.Divide(h_denom)
+h_num.GetXaxis().SetTitle("aksjd")
+ratio = THStack()
+ratio.Add(h_num)
+
+ratio.SetMaximum(1+ratio_coef)
+ratio.SetMinimum(1-ratio_coef)
+ratio.Draw()
+h_one.Draw("SAME")
+
+
+style_labels_counting(ratio, 'Ratio data/mc', title)
+ratio.GetYaxis().SetLabelSize(0.1)
+ratio.GetYaxis().SetTitleSize(0.1)
+ratio.GetYaxis().SetTitleOffset(0.5)
+
+ratio.GetXaxis().SetLabelSize(0.15)
+ratio.GetXaxis().SetTitleSize(0.17)
+ratio.GetXaxis().SetLabelOffset(0.01)
+
 
 ################################################################################
 ## Save
 ################################################################################
 
-resultname = './results/'+year+'/comparaison/'+observable
+resultname = './results/'+year+'/comparaison/'+observable+'_'+year
 
-rootfile_output = TFile(resultname+'.root', option)
+rootfile_output = TFile(resultname+'.root', "RECREATE")
 canvas.Write()
 canvas.SaveAs(resultname+'.png')
 rootfile_output.Close()
@@ -139,9 +193,4 @@ print ''
 for i in background_integral_i:
     print i[1],i[0]
 
-if(systematic != ''):
-    print "Systematic up       : ", syst_up_integral
-    print "Systematic down     : ", syst_down_integral
-print ''
-
-exit = raw_input("Press key to quit : ") 
+#raw_input('exit')
