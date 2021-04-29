@@ -28,6 +28,9 @@ observable = args.observable
 year = args.year
 title = args.title
 
+def integral_complete(histo, max_bin):
+    return histo.Integral()+histo.GetBinContent(int(max_bin+1))+histo.GetBinContent(0)
+
 
 nbin = 0
 min_bin = 0
@@ -64,7 +67,7 @@ pad1.cd()
 # data part
 ###########
 hist_data = rootfile_input.Get('data_obs')
-data_integral = hist_data.Integral()
+data_integral = integral_complete(hist_data, max_bin)
 
 
 # convenient variables
@@ -78,8 +81,7 @@ max_bin = hist_data.GetXaxis().GetXmax()
 
 # signal
 hist_signal = rootfile_input.Get('signal')
-signal_integral = hist_signal.Integral()
-
+signal_integral = integral_complete(hist_signal, max_bin)
 
 # background
 background_integral = 0
@@ -89,8 +91,9 @@ for l in rootfile_input.GetListOfKeys():
         if(l.GetName() == s and not l.GetName() == 'signal'):
             print l.GetName()
             hist_background.Add(rootfile_input.Get(l.GetName()))
-            background_integral_i.append([rootfile_input.Get(l.GetName()).Integral(), l.GetName()])
-            background_integral += rootfile_input.Get(l.GetName()).Integral()
+            background_integral_i.append([integral_complete(rootfile_input.Get(l.GetName()), max_bin), l.GetName()])
+            background_integral += integral_complete(rootfile_input.Get(l.GetName()), max_bin)
+
 
 
 ################################################################################
