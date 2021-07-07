@@ -9,8 +9,8 @@
 
 int main(){
 
-    int binage = 86400;
-    //int binage = 24;
+    //int binage = 86400;
+    int binage = 24;
     std::string output;
     std::vector<std::string> year{"2016", "2017"};
 
@@ -36,6 +36,6 @@ int main(){
         file->Close();
         delete file;
     }
-    
+    std::cout << "Fini !" << std::endl;
     return 0;
 }

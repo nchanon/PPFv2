@@ -24,6 +24,8 @@ class Card
 
         void addSeparator();
 
+        void addLine(std::string const& line);
+
         void addGlobalParameter(namelist const& groupList_p,
                                 int             numberOfBins = 1
                                );
@@ -39,6 +41,8 @@ class Card
         void addProcToCard(std::string const& observable_p,
                            namelist    const& groupList_p
                           );
+
+        void addSystToCard_alternative(bool isSME = false);
 
         void addSystToCard(std::string const& systName_p,
                            std::string const& shape_p,

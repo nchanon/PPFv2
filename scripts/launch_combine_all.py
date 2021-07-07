@@ -7,13 +7,13 @@ import argparse
 
 observables = [
     'm_dilep',
-    'n_bjets',
-    'pt_lead'
+    #'n_bjets',
+#    'pt_lead'
 ]
 
 years = [
     '2016',
-    '2017'
+#    '2017'
 ]
 
 for o in observables:

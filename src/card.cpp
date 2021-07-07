@@ -42,6 +42,11 @@ void Card::addSeparator()
     datacard += "--------------------------------------------------------------------------------------------- \n";
 }
 
+void Card::addLine(std::string const& line)
+{
+    datacard += line + '\n';
+}
+
 
 void Card::addGlobalParameter(namelist const& groupList_p,
                               int             numberOfBins)
@@ -90,6 +95,24 @@ void Card::addProcToCard(std::string const& observable_p,
     datacard += line0+'\n'+line1+'\n'+line2+'\n'+line3+'\n'; 
 }
 
+void Card::addSystToCard_alternative(bool isSME)
+{
+    if(!isSME){
+   datacard += "CP5                     shape 1              0              0              0              0              0              \n";
+   datacard += "hdamp                   shape 1              0              0              0              0              0              \n";
+   datacard += "color_reco              shape 1              0              0              0              0              0              \n";
+   datacard += "jec              shape 1              1              1              1              1              1              \n";
+    }
+    else{
+//   datacard += "CP5                     shape 0 1              0              0              0              0              0              \n";
+//   datacard += "hdamp                   shape 0 1              0              0              0              0              0              \n";
+   datacard += "color_reco              shape 0 1              0              0              0              0              0              \n";
+   datacard += "jec              shape 0 1              1              1              1              1              1              \n";       
+    }
+
+}
+
+
 void Card::addSystToCard(std::string const& systName_p,
                             std::string const& shape_p,
                             namelist    const& groupList_p,
@@ -107,12 +130,12 @@ void Card::addRateToCard(namelist    const& groupList_p,
                          namelist    const& systematicsRate_p
                         )
 {
-    for(size_t i = 1; i < groupList_p.size(); ++i){
+    for(size_t i = 0; i < groupList_p.size(); ++i){
         std::string line = completeBlock("r"+groupList_p[i], block_syst) 
                          + completeBlock("lnN", block_proc-block_syst);
         for(size_t j = 0; j < groupList_p.size(); ++j){
             if(i == j)
-                line += completeBlock(systematicsRate_p[j-1], block_grp);
+                line += completeBlock(systematicsRate_p[j], block_grp);
             else
                 line += completeBlock("0", block_grp);
         }  

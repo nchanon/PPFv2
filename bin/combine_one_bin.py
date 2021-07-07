@@ -31,6 +31,10 @@ TH1.SetDefaultSumw2(1)
 ## function
 ################################################################################
 
+def rename(th1, name):
+    th1.SetName(name)
+    th1.SetTitle(name)
+
 
 ################################################################################
 ## Code body
@@ -44,8 +48,9 @@ data_number_of_event = []
 lumi_syst_up = {}
 lumi_syst_down = {}
 
-lumi_file = TFile('./inputs/timed/LumiUncertainties_'+year+'.root')
+lumi_file = TFile('./inputs/timed/AllTimedSyst_'+year+'.root')
 lumi_histo = lumi_file.Get('hInstLumi_DataScaleFactor')
+hist_weight = lumi_file.Get('h_SF_emu_sidereel_Full_UncBand')
 
 for l in lumi_file.GetListOfKeys():
     if not TString(l.GetName()).Contains('DataScaleFactor'):
@@ -63,7 +68,8 @@ for l in lumi_file.GetListOfKeys():
                 lumi_syst_down.update({systematic_time_list[1]: lumi_file.Get(l.GetName())})
             elif TString(l.GetName()).Contains('Linearity'):
                 lumi_syst_down.update({systematic_time_list[2]: lumi_file.Get(l.GetName())})
-
+    if TString(l.GetName()).Contains('SF_emu_sidereel_Full_UncBand'):
+        lumi_syst_up.update({systematic_time_list[3]: lumi_file.Get(l.GetName())})
 # Body
 data_file = TFile('./results/'+year+'/flattree/'+observable+'.root')
 for l in data_file.GetListOfKeys():
@@ -72,24 +78,54 @@ for l in data_file.GetListOfKeys():
         hist.Scale(1./nbin)
         histograms.append(hist)
 
+
+alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco.root')
+for l in alt_file.GetListOfKeys():
+    h = alt_file.Get(l.GetName())
+    h.Scale(1./nbin)
+    histograms.append(h)
+
+jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec.root')
+for l in jec_file.GetListOfKeys():
+    h = jec_file.Get(l.GetName())
+    hname = l.GetName() 
+    if(hname.find('TotalUp')!= -1):
+        name = hname[:-7]+'jecUp'
+    elif(hname.find('TotalDown')!= -1):
+        name = hname[:-9]+'jecDown'
+    rename(h,name)
+    h.Scale(1./nbin)
+    histograms.append(h)
+
 #print histograms[27].GetName(), histograms[27].GetTitle(), len(histograms)
 
 
 out = './combine/'+year+'/one_bin/inputs/'
 for n in range(nbin):
     
+    hist_tim = []
+
     for g in ttbar_list:
         for s in systematic_time_list:
             hist_up = data_file.Get(g).Clone()
-            hist_up.Scale(lumi_syst_up[s].GetBinContent(n+1))
-            hist_up.SetName(g+'_'+s+'Up')
-            hist_up.SetTitle(g+'_'+s+'Up')
-            hist_down = data_file.Get(g).Clone()
-            hist_down.Scale(lumi_syst_down[s].GetBinContent(n+1))
-            hist_down.SetName(g+'_'+s+'Down')
-            hist_down.SetTitle(g+'_'+s+'Down')
-            histograms.append(hist_up)
-            histograms.append(hist_down)
+            if s == 'emu_trig':
+                hist_up.Scale(1+lumi_syst_up[s].GetBinContent(n+1))
+                hist_up.SetName(g+'_'+s+'Up')
+                hist_up.SetTitle(g+'_'+s+'Up')
+                hist_down = data_file.Get(g).Clone()
+                hist_down.Scale(1-lumi_syst_up[s].GetBinContent(n+1))
+                hist_down.SetName(g+'_'+s+'Down')
+                hist_down.SetTitle(g+'_'+s+'Down')
+            else:
+                hist_up.Scale(lumi_syst_up[s].GetBinContent(n+1))
+                hist_up.SetName(g+'_'+s+'Up')
+                hist_up.SetTitle(g+'_'+s+'Up')
+                hist_down = data_file.Get(g).Clone()
+                hist_down.Scale(lumi_syst_down[s].GetBinContent(n+1))
+                hist_down.SetName(g+'_'+s+'Down')
+                hist_down.SetTitle(g+'_'+s+'Down')
+            hist_tim.append(hist_up)
+            hist_tim.append(hist_down)
     '''
         if n == 0:
             print g, s
@@ -100,7 +136,8 @@ for n in range(nbin):
     histograms_timmed = time_file.Get('data_obs_bin'+str(n))
     histograms_timmed.SetName('data_obs')
     histograms_timmed.SetTitle('data_obs')
-    histograms_timmed.Scale(lumi_histo.GetBinContent(n+1))
+    #histograms_timmed.Scale(lumi_histo.GetBinContent(n+1)*hist_weight.GetBinContent(n+1))
+    histograms_timmed.Scale(hist_weight.GetBinContent(n+1))
     data_number_of_event.append(histograms_timmed.Integral())
     print 'Integral bin '+str(n)+' : '+str(data_number_of_event[n])
 
@@ -108,7 +145,10 @@ for n in range(nbin):
     histograms_timmed.Write()
     for h in histograms:
         h.Write()
+    for h in hist_tim:
+        h.Write()
     output.Close()
+    del hist_tim
 
 
 file_txt = ''

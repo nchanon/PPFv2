@@ -1,6 +1,6 @@
 
 pt_like_values  = [
-    [50, 0, 250],               # binning
+    [50, 20, 250],               # binning
     [0.65, 0.65, 0.87, 0.87]    # legend box
 ]
 eta_like_values = [
@@ -25,7 +25,7 @@ met_like_values = [
 ]
 m_dilep_like_values = [
     [25, 0, 300],               # binnings
-    [0.65, 0.65, 0.87, 0.87]    # legend box
+    [0.65, 0.75, 0.9, 0.9]    # legend box
 ]
 unix_time_like_values = [
     [1, 0, 1],               # binnings

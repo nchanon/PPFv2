@@ -61,6 +61,9 @@ int main(int argc, char** argv){
             //datacard.addSystToCard("lumi", "lnN", groupList_p, "1.023");
             for(std::string const& syst : systematicTimeList)
                 datacard.addSystToCard(syst, "shape", ttbarList);
+            datacard.addSystToCard_alternative();
+            datacard.addSeparator();
+            //datacard.addLine("* autoMCStats 5");
 
             datacard.saveCard("./combine/"+year+"/one_bin/inputs/"+name+"_datacard.txt");
             if(i == 7){
@@ -94,7 +97,6 @@ int main(int argc, char** argv){
         //datacard.addSystToCard("lumi", "lnN", ttbarList, "1.023");
         for(std::string const& syst : systematicTimeList)
             datacard.addSystToCard(syst, "shape", ttbarList);
-
         datacard.saveCard("./combine/"+year+"/unrolled/inputs/"+name+"_datacard.txt");
     }
 
@@ -133,6 +135,9 @@ int main(int argc, char** argv){
         //datacard.addSystToCard("lumi", "lnN", ttbarList, "1.023");
         for(std::string const& syst : systematicTimeList)
             datacard.addSystToCard(syst, "shape", ttbarList);
+        datacard.addSystToCard_alternative(true);
+        datacard.addSeparator();
+        //datacard.addLine("* autoMCStats 5");
 
         datacard.saveCard("./combine/"+year+"/sme/inputs/"+name+"_"+wilson+"_datacard.txt");
     }

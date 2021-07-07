@@ -3,7 +3,8 @@
 
 #include <iostream>
 #include <cmath>
-
+#include <fstream>
+#include <ctime>
 #include <TCanvas.h>
 #include <TLeaf.h>
 #include <TString.h>
@@ -25,11 +26,60 @@ Generator::Generator(std::string      const& observable_p,
                      std::string      const& year_p
                     ) 
     : observable(observable_p), nBin(binning_p[0]), minBin(binning_p[1]), maxBin(binning_p[2]),  year(year_p)
-{}
+{
+    std::ifstream infile("./inputs/timed/LumiData_"+year+".csv");
+    if(!infile.is_open()){
+        std::cout << "Problem with lumi csv file" << std::endl;
+    }
+    else{
+        std::string line;
+        do
+        {
+            std::getline(infile, line);
+            if(line[0] == '#') continue;
+            std::istringstream parse( line );
+            while(parse)
+            {
+                int count = 0;
+                std::string s;
+                while(std::getline( parse, s, ',' )){
+                    if(count == 2)
+                        timestamp.push_back(utcConverter(s));
+                    if(count == 6){
+                        instLumi.push_back(std::stod(s));
+                    }
+                    count++;
+                }
+            }
+        }
+        while(!infile.eof());
+    }
+    for(size_t i = 0; i < 10; ++i){
+        
+        std::cout << i << " : " << timestamp[i] << " -> " << instLumi[i] << std::endl;
+    }
+    
+}
 
 /////////////////////////////////
 // Private methods
 /////////////////////////////////
+
+time_t Generator::utcConverter(std::string const& time)
+{
+    //std::istringstream parse(time);
+    std::tm t{};
+    std::istringstream ss(time);
+    ss >> std::get_time(&t, "%D %X");
+    if (ss.fail()) {
+        throw std::runtime_error{"failed to parse time string"};
+    }
+    t.tm_year += 2000-1900; // c normalisation
+    t.tm_hour += 1; // summer hour normalisation
+    std::time_t time_stamp = mktime(&t);
+    return time_stamp;
+}
+
 
 double Generator::siderealHour(double time_p)
 {
@@ -40,6 +90,12 @@ double Generator::siderealHour(double time_p)
     else
         return 0;
 }
+
+double Generator::luminosityCorrection(TTree *tree_p)
+{
+    return 1;
+}
+
 
 
 double Generator::generateWeight(TTree *tree_p)
@@ -58,7 +114,7 @@ double Generator::generateWeight(TTree *tree_p)
         w *= tree_p->GetLeaf("weight_sfb")->GetValue();
     }
     //trigger
-    w *= tree_p->GetLeaf("weight_sf_em_trig")->GetValue();
+    //w *= tree_p->GetLeaf("weight_sf_em_trig")->GetValue();
     return w;
 }
 
@@ -72,6 +128,18 @@ double Generator::generateSystematics(TTree            * tree_p,
             return tree_p->GetLeaf("weight_pu_up")->GetValue(0)/tree_p->GetLeaf("weight_pu")->GetValue(0);
         else
             return tree_p->GetLeaf("weight_pu_down")->GetValue(0)/tree_p->GetLeaf("weight_pu")->GetValue(0);
+    }
+    else if(systematicName == "syst_pt_top"){
+        if(isUp)
+            return 1;
+        else
+            return 1./tree_p->GetLeaf("weight_top")->GetValue(0);
+    }
+    else if(systematicName == "syst_b"){
+        if(isUp)
+            return tree_p->GetLeaf("weight_sfb_up")->GetValue(0)/tree_p->GetLeaf("weight_sfb")->GetValue(0);
+        else
+            return tree_p->GetLeaf("weight_sfb_down")->GetValue(0)/tree_p->GetLeaf("weight_sfb")->GetValue(0);
     }
     else{
         double foo = tree_p->GetLeaf(systematicName.c_str())->GetValue(0);
@@ -141,10 +209,27 @@ void Generator::write(std::string       const& filename,
     output->Close();
 }
 
+void Generator::write(std::string       const& filename,
+                      std::vector<std::vector<TH1F>> & listObject,
+                      std::string       const& option_p
+                     )
+{
+    TFile *output = new TFile(filename.c_str(), option_p.c_str());
+    for(size_t l = 0; l < listObject.size(); ++l){
+        for(size_t i = 0; i < listObject[l].size(); ++i){
+            listObject[l][i].Write();
+        }
+    }
+
+    output->Close();
+}
+
+
 void Generator::groupingMC(std::vector<TH1F>      & list,
                            namelist          const& groupList_p,                        bool                     clean
                           )
 {
+
     double nbin = list[0].GetNbinsX();
     double min = list[0].GetXaxis()->GetXmin();
     double max = list[0].GetXaxis()->GetXmax();
@@ -160,6 +245,30 @@ void Generator::groupingMC(std::vector<TH1F>      & list,
     if(clean)
         list.erase(list.begin(), list.end()-groupList_p.size());
 }
+
+void Generator::groupingMC(std::vector<TH1F>      & list,
+                           namelist          const& groupList_p,                  
+                           std::string       const& name,
+                           bool                     clean
+                          )
+{
+
+    double nbin = list[0].GetNbinsX();
+    double min = list[0].GetXaxis()->GetXmin();
+    double max = list[0].GetXaxis()->GetXmax();
+
+    for(std::string group : groupList_p){
+        TH1F h((group+'_'+name).c_str(), (group+'_'+name).c_str(), nbin, min, max);
+        for(size_t i = 0; i < list.size(); ++i){
+            if(TString(list[i].GetName()).Contains(group)) 
+                h.Add(&list[i]);
+        }
+        list.push_back(h);
+    }
+    if(clean)
+        list.erase(list.begin(), list.end()-groupList_p.size());
+}
+
 
 void Generator::groupingData(std::vector<TH1F>      & list,
                              namelist          const& groupList_p,                       bool                     clean
@@ -228,6 +337,7 @@ void Generator::groupingSystematics(std::vector<TH1F>      & list,
             TH1F h((group+"_"+syst+updown).c_str(), (group+"_"+syst+updown).c_str(), nbin, min, max);  
             for(size_t i = 0; i < list.size(); ++i){
                 if(TString(list[i].GetName()).Contains(group) and TString(list[i].GetName()).Contains(syst))
+
                     h.Add(&list[i]);        
             }
             list.push_back(h); 
@@ -241,6 +351,108 @@ void Generator::groupingSystematics(std::vector<TH1F>      & list,
 /////////////////////////////////
 // Public methods
 /////////////////////////////////
+
+
+void Generator::generateJecMC(namelist            const& sampleList_p,
+                               namelist            const& jecList_p,
+                               namelist            const& groupList_p,
+                               namelist            const& triggerList_p,
+                               std::vector<std::vector<double>> const& correction_p
+                    )
+{
+    TH1F::SetDefaultSumw2(1);
+    std::vector<std::vector<TH1F> > list(jecList_p.size());
+
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_jec.root";
+    
+    for(size_t jl = 0; jl < jecList_p.size(); ++jl)
+    {
+        for(size_t n = 0; n < sampleList_p.size(); ++n){
+            
+            std::cout << " -> " << jecList_p[jl] << " : " << sampleList_p[n] << "  " << correction_p[jl][n] << std::endl;
+
+            
+            std::string filename = "./inputs/"+year+"/JEC/"+jecList_p[jl]+'/'+sampleList_p[n]+"/NtupleProducer/tree.root";
+
+            TFile* file = new TFile(filename.c_str());
+            TTree *tree;
+            file->GetObject("events", tree);
+            TCanvas *canvas = new TCanvas((jecList_p[jl]+sampleList_p[n]).c_str());
+            TH1F* hist      = new TH1F((jecList_p[jl]+sampleList_p[n]).c_str(), (jecList_p[jl]+sampleList_p[n]).c_str(), nBin, minBin, maxBin);
+            for(int i = 0; i < tree->GetEntriesFast(); ++i){
+                tree->GetEntry(i);
+                double weight = generateWeight(tree);
+                if(isTriggerPassed(tree, triggerList_p)){
+                        hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+                }
+                if(i % 100000 == 0)
+                    std::cout << "100 000 events passed" << std::endl;
+            }
+            hist->Scale(correction_p[jl][n]);
+            list[jl].push_back(*hist);
+
+            delete hist;
+            delete canvas;
+            delete tree;
+            delete file;
+        }
+        groupingMC(list[jl], groupList_p, jecList_p[jl], true);
+    }
+    write(filename_p, list, "RECREATE");
+}
+
+
+void Generator::generateAltMC(namelist            const& sampleList_p,
+                           namelist            const& groupList_p,
+                    namelist            const& triggerList_p,
+                    std::vector<double> const& correction_p
+                    )
+{
+    TH1F::SetDefaultSumw2(1);
+    std::vector<TH1F> list;
+
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_alt.root";
+    
+
+    for(size_t n = 0; n < sampleList_p.size(); ++n){
+        std::string filename = "./inputs/"+year+"/ALT/"+sampleList_p[n]+"/NtupleProducer/tree.root";
+        TFile* file = new TFile(filename.c_str());
+        TTree *tree;
+        file->GetObject("events", tree);
+        TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
+        TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
+
+        std::cout << " -> " << sampleList_p[n] << "  " << correction_p[n] << std::endl;
+
+        std::cout << "sdlfksldfsldf" <<filename.c_str() << std::endl;
+        for(int i = 0; i < tree->GetEntriesFast(); ++i){
+            tree->GetEntry(i);
+            double weight = generateWeight(tree);
+            if(sampleList_p[n].find("alt") == std::string::npos){
+                if(isTriggerPassed(tree, triggerList_p)){
+                    hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+                }
+            }
+            else{
+                hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+            }
+            
+            if(i % 100000 == 0)
+                std::cout << "100 000 events passed" << std::endl;
+        }
+
+        hist->Scale(correction_p[n]);
+        list.push_back(*hist);
+
+        delete hist;
+        delete canvas;
+        delete tree;
+        delete file;
+    }
+    groupingMC(list, groupList_p, false);
+    write(filename_p, list, "RECREATE");
+}
+
 
 void Generator::generateMC(namelist            const& sampleList_p,
                            namelist            const& triggerList_p,
@@ -269,7 +481,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
     generateTimeSystematics(timeSystWeightUp, timeSystWeightDown);
     for(size_t n = 0; n < sampleList_p.size(); ++n){
     
-        std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/tree.root";
+        std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/NtupleProducer/tree.root";
         TFile* file = new TFile(filename.c_str());
         TTree *tree;
         file->GetObject("events", tree);
@@ -355,6 +567,7 @@ void Generator::generateData(namelist            const& sampleList_p,
                              namelist            const& groupList_p,
                              std::vector<double> const& correction_p,
                              std::string         const& rootOption_p,
+                             bool                       correctedLumi,
                              bool                       clean_p
                             )
 {
@@ -363,9 +576,15 @@ void Generator::generateData(namelist            const& sampleList_p,
     std::vector<TH1F> listUp;    
     std::vector<TH1F> listDown;
 
+    double luminosityWeight = 1;
+
     std::string cleaned;
     if(!clean_p) cleaned = "_unclean";
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+cleaned+".root";
+    std::string filename_p = "./results/"+year+"/flattree/"+observable;
+    if(correctedLumi){
+            filename_p += "_lumicorrected";
+    }
+    filename_p += cleaned+".root";
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         std::string filename = "./inputs/"+year+"/DATA/"+sampleList_p[n]+"/tree.root";
@@ -375,18 +594,21 @@ void Generator::generateData(namelist            const& sampleList_p,
         TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
         TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
 
+        if(correctedLumi){
+            luminosityWeight = luminosityCorrection(tree);
+        }
         std::cout << " -> " << sampleList_p[n] << std::endl;
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
             if(isTriggerPassed(tree, triggerList_p)){
                 if (sampleList_p[n].find("MuonEG") != std::string::npos){
-                    hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
+                    hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
                     continue;
                     if (sampleList_p[n].find("SingleMuon") != std::string::npos){
-                        hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
+                        hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
                         continue;
                         if (sampleList_p[n].find("SingleElectron") != std::string::npos){
-                            hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
+                            hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
                             continue;
                         }
                     }

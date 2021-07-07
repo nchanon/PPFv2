@@ -99,7 +99,7 @@ legend_args = (0.645, 0.79, 0.985, 0.91, '', 'NDC')
 legend = []
 for index in range(len(hist_mc)):
     legend.append(TLegend(*legend_args))
-    legend[index].SetHeader(systematic)
+    #legend[index].SetHeader(systematic)
     legend[index].AddEntry(hist_mc[index], hist_mc[index].GetName())
     legend[index].AddEntry(hist_mc_up[index], 'up')    
     legend[index].AddEntry(hist_mc_down[index], 'down')
@@ -111,10 +111,12 @@ for index in range(len(hist_mc)):
 ################################################################################
 
 for index in range(len(hist_mc)):
-    style_histo(hist_mc_up[index], 7, 2, 0, 1000, 0)
-    style_histo(hist_mc_down[index], 6, 2, 0, 1000, 0)
+    #style_histo(hist_mc_up[index], 7, 2, 0, 1000, 0)
+    #style_histo(hist_mc_down[index], 6, 2, 0, 1000, 0)
+    style_histo(hist_mc_up[index], 2, 1, 2, 3004, 0)
+    style_histo(hist_mc_down[index], 4, 1, 4, 3005, 0)
     style_histo(hist_mc[index], 1, 1, 0, 3001, 1, 20)
-    style_labels_counting(hist_mc[index], 'Events', title)
+    style_labels_counting(hist_mc[index], 'Uncertainty (in %)', title)
 
 
 if(year=='2016'):
@@ -125,15 +127,33 @@ elif(year=='2017'):
 ################################################################################
 ## Save
 ################################################################################
+import numpy as np
+
+for h in range(len(hist_mc)):
+    for i in range(hist_mc[h].GetNbinsX()):
+        val = float(hist_mc[h].GetBinContent(i+1))
+        if val == 0:
+            val = 0.00001
+        hist_mc[h].SetBinContent(i+1,0)
+        hist_mc[h].SetBinError(i+1,hist_mc[h].GetBinError(i+1)/np.sqrt(val))
+
+        up   = hist_mc_up[h].GetBinContent(i+1)-val
+        down = hist_mc_down[h].GetBinContent(i+1)-val
+        hist_mc_up[h].SetBinContent(i+1, float(up)/val*100)
+        hist_mc_down[h].SetBinContent(i+1, float(down)/val*100)
+    hist_mc[h].SetMaximum(hist_mc_up[h].GetMaximum()+hist_mc_up[h].GetMaximum()/10)
+    hist_mc[h].SetMinimum(-hist_mc_up[h].GetMaximum()-hist_mc_up[h].GetMaximum()/10)
 
 outputdir = './results/'+year+'/systematics/'
 
 for index in range(len(hist_mc)):
     name = observable+'_'+hist_mc[index].GetName()+'_'+systematic
     canvas = TCanvas(name, name)
-    hist_mc[index].Draw()
-    hist_mc_up[index].Draw('SAME')
-    hist_mc_down[index].Draw('SAME')
+    hist_mc[index].Draw('')
+    hist_mc_up[index].Draw('HIST SAME')
+    hist_mc_down[index].Draw('HIST SAME')
     legend[index].Draw('SAME')
     canvas.SaveAs(outputdir+name+'_'+year+'.png')
+    canvas.SaveAs(outputdir+name+'_'+year+'.pdf')
 
+raw_input('exit')

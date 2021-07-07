@@ -1,7 +1,8 @@
 #include "../src/generator.hpp"
 #include "../src/debug.h"
-#include "../src/sample_2017.hpp"
 #include "../src/sample_2016.hpp"
+#include "../src/sample_2017.hpp"
+
 #include <ctime>
 
 void VectorCheck(namelist v){
@@ -26,6 +27,7 @@ int main(int argc, char** argv){
     std::string observable; 
     std::string year; 
     bool isClean = true;
+    bool isCorrected = false;
     std::clock_t t0 = std::clock();
 
     if(argc != 3){
@@ -42,7 +44,7 @@ int main(int argc, char** argv){
 
     std::vector<int> binning(3);
     if(observable == "m_dilep"){
-        binning[0] = 25; binning[1] = 0; binning[2] = 500;
+        binning[0] = 25; binning[1] = 20; binning[2] = 500;
     }
     else if(observable == "n_bjets"){
         binning[0] = 5; binning[1] = 0; binning[2] = 5;
@@ -59,7 +61,11 @@ int main(int argc, char** argv){
     namelist triggerList;
     // mc
     namelist sampleList_MC;
+    namelist sampleList_ALT;
+    namelist sampleList_JEC;
     std::vector<double> mc_rescale;
+    std::vector<double> alt_mc_rescale;
+    std::vector<std::vector<double>> jec_mc_rescale;
     // data
     namelist sampleList_DATA;
     namelist data;
@@ -68,7 +74,12 @@ int main(int argc, char** argv){
     if(year == "2016"){
         triggerList     = triggerList_2016;
         sampleList_MC   = sampleList_MC_2016;
+        sampleList_ALT  = sampleList_ALT_2016;
         mc_rescale      = mc_rescale_2016;
+        alt_mc_rescale  = alt_mc_rescale_2016;
+
+        jec_mc_rescale  = jec_mc_rescale_2016;
+
         sampleList_DATA = sampleList_DATA_2016;
         data            = data_2016;
         succedJobs      = succedJobs_2016;
@@ -76,7 +87,12 @@ int main(int argc, char** argv){
     else if(year == "2017"){        
         triggerList     = triggerList_2017;
         sampleList_MC   = sampleList_MC_2017;
+        sampleList_ALT  = sampleList_ALT_2017;
         mc_rescale      = mc_rescale_2017;
+        alt_mc_rescale  = alt_mc_rescale_2017;
+
+        jec_mc_rescale  = jec_mc_rescale_2017;
+        
         sampleList_DATA = sampleList_DATA_2017;
         data            = data_2017;
         succedJobs      = succedJobs_2017;
@@ -104,10 +120,11 @@ int main(int argc, char** argv){
 
     std::string launch;
     do{
-        std::cout << "Run on ? All, MC, Timed : ";
+        std::cout << "Run on ? All, Alt, Jec, MC, Timed : ";
         std::cin >> launch;
     }
-    while(launch != "All" and launch != "Timed" and launch != "MC");
+    while(launch != "All" and launch != "Alt"  and launch != "Jec" and launch != "Timed" and launch != "MC");
+
 
     Generator gen(observable, binning, year);
 
@@ -116,7 +133,13 @@ int main(int argc, char** argv){
                        systematicList, systematicTimeList,
                        mc_rescale, "RECREATE", isClean);
         gen.generateData(sampleList_DATA, triggerList, data, 
-                         succedJobs, "UPDATE", isClean);      
+                         succedJobs, "UPDATE", isCorrected, isClean);      
+    }
+    else if(launch == "Alt"){
+        gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale);
+    }
+    else if(launch == "Jec"){
+        gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, jec_mc_rescale);
     }
     else if(launch == "Timed"){
         gen.generateDataTimed(sampleList_DATA, triggerList, data, 
@@ -127,7 +150,7 @@ int main(int argc, char** argv){
                        systematicList,systematicTimeList,
                        mc_rescale, "RECREATE", isClean);
         gen.generateData(sampleList_DATA, triggerList, data, 
-                         succedJobs, "UPDATE", isClean);           
+                         succedJobs, "UPDATE", isCorrected,  isClean);           
         gen.generateDataTimed(sampleList_DATA, triggerList, data, 
                                succedJobs, 24, isClean);
     }

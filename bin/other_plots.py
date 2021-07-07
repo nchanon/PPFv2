@@ -52,18 +52,6 @@ rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
 ## Create Histo 
 ################################################################################
 
-
-r = 0.3
-epsilon = 0.1
-
-pad1 = TPad("pad1", "pad1", 0, r-epsilon, 1, 1)
-pad1.SetBottomMargin(epsilon)
-canvas.cd()
-#pad1.SetLogy()
-pad1.Draw()
-pad1.cd()
-
-
 ###########
 # data part
 ###########
@@ -103,21 +91,20 @@ for l in rootfile_input.GetListOfKeys():
 
 legend_args = (0.645, 0.79, 0.985, 0.91, '', 'NDC')
 legend = TLegend(*legend_args)
-legend.AddEntry(hist_signal, "t#bar{t} SM", "f")
+legend.AddEntry(hist_signal, "t#bar{t}", "f")
 legend.AddEntry(hist_background, "non-t#bar{t}", "f")
-legend.AddEntry(hist_data, "data")
 legend_box(legend, legend_coordinates)
 
 ################################################################################
 ## Draw stuff
 ################################################################################
 
-stack = THStack()
-stack.Add(hist_background)
-stack.Add(hist_signal)
-stack.Draw("E HIST")
-hist_data.Draw("E SAME")
+hist_background.Scale(1./background_integral)
+hist_signal.Scale(1./signal_integral)
+hist_background.Draw("HIST")
+hist_signal.Draw("HIST SAME")
 legend.Draw("SAME")
+#canvas.SetLogy()
 
 ################################################################################
 ## Set Style
@@ -126,63 +113,22 @@ legend.Draw("SAME")
 # line_color, line_width, fill_style, marker_style
 style_histo(hist_signal, 2, 1, 2, 3004, 0)
 style_histo(hist_background, 4, 1, 4, 3005, 0)
-style_histo(hist_data, 1, 1, 0, 3001, 1, 20)
 
-style_labels_counting(stack, 'Events', title)
-stack.GetXaxis().SetLabelSize(0)
-stack.GetXaxis().SetTitleSize(0)
+style_labels_counting(hist_background, 'Events', title)
+hist_signal.GetXaxis().SetLabelSize(0)
+hist_signal.GetXaxis().SetTitleSize(0)
 
 if(year=='2016'):
     tdr.cmsPrel(35900., 13.)
 elif(year=='2017'):
     tdr.cmsPrel(41530., 13.)
 
-################################################################################
-## Ratio
-################################################################################
-
-pad2 = TPad("pad2", "pad2", 0, 0, 1, r*(1-epsilon))
-pad2.SetTopMargin(0)
-pad2.SetBottomMargin(0.4)
-pad2.SetFillStyle(0)
-canvas.cd()
-pad2.Draw()
-pad2.cd()
-
-ratio_coef = 0.3
-
-h_one = TH1F("one", "one", 1, min_bin, max_bin)
-h_one.SetBinContent(1, 1)
-h_one.SetLineWidth(1)
-h_one.SetLineColor(15)
-h_num = hist_data.Clone()
-h_denom = hist_signal+hist_background
-h_num.Divide(h_denom)
-h_num.GetXaxis().SetTitle("aksjd")
-ratio = THStack()
-ratio.Add(h_num)
-
-ratio.SetMaximum(1+ratio_coef)
-ratio.SetMinimum(1-ratio_coef)
-ratio.Draw()
-h_one.Draw("SAME")
-
-
-style_labels_counting(ratio, 'Ratio data/mc', title)
-ratio.GetYaxis().SetLabelSize(0.1)
-ratio.GetYaxis().SetTitleSize(0.1)
-ratio.GetYaxis().SetTitleOffset(0.5)
-
-ratio.GetXaxis().SetLabelSize(0.15)
-ratio.GetXaxis().SetTitleSize(0.17)
-ratio.GetXaxis().SetLabelOffset(0.01)
-
 
 ################################################################################
 ## Save
 ################################################################################
 
-resultname = './results/'+year+'/comparaison/'+observable+'_'+year
+resultname = './results/'+year+'/other/comp_'+observable+'_'+year
 
 rootfile_output = TFile(resultname+'.root', "RECREATE")
 canvas.Write()

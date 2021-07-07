@@ -45,9 +45,9 @@ cross_section_2016 = {
     'MC_wjets_WJets'             :61526.7,              # wjets WJets       
     'MC_wjets_WJets2'            :61526.7,              # wjets WJets2      
     'MC_zjets_DY_50'             :6225.4,               # zjets DY        
-    #22635.14              # zjets DY 10-50   
-    #22635.14              # zjets DY 10-50   
-    #22635.14              # zjets DY 10-50       
+    'MC_zjets_DY_1050'           :22635.14,              # zjets DY 10-50   
+    'MC_zjets_DY_10502'          :22635.14,              # zjets DY 10-50   
+    'MC_zjets_DY_10503'          :22635.14              # zjets DY 10-50       
 }
 
 
@@ -83,9 +83,9 @@ cross_sec_2016 = [ # alphabetic order
     61526.7,              # wjets WJets2      
 
     6225.4,               # zjets DY        
-    #22635.14              # zjets DY 10-50   
-    #22635.14              # zjets DY 10-50   
-    #22635.14              # zjets DY 10-50   
+    22635.14,              # zjets DY 10-50   
+    22635.14,              # zjets DY 10-50   
+    22635.14              # zjets DY 10-50   
 ]
 
 effective_data_event_2016 = [
@@ -113,11 +113,29 @@ effective_data_event_2016 = [
 ]
 
 systematic_rate_2016 = [ # AN2019-228 v5, TOP-20-006
+    1.05,
     1.2, #ttx
     1.3, #singletop
     1.3, #dibosons
     1.3, #wjets
     1.2  #zjets
+]
+
+alt_list_2016 = [
+'alt_MC_CP5Down',              
+'alt_MC_CP5Down_pmx',          
+'alt_MC_CP5Up',          
+'alt_MC_CP5Up_pmx',      
+'alt_MC_erdOn',
+'alt_MC_erdOn_ext',
+'alt_MC_GluonMove',
+'alt_MC_hdampDown',
+'alt_MC_hdampDown_pmx',
+'alt_MC_hdampUp',
+'alt_MC_hdampUp_pmx',
+'alt_MC_mtop169p5',
+'alt_MC_mtop175p5',
+'alt_MC_QCDbased'
 ]
 
 ################################################################################
@@ -129,8 +147,8 @@ cross_section_2017 = {
     'MC_dibosons_WZ'              :47.13,    
     'MC_dibosons_ZZ'              :16.523,   
     'MC_signal_dilep'             :89.05,    
-    'MC_signal_hadronic'          :380.11,   
-    'MC_signal_semilep'           :364.31,   
+    'MC_signal_hadronic'          :377.96006,   
+    'MC_signal_semilep'           :366.91429,   
     'MC_singletop_ST_s'           :10.32,    
     'MC_singletop_ST_s2'          :10.32,    
     'MC_singletop_ST_tW_antitop'  :35.5,     
@@ -145,11 +163,11 @@ cross_section_2017 = {
     'MC_ttx_TTZ'                  :0.2529,   
     'MC_ttx_TTZ2'                 :0.2529,   
     'MC_ttx_TTZ3'                 :0.5297,   
-    'MC_wjets_WJets'              :0.4062,   
-    'MC_wjets_WJets2'             :0.4062,   
+    'MC_wjets_WJets'              :61526.7,   
+    'MC_wjets_WJets2'             :61526.7,   
     'MC_zjets_DY_1050'            :22635.1,  
     'MC_zjets_DY_50'              :6225.4,   
-    'MC_zjets_DY_502'             :6225.4    
+    #'MC_zjets_DY_502'             :6225.4    
 
 }
 
@@ -159,15 +177,15 @@ cross_sec_2017 = [
     16.523,   # dibosons ZZ 
 
     89.05,    # signal dilep
-    380.11,   # signal hadronic
-    364.31,   # signal semilep
+    377.96006,   # signal hadronic
+    366.91429,   # signal semilep
 
     10.32,    # singletop STs
     10.32,    # singletop STs2
-    35.5,     # singletop tW antitop
-    35.5,     # singletop tw2 antitop
-    35.5,     # singletop tW  top
-    35.5,     # singletop tW2 top
+    35.85,     # singletop tW antitop
+    35.85,     # singletop tw2 antitop
+    35.85,     # singletop tW  top
+    35.85,     # singletop tW2 top
     80.95,    # singletop STt antitop
     136.02,   # singletop STt top
 
@@ -178,12 +196,12 @@ cross_sec_2017 = [
     0.2529,   # TTX TTZ2        
     0.5297,   # TTX TTZ3        
 
-    0.4062,   # wjets WJets       
-    0.4062,   # wjets Wjets2      
+    61526.7,   # wjets WJets       
+    61526.7,   # wjets Wjets2      
 
     22635.1,  # zjets DY 10-50     
     6225.4,   # zjets DY        
-    6225.4    # zjets DY2         
+    #6225.4    # zjets DY2         
 ]
 
 effective_data_event_2017 = [
@@ -205,11 +223,31 @@ effective_data_event_2017 = [
 ]
 
 systematic_rate_2017 = [ # AN2019-228 v5, TOP-20-006
+    1.0,
     1.2, #ttx
     1.3, #singletop
     1.3, #dibosons
     1.3, #wjets
     1.2  #zjets
+]
+
+alt_list_2017 = [
+    'alt_MC_CP5Down',        
+    'alt_MC_CP5Down_pmx',    
+    'alt_MC_CP5Up',          
+    'alt_MC_CP5Up_pmx',      
+    'alt_MC_erdOn',        
+    'alt_MC_GluonMove',    
+    'alt_MC_hdampDown',
+    'alt_MC_hdampDown_pmx',
+    'alt_MC_hdampUp',
+    'alt_MC_hdampUp_pmx',
+    'alt_MC_mtop169p5',
+    'alt_MC_mtop169p5_pmx',
+    'alt_MC_mtop175p5',
+    'alt_MC_mtop175p5_pmx',
+    'alt_MC_QCDbased',
+    'alt_MC_QCDbased_ext'
 ]
 
 ################################################################################
@@ -222,10 +260,24 @@ systematic_rate_2017 = [ # AN2019-228 v5, TOP-20-006
 ################################################################################
 ################################################################################
 
+
 effective_data_event = {
     '2016' : effective_data_event_2016,
     '2017' : effective_data_event_2017,
     '2018' : 35.9,
+}
+
+
+alt_list = {
+    '2016' : alt_list_2016,
+    '2017' : alt_list_2017,
+    '2018' : 35.9
+}
+
+data_name = {
+    '2016' : ['Run2016'],
+    '2017' : ['Run2017'],
+    '2018' : 0
 }
 
 data_name = {
@@ -256,19 +308,40 @@ ttbar_list = [
     'zjets'
 ]
 
+
+jec_list = [ 
+    'TotalUp',
+    'TotalDown',
+]
+
+
 systematic_list = [
     'syst_elec_reco',
     'syst_elec_id',
     'syst_muon_id',
     'syst_muon_iso',
-    'syst_em_trig',
-    'syst_pu'
+    'syst_pu',
+    'syst_b',
+    'syst_pt_top'
+]
+
+alt_syst_list = [
+    'CP5Up',
+    'CP5Down',
+    'hdampUp',
+    'hdampDown',
+    'mtop169',
+    'mtop175',
+    'erdOn',
+    'QCD',
+    'GluonMove'
 ]
 
 systematic_time_list = [
-    'lumi_inclusive',
+    'lumi_flat',
     'lumi_stability',
-    'lumi_linearity'
+    'lumi_linearity',
+    'emu_trig'
 ]
 
 trig_2016 = [
@@ -303,6 +376,12 @@ systematic_rate = {
 sample_MC = {
     '2016' : inputs_name('inputs', '2016', 'MC'),
     '2017' : inputs_name('inputs', '2017', 'MC'),
+#    '2018' : trig_2018    
+}
+
+sample_ALT = {
+    '2016' : inputs_name('inputs', '2016', 'ALT'),
+    '2017' : inputs_name('inputs', '2017', 'ALT'),
 #    '2018' : trig_2018    
 }
 

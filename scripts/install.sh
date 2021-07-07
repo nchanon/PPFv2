@@ -4,7 +4,7 @@ echo "##########################"
 
 sleep 1
 echo " > Results directory creation"
-mkdir -p results/{2016,2017,2018}/{comparaison,flattree,stats,systematics}
+mkdir -p results/{2016,2017,2018}/{comparaison,flattree,stats,other,systematics}
 mkdir -p results/pheno/base
 
 sleep 1

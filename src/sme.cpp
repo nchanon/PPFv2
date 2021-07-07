@@ -157,18 +157,18 @@ void SME::generateModulation(int t0, int nBin)
 {
     std::string wilsonName;
     if(wilson == Wilson::L)
-        wilsonName = "L";
+        wilsonName = "cL";
     else if(wilson == Wilson::R)
-        wilsonName = "R";
+        wilsonName = "cR";
     else if(wilson == Wilson::C)
-        wilsonName = "C";
+        wilsonName = "c";
     else if(wilson == Wilson::D)
-        wilsonName = "D";
+        wilsonName = "d";
 
-    TH1F *hXX = new TH1F(("fXX_"+wilsonName).c_str(), ("fXX_"+wilsonName).c_str(), nBin, 0, nBin);
-    TH1F *hXY = new TH1F(("fXY_"+wilsonName).c_str(), ("fXY_"+wilsonName).c_str(), nBin, 0, nBin);
-    TH1F *hXZ = new TH1F(("fXZ_"+wilsonName).c_str(), ("fXZ_"+wilsonName).c_str(), nBin, 0, nBin);
-    TH1F *hYZ = new TH1F(("fYZ_"+wilsonName).c_str(), ("fYZ_"+wilsonName).c_str(), nBin, 0, nBin);
+    TH1F *hXX = new TH1F((wilsonName+"XX").c_str(), (wilsonName+"XX").c_str(), nBin, 0, nBin);
+    TH1F *hXY = new TH1F((wilsonName+"XY").c_str(), (wilsonName+"XY").c_str(), nBin, 0, nBin);
+    TH1F *hXZ = new TH1F((wilsonName+"XZ").c_str(), (wilsonName+"XZ").c_str(), nBin, 0, nBin);
+    TH1F *hYZ = new TH1F((wilsonName+"YZ").c_str(), (wilsonName+"YZ").c_str(), nBin, 0, nBin);
     for(int i = 0; i < nBin; ++i){
         hXX->SetBinContent(i+1, fXX((t0+i)%24*3600));
         hXY->SetBinContent(i+1, fXY((t0+i)%24*3600));
