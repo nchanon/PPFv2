@@ -95,7 +95,8 @@ for l in range(len(hist_mc)):
 ## Legend stuff
 ################################################################################
 
-legend_args = (0.645, 0.79, 0.985, 0.91, '', 'NDC')
+legend_args = (0.2, 0.79, 0.4
+, 0.91, '', 'NDC')
 legend = []
 for index in range(len(hist_mc)):
     legend.append(TLegend(*legend_args))
@@ -104,7 +105,7 @@ for index in range(len(hist_mc)):
     legend[index].AddEntry(hist_mc_up[index], 'up')    
     legend[index].AddEntry(hist_mc_down[index], 'down')
 
-    legend_box(legend[index], legend_coordinates)
+    #legend_box(legend[index], legend_coordinates)
 
 ################################################################################
 ## Set Style
@@ -150,6 +151,8 @@ for index in range(len(hist_mc)):
     name = observable+'_'+hist_mc[index].GetName()+'_'+systematic
     canvas = TCanvas(name, name)
     hist_mc[index].Draw('')
+    maxi = hist_mc[index].GetMaximum()
+    hist_mc[index].GetYaxis().SetRangeUser(-maxi-2*maxi/3.,maxi+2*maxi/3.)
     hist_mc_up[index].Draw('HIST SAME')
     hist_mc_down[index].Draw('HIST SAME')
     legend[index].Draw('SAME')

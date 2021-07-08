@@ -194,12 +194,9 @@ for l in jec_file.GetListOfKeys():
     h_jec = TH1F(name,name, binning*nbin,  0, nbin)
     for i in range(nbin):
         for j in range(binning):
-            h_jec.SetBinContent(j + i*binning + 1, 
-                                        hh.GetBinContent(j+1)*(1+cmunu*sme_sig.GetBinContent(i+1))
+            h_jec.SetBinContent(j + i*binning + 1, hh.GetBinContent(j+1)*hist_weight.GetBinContent(i+1)
                                     )
-            h_jec.SetBinError(j + i*binning + 1, 
-                                        hh.GetBinError(j + 1)*(1+cmunu*sme_sig.GetBinError(i+1))
-                                    )
+            h_jec.SetBinError(j + i*binning + 1, hh.GetBinError(j + 1))
     hist_alt_jec.append(h_jec)
 
 
@@ -211,12 +208,9 @@ for l in alt_file.GetListOfKeys():
     h_alt = TH1F(name, name, binning*nbin,  0, nbin)
     for i in range(nbin):
         for j in range(binning):
-            h_alt.SetBinContent(j + i*binning + 1, 
-                                         hh.GetBinContent(j+1)*(1+cmunu*sme_sig.GetBinContent(i+1))
+            h_alt.SetBinContent(j + i*binning + 1, hh.GetBinContent(j+1)*hist_weight.GetBinContent(i+1)
                                     )
-            h_alt.SetBinError(j + i*binning + 1, 
-                                        hh.GetBinContent(j+1)*(1+cmunu*sme_sig.GetBinContent(i+1))
-                                    )
+            h_alt.SetBinError(j + i*binning + 1, hh.GetBinError(j + 1))
     hist_alt_jec.append(h_alt)
 
 

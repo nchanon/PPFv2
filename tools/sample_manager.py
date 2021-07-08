@@ -322,6 +322,9 @@ systematic_list = [
     'syst_muon_iso',
     'syst_pu',
     'syst_b',
+    #
+    # 'syst_c',
+    #'syst_l',
     'syst_pt_top'
 ]
 

@@ -55,6 +55,30 @@ int main(int argc, char** argv){
     else if(observable == "pt_sublead"){
         binning[0] = 25; binning[1] = 0; binning[2] = 250;
     }
+    else if(observable == "pt_elec"){
+        binning[0] = 25; binning[1] = 0; binning[2] = 250;
+    }
+    else if(observable == "pt_muon"){
+        binning[0] = 25; binning[1] = 0; binning[2] = 250;
+    }
+    else if(observable == "eta_elec"){
+        binning[0] = 50; binning[1] = -3; binning[2] = 3;
+    }
+    else if(observable == "eta_muon"){
+        binning[0] = 50; binning[1] = -3; binning[2] = 3;
+    }
+    else if(observable == "b1_pt"){
+        binning[0] = 25; binning[1] = 0; binning[2] = 250;
+    }
+    else if(observable == "b1_eta"){
+        binning[0] = 50; binning[1] = -3; binning[2] = 3;
+    }
+    else if(observable == "j1_pt"){
+        binning[0] = 25; binning[1] = 0; binning[2] = 250;
+    }
+    else if(observable == "j1_eta"){
+        binning[0] = 50; binning[1] = -3; binning[2] = 3;
+    }
 
 // ------------------------------------------------------------- //
 
@@ -119,12 +143,14 @@ int main(int argc, char** argv){
 
 
     std::string launch;
+/*
     do{
         std::cout << "Run on ? All, Alt, Jec, MC, Timed : ";
         std::cin >> launch;
     }
     while(launch != "All" and launch != "Alt"  and launch != "Jec" and launch != "Timed" and launch != "MC");
-
+*/
+    launch = "MC";
 
     Generator gen(observable, binning, year);
 
@@ -153,6 +179,8 @@ int main(int argc, char** argv){
                          succedJobs, "UPDATE", isCorrected,  isClean);           
         gen.generateDataTimed(sampleList_DATA, triggerList, data, 
                                succedJobs, 24, isClean);
+        gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale);
+        gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, jec_mc_rescale);
     }
 
 

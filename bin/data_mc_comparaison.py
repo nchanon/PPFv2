@@ -198,4 +198,4 @@ print ''
 for i in background_integral_i:
     print i[1],i[0]
 
-raw_input('exit')
+#raw_input('exit')

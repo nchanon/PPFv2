@@ -1,13 +1,21 @@
 import os 
 
+
+#    ['n_jets', '\"jets multiplicity\"'],
+#['met', '\"met\"'],
 observable = [
     ['m_dilep', '\"dilepton mass\"'],
-    ['n_jets', '\"jets multiplicity\"'],
-    ['met', '\"met\"'],
-    ['pt_lead', '\"pt_leading lepton\"'],
-    ['pt_sublead', '\"pt_subleading lepton\"'],
-    ['n_bjets', '\"b-jets multiplicity\"']
-
+    ['pt_lead', '\"pt leading lepton\"'],
+    ['pt_sublead', '\"pt subleading lepton\"'],
+    ['n_bjets', '\"b-jets multiplicity\"'],
+    ['pt_elec', '\"pt electron\"'],
+    ['pt_muon', '\"pt muon\"'],
+    ['j1_pt', '\"pt leading jet\"'],
+    ['b1_pt', '\"pt leading b-jet\"'],
+    ['eta_elec', '\"eta electron\"'],
+    ['eta_muon', '\"eta muon\"'],
+    ['j1_eta', '\"eta leading jet\"'],
+    ['b1_eta', '\"eta leading b-jet\"']
 ]
 
 year = [

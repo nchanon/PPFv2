@@ -6,13 +6,13 @@ from tools.style_manager import *
 from tools.sample_manager import *
 
 observable = [
-    #['m_dilep', '\"dilepton mass\"'],
-    ['n_bjets', '\"b-jets multiplicity\"'],
+    ['m_dilep', '\"dilepton mass\"'],
+    #['n_bjets', '\"b-jets multiplicity\"'],
     #['pt_lead', '\"Leading lepton pt\"']
 ]
 
 year = [
-    #'2016'
+    '2016',
     '2017'
 ]
 

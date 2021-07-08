@@ -113,6 +113,9 @@ double Generator::generateWeight(TTree *tree_p)
     for(int i = 0; i< tree_p->GetLeaf("n_bjets")->GetValue(); ++i){
         w *= tree_p->GetLeaf("weight_sfb")->GetValue();
     }
+    //w *= tree_p->GetLeaf("weight_sfl")->GetValue();
+    //w *= tree_p->GetLeaf("weight_sfc")->GetValue();
+
     //trigger
     //w *= tree_p->GetLeaf("weight_sf_em_trig")->GetValue();
     return w;
@@ -140,6 +143,18 @@ double Generator::generateSystematics(TTree            * tree_p,
             return tree_p->GetLeaf("weight_sfb_up")->GetValue(0)/tree_p->GetLeaf("weight_sfb")->GetValue(0);
         else
             return tree_p->GetLeaf("weight_sfb_down")->GetValue(0)/tree_p->GetLeaf("weight_sfb")->GetValue(0);
+    }
+    else if(systematicName == "syst_c"){
+        if(isUp)
+            return tree_p->GetLeaf("weight_sfc_up")->GetValue(0)/tree_p->GetLeaf("weight_sfc")->GetValue(0);
+        else
+            return tree_p->GetLeaf("weight_sfc_down")->GetValue(0)/tree_p->GetLeaf("weight_sfc")->GetValue(0);
+    }
+    else if(systematicName == "syst_l"){
+        if(isUp)
+            return tree_p->GetLeaf("weight_sfl_up")->GetValue(0)/tree_p->GetLeaf("weight_sfl")->GetValue(0);
+        else
+            return tree_p->GetLeaf("weight_sfl_down")->GetValue(0)/tree_p->GetLeaf("weight_sfl")->GetValue(0);
     }
     else{
         double foo = tree_p->GetLeaf(systematicName.c_str())->GetValue(0);

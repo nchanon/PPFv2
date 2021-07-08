@@ -98,15 +98,15 @@ void Card::addProcToCard(std::string const& observable_p,
 void Card::addSystToCard_alternative(bool isSME)
 {
     if(!isSME){
-   datacard += "CP5                     shape 1              0              0              0              0              0              \n";
-   datacard += "hdamp                   shape 1              0              0              0              0              0              \n";
-   datacard += "color_reco              shape 1              0              0              0              0              0              \n";
+//   datacard += "CP5                     shape 1              0              0              0              0              0              \n";
+//   datacard += "hdamp                   shape 1              0              0              0              0              0              \n";
+//   datacard += "color_reco              shape 1              0              0              0              0              0              \n";
    datacard += "jec              shape 1              1              1              1              1              1              \n";
     }
     else{
-//   datacard += "CP5                     shape 0 1              0              0              0              0              0              \n";
-//   datacard += "hdamp                   shape 0 1              0              0              0              0              0              \n";
-   datacard += "color_reco              shape 0 1              0              0              0              0              0              \n";
+   //datacard += "CP5                     shape - 1              -              -              -              -              -              \n";
+   //datacard += "hdamp                   shape 0 1              -              -              -              -              -              \n";
+   //datacard += "color_reco              shape 0 1              -              -              -              -              -              \n";
    datacard += "jec              shape 0 1              1              1              1              1              1              \n";       
     }
 
