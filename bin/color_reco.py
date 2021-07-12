@@ -33,16 +33,30 @@ TH1.SetDefaultSumw2(1)
 
 def max(a,b,c, nom):
     ratio = []
-    for i in [a,b,c]:
-        if i>nom:
-            ratio.append(i/nom)
-        else:
-            ratio.append(nom/i)
-    max_rat = ratio[0]
-    for i in range(2):
+    for i in [a,b,c,nom]:
+    #    if i>nom:
+        ratio.append(i/nom)
+        print ratio[-1]
+    #    else:
+    #        ratio.append(nom/i)
+    max_rat = ratio[3]
+    for i in range(3):
         if ratio[i]>max_rat:
             max_rat = ratio[i]
     return max_rat
+
+def min(a,b,c, nom):
+    ratio = []
+    for i in [a,b,c, nom]:
+    #    if i<nom:
+        ratio.append(i/nom)
+    #    else:
+    #        ratio.append(nom/i)
+    min_rat = ratio[3]
+    for i in range(3):
+        if ratio[i]<min_rat:
+            min_rat = ratio[i]
+    return min_rat
 
 def rename(th1, name):
     th1.SetName(name)
@@ -82,14 +96,6 @@ h_CP5Down =  alt_file.Get('CP5Down')
 ## Color reco
 ################
 
-int_gluon = int_nom/h_gluon.Integral()
-int_erd = int_nom/h_gluon.Integral()
-int_gluon = int_nom/h_gluon.Integral()
-
-h_gluon.Scale(int_gluon)
-h_erd.Scale(int_erd)
-h_qcd.Scale(int_gluon)
-
 h_gluon.SetLineColor(2)
 h_erd.SetLineColor(5)
 h_qcd.SetLineColor(3)
@@ -105,14 +111,29 @@ for i in range(nbin):
                   h_erd.GetBinContent(i+1),
                   h_qcd.GetBinContent(i+1),
                   h_nominal.GetBinContent(i+1))
-    h_colorUp.SetBinContent(i+1, h_colorUp.GetBinContent(i+1)*bin_max)
-    h_colorDown.SetBinContent(i+1, h_colorUp.GetBinContent(i+1)*(2-bin_max))
+    bin_min = min(h_gluon.GetBinContent(i+1),
+                  h_erd.GetBinContent(i+1),
+                  h_qcd.GetBinContent(i+1),
+                  h_nominal.GetBinContent(i+1))
+    #h_colorUp.SetBinContent(i+1, h_nominal.GetBinContent(i+1)*bin_max)
+    h_colorDown.SetBinContent(i+1, h_nominal.GetBinContent(i+1)*bin_min)
+    h_colorUp.SetBinContent(i+1, h_nominal.GetBinContent(i+1)*(2-bin_min))
 
 h_colorUp.SetLineColor(2)
 h_colorDown.SetLineColor(3)
 
 #h_colorUp.Draw('SAME')
 #h_colorDown.Draw('SAME')
+
+
+#int_gluon = int_nom/h_gluon.Integral()
+#int_erd = int_nom/h_gluon.Integral()
+#int_gluon = int_nom/h_gluon.Integral()
+
+
+#h_gluon.Scale(int_gluon)
+#h_erd.Scale(int_erd)
+#h_qcd.Scale(int_gluon)
 
 #h_gluon.Draw('SAME')
 #h_erd.Draw('SAME')
@@ -131,7 +152,7 @@ h_hdampDown.SetLineColor(2)
 
 
 int_cp5Up     = int_nom/h_CP5Up.Integral()
-int_cp5Down   = int_nom/h_CP5Down.Integral()
+int_cp5Down   = int_nom/h_CP5Down.Intp/down variation (in tegral()
 int_hdampUp   = int_nom/h_hdampUp.Integral()
 int_hdampDown = int_nom/h_hdampDown.Integral()
 

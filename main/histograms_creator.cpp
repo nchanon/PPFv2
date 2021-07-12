@@ -145,12 +145,12 @@ int main(int argc, char** argv){
     std::string launch;
 /*
     do{
-        std::cout << "Run on ? All, Alt, Jec, MC, Timed : ";
+        std::cout << "Run on ? All, Alt, Jec, MC, Timed, forComp : ";
         std::cin >> launch;
     }
-    while(launch != "All" and launch != "Alt"  and launch != "Jec" and launch != "Timed" and launch != "MC");
+    while(launch != "All" and launch != "Alt"  and launch != "Jec" and launch != "Timed" and launch != "MC" and launch != "forComp");
 */
-    launch = "MC";
+    launch = "forComp";
 
     Generator gen(observable, binning, year);
 
@@ -170,6 +170,10 @@ int main(int argc, char** argv){
     else if(launch == "Timed"){
         gen.generateDataTimed(sampleList_DATA, triggerList, data, 
                                succedJobs, 24, isClean);
+    }
+    else if(launch == "forComp"){
+        gen.generateMCforComp(sampleList_MC, triggerList, ttbarList, 
+                       mc_rescale, "RECREATE", isClean);    
     }
     else{
         gen.generateMC(sampleList_MC, triggerList, ttbarList, 

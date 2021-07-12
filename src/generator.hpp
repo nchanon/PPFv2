@@ -27,7 +27,7 @@ class Generator{
 
         double luminosityCorrection(TTree *top);
 
-        double generateWeight(TTree *tree_p);
+        double generateWeight(TTree *tree_p, bool isTimed=true);
 
         double generateSystematics(TTree            * tree_p,
                                    std::string const& systematicName,
@@ -115,6 +115,14 @@ class Generator{
                         namelist            const& groupList_p,
                         namelist            const& systematicsList_p,
                         namelist            const& systematicsTimeList_p,
+                        std::vector<double> const& correction_p,
+                        std::string         const& rootOption_p,
+                        bool                       clean_p = true
+                       );
+
+        void generateMCforComp(namelist            const& sampleList_p,
+                        namelist            const& triggerList_p,
+                        namelist            const& groupList_p,
                         std::vector<double> const& correction_p,
                         std::string         const& rootOption_p,
                         bool                       clean_p = true

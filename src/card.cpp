@@ -106,7 +106,7 @@ void Card::addSystToCard_alternative(bool isSME)
     else{
    //datacard += "CP5                     shape - 1              -              -              -              -              -              \n";
    //datacard += "hdamp                   shape 0 1              -              -              -              -              -              \n";
-   //datacard += "color_reco              shape 0 1              -              -              -              -              -              \n";
+   datacard += "color_reco              shape 0 1              -              -              -              -              -              \n";
    datacard += "jec              shape 0 1              1              1              1              1              1              \n";       
     }
 

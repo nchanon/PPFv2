@@ -46,7 +46,8 @@ syst_down_integral = 0
 canvas = TCanvas('stack_'+observable,'stack_'+observable, 800, 800)
 canvas.UseCurrentStyle()
 
-rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
+datafile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
+rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'_forComp.root')
 
 ################################################################################
 ## Create Histo 
@@ -67,7 +68,7 @@ pad1.cd()
 ###########
 # data part
 ###########
-hist_data = rootfile_input.Get('data_obs')
+hist_data = datafile_input.Get('data_obs')
 data_integral = integral_complete(hist_data, max_bin)
 
 
@@ -76,7 +77,7 @@ nbin    = hist_data.GetNbinsX()
 min_bin = hist_data.GetXaxis().GetXmin()
 max_bin = hist_data.GetXaxis().GetXmax()
 
-###########
+###########rootfile_input
 # mc part
 ###########
 

@@ -87,43 +87,46 @@ for l in alt_file.GetListOfKeys():
 
 jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec.root')
 for l in jec_file.GetListOfKeys():
-    h = jec_file.Get(l.GetName())
+    hj = jec_file.Get(l.GetName())
     hname = l.GetName() 
     if(hname.find('TotalUp')!= -1):
         name = hname[:-7]+'jecUp'
     elif(hname.find('TotalDown')!= -1):
         name = hname[:-9]+'jecDown'
-    rename(h,name)
-    h.Scale(1./nbin)
-    histograms.append(h)
+    rename(hj,name)
+    hj.Scale(1./nbin)
+    histograms.append(hj)
 
 #print histograms[27].GetName(), histograms[27].GetTitle(), len(histograms)
 
 
 out = './combine/'+year+'/one_bin/inputs/'
 for n in range(nbin):
+
+
     
     hist_tim = []
 
     for g in ttbar_list:
         for s in systematic_time_list:
             hist_up = data_file.Get(g).Clone()
+            hist_down = data_file.Get(g).Clone()
             if s == 'emu_trig':
-                hist_up.Scale(1+lumi_syst_up[s].GetBinContent(n+1))
+                hist_up.Scale(1+lumi_syst_up[s].GetBinError(n+1))
                 hist_up.SetName(g+'_'+s+'Up')
                 hist_up.SetTitle(g+'_'+s+'Up')
-                hist_down = data_file.Get(g).Clone()
-                hist_down.Scale(1-lumi_syst_up[s].GetBinContent(n+1))
+                hist_down.Scale(1-lumi_syst_up[s].GetBinError(n+1))
                 hist_down.SetName(g+'_'+s+'Down')
                 hist_down.SetTitle(g+'_'+s+'Down')
             else:
                 hist_up.Scale(lumi_syst_up[s].GetBinContent(n+1))
                 hist_up.SetName(g+'_'+s+'Up')
                 hist_up.SetTitle(g+'_'+s+'Up')
-                hist_down = data_file.Get(g).Clone()
                 hist_down.Scale(lumi_syst_down[s].GetBinContent(n+1))
                 hist_down.SetName(g+'_'+s+'Down')
                 hist_down.SetTitle(g+'_'+s+'Down')
+            hist_up.Scale(hist_weight.GetBinContent(n+1))
+            hist_down.Scale(hist_weight.GetBinContent(n+1))
             hist_tim.append(hist_up)
             hist_tim.append(hist_down)
     '''

@@ -98,7 +98,7 @@ double Generator::luminosityCorrection(TTree *tree_p)
 
 
 
-double Generator::generateWeight(TTree *tree_p)
+double Generator::generateWeight(TTree *tree_p,  bool isTimed)
 {
     double w = 1;
     w *= tree_p->GetLeaf("weight_pu")->GetValue();
@@ -117,7 +117,8 @@ double Generator::generateWeight(TTree *tree_p)
     //w *= tree_p->GetLeaf("weight_sfc")->GetValue();
 
     //trigger
-    //w *= tree_p->GetLeaf("weight_sf_em_trig")->GetValue();
+    if(!isTimed)
+        w *= tree_p->GetLeaf("weight_sf_em_trig")->GetValue();
     return w;
 }
 
@@ -575,6 +576,55 @@ void Generator::generateMC(namelist            const& sampleList_p,
     write(filename_p, listDown, "UPDATE");
     write(filenameTime_p, listTimeUp, "RECREATE");
     write(filenameTime_p, listTimeDown, "UPDATE");
+}
+
+
+void Generator::generateMCforComp(namelist            const& sampleList_p,
+                           namelist            const& triggerList_p,
+                           namelist            const& groupList_p,
+                           std::vector<double> const& correction_p,
+                           std::string         const& option_p,
+                           bool                       clean_p
+                          )
+{
+    TH1F::SetDefaultSumw2(1);
+    std::vector<TH1F> list;
+
+    std::string cleaned;
+    if(!clean_p) cleaned = "_unclean";
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+cleaned+"_forComp.root";
+
+    for(size_t n = 0; n < sampleList_p.size(); ++n){
+    
+        std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/NtupleProducer/tree.root";
+        TFile* file = new TFile(filename.c_str());
+        TTree *tree;
+        file->GetObject("events", tree);
+        TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
+        TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
+
+        std::cout << " -> " << sampleList_p[n] << "  " << correction_p[n] << std::endl;
+
+        for(int i = 0; i < tree->GetEntriesFast(); ++i){
+            tree->GetEntry(i);
+            double weight = generateWeight(tree, false);
+            if(isTriggerPassed(tree, triggerList_p)){
+                hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+            }
+            if(i % 100000 == 0)
+                std::cout << "100 000 events passed" << std::endl;
+        }
+        hist->Scale(correction_p[n]);
+        list.push_back(*hist);
+
+        delete hist;
+        delete canvas;
+        delete tree;
+        delete file;
+    }
+    groupingMC(list, groupList_p, clean_p);
+
+    write(filename_p, list, option_p);
 }
 
 void Generator::generateData(namelist            const& sampleList_p,

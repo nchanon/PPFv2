@@ -17,7 +17,7 @@ In your terminal type following commands :
 In the pyplotframework directory :
 
     # will create the directory tree 
-    > bash install.sh
+    > bash scripts/install.sh
 
     # will generate all the sample utils from tools/sample_manager.py in a C++ header file in src directory. 
     NB : a compilation will be launched.
