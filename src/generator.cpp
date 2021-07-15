@@ -649,7 +649,7 @@ void Generator::generateData(namelist            const& sampleList_p,
     if(correctedLumi){
             filename_p += "_lumicorrected";
     }
-    filename_p += cleaned+".root";
+    filename_p += cleaned+"_data.root";
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         std::string filename = "./inputs/"+year+"/DATA/"+sampleList_p[n]+"/tree.root";

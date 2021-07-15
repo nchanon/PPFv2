@@ -143,37 +143,41 @@ int main(int argc, char** argv){
 
 
     std::string launch;
-/*
+
     do{
-        std::cout << "Run on ? All, Alt, Jec, MC, Timed, forComp : ";
+        std::cout << "Run on ? All, mc data, alt, jec, timed, forComp : ";
         std::cin >> launch;
     }
-    while(launch != "All" and launch != "Alt"  and launch != "Jec" and launch != "Timed" and launch != "MC" and launch != "forComp");
-*/
-    launch = "forComp";
+    while(launch != "All" and launch != "alt"  and launch != "jec" and launch != "timed" and launch != "mc" and launch != "forComp" and launch != "data");
+
+//    launch = "forComp";
 
     Generator gen(observable, binning, year);
 
-    if(launch == "MC"){
+    if(launch == "mc"){
         gen.generateMC(sampleList_MC, triggerList, ttbarList, 
                        systematicList, systematicTimeList,
-                       mc_rescale, "RECREATE", isClean);
-        gen.generateData(sampleList_DATA, triggerList, data, 
-                         succedJobs, "UPDATE", isCorrected, isClean);      
+                       mc_rescale, "RECREATE", isClean);   
     }
-    else if(launch == "Alt"){
+    else if(launch == "data"){
+        gen.generateData(sampleList_DATA, triggerList, data, 
+                         succedJobs, "RECREATE", isCorrected, isClean);       
+    }
+    else if(launch == "alt"){
         gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale);
     }
-    else if(launch == "Jec"){
+    else if(launch == "jec"){
         gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, jec_mc_rescale);
     }
-    else if(launch == "Timed"){
+    else if(launch == "timed"){
         gen.generateDataTimed(sampleList_DATA, triggerList, data, 
                                succedJobs, 24, isClean);
     }
     else if(launch == "forComp"){
         gen.generateMCforComp(sampleList_MC, triggerList, ttbarList, 
                        mc_rescale, "RECREATE", isClean);    
+        gen.generateData(sampleList_DATA, triggerList, data, 
+                         succedJobs, "RECREATE", isCorrected, isClean);   
     }
     else{
         gen.generateMC(sampleList_MC, triggerList, ttbarList, 
