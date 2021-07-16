@@ -26,18 +26,21 @@ int main(int argc, char** argv){
     
     std::string observable; 
     std::string year; 
+    std::string launch;
     bool isClean = true;
     bool isCorrected = false;
+
     std::clock_t t0 = std::clock();
 
-    if(argc != 3){
+    if(argc != 4){
         Log("Wrong number of arguments !!!");
-        Log(" missing arguments : observable, year");
+        Log(" missing arguments : observable, year and option");
         return 0;
     }
     else{
          observable = argv[1];
          year = argv[2];
+         launch = argv[3];
     }
     Log(argc, argv);
     Log(observable);
@@ -142,15 +145,11 @@ int main(int argc, char** argv){
 // ------------------------------------------------------------- //
 
 
-    std::string launch;
-
-    do{
-        std::cout << "Run on ? All, mc data, alt, jec, timed, forComp : ";
-        std::cin >> launch;
+    if(launch != "All" and launch != "alt"  and launch != "jec" and launch != "timed" and launch != "mc" and launch != "forComp" and launch != "data" and launch != "sme")
+    {
+        std::cout << "Error with option : (All, mc data, alt, jec, timed, sme, forComp)" << std::endl;
+        return 0;
     }
-    while(launch != "All" and launch != "alt"  and launch != "jec" and launch != "timed" and launch != "mc" and launch != "forComp" and launch != "data");
-
-//    launch = "forComp";
 
     Generator gen(observable, binning, year);
 
@@ -179,16 +178,20 @@ int main(int argc, char** argv){
         gen.generateData(sampleList_DATA, triggerList, data, 
                          succedJobs, "RECREATE", isCorrected, isClean);   
     }
+    else if(launch == "sme"){
+        system("./bin/modulation_creator");
+    }
     else{
         gen.generateMC(sampleList_MC, triggerList, ttbarList, 
                        systematicList,systematicTimeList,
                        mc_rescale, "RECREATE", isClean);
         gen.generateData(sampleList_DATA, triggerList, data, 
-                         succedJobs, "UPDATE", isCorrected,  isClean);           
+                         succedJobs, "RECREATE", isCorrected,  isClean);           
         gen.generateDataTimed(sampleList_DATA, triggerList, data, 
                                succedJobs, 24, isClean);
         gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale);
         gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, jec_mc_rescale);
+        system("./bin/modulation_creator");
     }
 
 

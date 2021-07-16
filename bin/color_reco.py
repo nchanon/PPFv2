@@ -152,7 +152,7 @@ h_hdampDown.SetLineColor(2)
 
 
 int_cp5Up     = int_nom/h_CP5Up.Integral()
-int_cp5Down   = int_nom/h_CP5Down.Intp/down variation (in tegral()
+int_cp5Down   = int_nom/h_CP5Down.Integral()
 int_hdampUp   = int_nom/h_hdampUp.Integral()
 int_hdampDown = int_nom/h_hdampDown.Integral()
 

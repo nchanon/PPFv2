@@ -51,7 +51,7 @@ namelist systematicTimeList {
 };
 
 namelist systematicRate {
-    "1.0",
+    "1.05",
     "1.2",
     "1.3",
     "1.3",

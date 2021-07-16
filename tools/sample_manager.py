@@ -223,7 +223,7 @@ effective_data_event_2017 = [
 ]
 
 systematic_rate_2017 = [ # AN2019-228 v5, TOP-20-006
-    1.0,
+    1.05,
     1.2, #ttx
     1.3, #singletop
     1.3, #dibosons

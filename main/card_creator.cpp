@@ -111,7 +111,7 @@ int main(int argc, char** argv){
             systematicRate[i-1] = systematicRate[i-2];
         }
         ttbarList[0] =  wilson;
-        systematicRate[0] =  "1.0";
+        systematicRate[0] =  "1.05";
 
         double numberOfEvents;
         std::ifstream f("./combine/"+year+"/"+observable+"_noe_data.txt");

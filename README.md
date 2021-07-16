@@ -57,14 +57,28 @@ This PyPlotFramework, is built in 2 part:
 
 # Generate histograms, reweighted and triggered
 
-This histogram creator will be executed for each observable. This c++ code will ask you if you want to run on MC, time binned observable or on All (MC+data)
+This histogram creator will be executed for each observable. This c++ code will ask you a option to run on all type of sample or just specifique one.
 
-    > ./bin/histograms_creator "observable" "year"
+The list of option is : [All, mc, data, jec, alt, timed, sme]
+'sme' create a rootfile with f function in './results/"year"/flattree' directory, usefull for combine inputs creation.
+
+    > ./bin/histograms_creator "observable" "year" "option"
 
 example : 
 
-    > ./bin/histograms_creator m_dilep 2017
+    > ./bin/histograms_creator m_dilep 2017 All
 
+NB : The particular case of alternative samples is for now in progress.
+To make the treatment of the flattree produced by 'histograms_creator' for color reconection for exemple, you need call the command :
+
+    >  python bin/color_reco.py "observable" "year"
+
+example :
+
+    >  python bin/color_reco.py m_dilep 2017
+
+
+If your not sure of what you need, type option "All".
 
 # Comparaison Data/Monte-Carlo
 
@@ -89,12 +103,12 @@ All will be stored in the ./combine/year/ directory.
 example :
 
     > python ./bin/combine_unrolled.py m_dilep 2017 
-    > ./bin/card_creator.py m_dilep 2017 Unrolled
+    > ./bin/card_creator m_dilep 2017 Unrolled
 
     or 
 
     > python ./bin/combine_one_bin.py n_bjets 2016 
-    > ./bin/card_creator.py n_bjets 2016 OneBin
+    > ./bin/card_creator n_bjets 2016 OneBin
 
 Some usefull scripts can be used in the self-named directory. 
 
@@ -102,3 +116,20 @@ example :
 
     This command will create combine inputs then datacards then export in the directory of your servers (adress in ./scripts/export_combine.py)
     > bash scripts/launch_unrolled_stuff.sh m_dilep 2017
+
+# Example of full analysis.
+
+For example, to make an analysis with the dilepton mass observable for 2017 with cLXX Wilson coefficient, let's type : 
+
+    # produce flattree correctred :
+    > ./bin/histograms_creator m_dilep 2017 All
+    >  python bin/color_reco.py m_dilep 2017
+
+    # produce inputs for combine, differential part :
+    > python ./bin/combine_one_bin.py m_dilep 2017 
+    > ./bin/card_creator m_dilep 2017 OneBin
+    
+    # produce inputs for combine, cmunu measurement part :
+    > python ./bin/combine_unrolled.py m_dilep 2017 
+    > ./bin/card_creator m_dilep 2017 SME cLXX
+

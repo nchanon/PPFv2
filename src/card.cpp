@@ -106,7 +106,7 @@ void Card::addSystToCard_alternative(bool isSME)
     else{
    //datacard += "CP5                     shape - 1              -              -              -              -              -              \n";
    //datacard += "hdamp                   shape 0 1              -              -              -              -              -              \n";
-   datacard += "color_reco              shape 0 1              -              -              -              -              -              \n";
+   //datacard += "color_reco              shape 0 1              -              -              -              -              -              \n";
    datacard += "jec              shape 0 1              1              1              1              1              1              \n";       
     }
 
@@ -130,7 +130,7 @@ void Card::addRateToCard(namelist    const& groupList_p,
                          namelist    const& systematicsRate_p
                         )
 {
-    for(size_t i = 0; i < groupList_p.size(); ++i){
+    for(size_t i = 1; i < groupList_p.size(); ++i){
         std::string line = completeBlock("r"+groupList_p[i], block_syst) 
                          + completeBlock("lnN", block_proc-block_syst);
         for(size_t j = 0; j < groupList_p.size(); ++j){
