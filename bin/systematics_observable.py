@@ -46,6 +46,8 @@ syst_down_integral = 0
 canvas = TCanvas('stack_'+observable,'stack_'+observable, 800, 800)
 canvas.UseCurrentStyle()
 
+
+data_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
 rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
 
 
@@ -57,7 +59,7 @@ rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
 ###########
 # data part
 ###########
-hist_data = rootfile_input.Get('data_obs')
+hist_data = data_input.Get('data_obs')
 data_integral = hist_data.Integral()
 
 
