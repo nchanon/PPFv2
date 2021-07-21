@@ -14,6 +14,8 @@ from ROOT import TLegend, TApplication, TRatioPlot, TPad, TFrame
 import tools.tdrstyle as tdr
 tdr.setTDRStyle()
 
+print systematic_list
+
 ################################################################################
 ## Initialisation stuff
 ################################################################################
@@ -159,4 +161,4 @@ for index in range(len(hist_mc)):
     canvas.SaveAs(outputdir+name+'_'+year+'.png')
     canvas.SaveAs(outputdir+name+'_'+year+'.pdf')
 
-raw_input('exit')
+#raw_input('exit')

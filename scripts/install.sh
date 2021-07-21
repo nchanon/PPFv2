@@ -9,8 +9,8 @@ mkdir -p results/pheno/base
 
 sleep 1
 echo " > Inputs directory creation"
-mkdir -p inputs/{2016,2017,2018}/{DATA,MC}
-mkdir -p inputs/{pheno,timed}
+mkdir -p inputs/{2016,2017,2018}/{DATA,MC,JEC,ALT}
+mkdir -p inputs/{pheno,timed,other}
 
 sleep 1
 echo " > Combine directory creation"

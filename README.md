@@ -90,6 +90,40 @@ example :
 
     > python ./bin/data_mc_comparaison.py m_dilep 2017 "Mass dileptonic"
 
+# Check Systematics
+
+In PPFv2 there is 2 scripts to check systematics, the first is to get an particular systematics, the other to get them all in one time. The results are stored in './results/'year'/systematics'
+
+It's possible to check each systematics : 
+
+    > python ./bin/systematics_observable.py "observable" "year" "systematic" "title"
+
+example : 
+
+    > python ./bin/systematics_observable.py m_dilep 2017 syst_elec_id "electron id"
+
+In case you don't sure what systematics are implemented just type :
+
+    > python ./bin/systematics_observable.py
+
+If you want you can run for all systematics in one time with the scripts :
+
+    > python scripts/control_systematics.py
+
+You can change the content of this scripts as you wish to run with other observable.
+
+##
+
+In the particular case of alternative sample systematics and jec systematics, the scripts is work in progress but you can draw plots with : 
+
+    > python bin/check_systematics.py "observable" "year" "systematics"
+
+example: 
+
+    > python bin/check_systematics.py m_dilep 2017 jec
+
+The result are stored in './results/'year'/other directory'. For now the accessible systematics are : 'jec', 'hdamp', 'CP5'
+
 # Combine input file creation 
 
 For combine work, you will need to create combine inputs and datacard separatly.
