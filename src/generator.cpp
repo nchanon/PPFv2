@@ -201,15 +201,32 @@ void Generator::generateTimeSystematics(std::vector<double>      & weightsUp,
 }
 
 bool Generator::isTriggerPassed(TTree         * tree_p,
-                                namelist const& triggerList_p
+                                namelist const& triggerList_p,
+                                bool            is2016H
                                )
 {
     int trig = 0; 
-    for(size_t i = 0; i < triggerList_p.size(); ++i){
-        if(tree_p->GetLeaf(triggerList_p[i].c_str())->GetValue(0) == 1){
-            ++trig;
+    if(!is2016H){
+        for(size_t i = 0; i < triggerList_p.size(); ++i){
+            if(triggerList_p[i] == "trg_muon_electron_mu8ele23DZ_fired" or
+               triggerList_p[i] == "trg_muon_electron_mu23ele12DZ_fired")
+               continue;
+            if(tree_p->GetLeaf(triggerList_p[i].c_str())->GetValue(0) == 1){
+                ++trig;
+            }
         }
     }
+    else{
+        for(size_t i = 0; i < triggerList_p.size(); ++i){
+            if(triggerList_p[i] == "trg_muon_electron_mu8ele23_fired" or
+               triggerList_p[i] == "trg_muon_electron_mu23ele12_fired")
+               continue;
+            if(tree_p->GetLeaf(triggerList_p[i].c_str())->GetValue(0) == 1){
+                ++trig;
+            }
+        }    
+    }
+
     return(trig >= 1);
 }
 
@@ -652,7 +669,12 @@ void Generator::generateData(namelist            const& sampleList_p,
     filename_p += cleaned+"_data.root";
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
-        std::string filename = "./inputs/"+year+"/DATA/"+sampleList_p[n]+"/tree.root";
+        bool is2016H = false;
+        if(sampleList_p[n].find("Run2016H") != std::string::npos){
+            is2016H = true;
+            std::cout << "Run H !" << std::endl;
+        }
+        std::string filename = "./inputs/"+year+"/DATA/"+sampleList_p[n]+"/NtupleProducer/tree.root";
         TFile* file = new TFile(filename.c_str());
         TTree *tree;
         file->GetObject("events", tree);
@@ -665,7 +687,7 @@ void Generator::generateData(namelist            const& sampleList_p,
         std::cout << " -> " << sampleList_p[n] << std::endl;
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
-            if(isTriggerPassed(tree, triggerList_p)){
+            if(isTriggerPassed(tree, triggerList_p, is2016H)){
                 if (sampleList_p[n].find("MuonEG") != std::string::npos){
                     hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
                     continue;
@@ -711,7 +733,12 @@ void Generator::generateDataTimed(namelist            const& sampleList_p,
     std::string filename_p = "./results/"+year+"/flattree/"+observable+"_data_timed"+std::to_string(nBin_p)+cleaned+".root";
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
-        std::string filename = "./inputs/"+year+"/DATA/"+sampleList_p[n]+"/tree.root";
+        bool is2016H = false;
+        if(sampleList_p[n].find("Run2016H") != std::string::npos){
+            is2016H = true;
+        }
+
+        std::string filename = "./inputs/"+year+"/DATA/"+sampleList_p[n]+"/NtupleProducer/tree.root";
         TFile* file = new TFile(filename.c_str());
         TTree *tree;
         file->GetObject("events", tree);
@@ -725,7 +752,7 @@ void Generator::generateDataTimed(namelist            const& sampleList_p,
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
             int whichBin = int(siderealHour(tree->GetLeaf("unix_time")->GetValue(0)))%nBin_p;
-            if(isTriggerPassed(tree, triggerList_p)){
+            if(isTriggerPassed(tree, triggerList_p, is2016H)){
                 if (sampleList_p[n].find("MuonEG") != std::string::npos){
                     hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
                     continue;

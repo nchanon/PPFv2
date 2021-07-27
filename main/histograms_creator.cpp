@@ -47,7 +47,7 @@ int main(int argc, char** argv){
 
     std::vector<int> binning(3);
     if(observable == "m_dilep"){
-        binning[0] = 25; binning[1] = 20; binning[2] = 500;
+        binning[0] = 25; binning[1] = 20; binning[2] = 300;
     }
     else if(observable == "n_bjets"){
         binning[0] = 5; binning[1] = 0; binning[2] = 5;
@@ -147,7 +147,7 @@ int main(int argc, char** argv){
 
     if(launch != "All" and launch != "alt"  and launch != "jec" and launch != "timed" and launch != "mc" and launch != "forComp" and launch != "data" and launch != "sme")
     {
-        std::cout << "Error with option : (All, mc data, alt, jec, timed, sme, forComp)" << std::endl;
+        std::cout << "Error with option : (All, mc, data, alt, jec, timed, sme, forComp)" << std::endl;
         return 0;
     }
 
@@ -160,7 +160,7 @@ int main(int argc, char** argv){
     }
     else if(launch == "data"){
         gen.generateData(sampleList_DATA, triggerList, data, 
-                         succedJobs, "RECREATE", isCorrected, isClean);       
+                         succedJobs, "RECREATE", isCorrected, false);       
     }
     else if(launch == "alt"){
         gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale);
@@ -176,12 +176,14 @@ int main(int argc, char** argv){
         gen.generateMCforComp(sampleList_MC, triggerList, ttbarList, 
                        mc_rescale, "RECREATE", isClean);    
         gen.generateData(sampleList_DATA, triggerList, data, 
-                         succedJobs, "RECREATE", isCorrected, isClean);   
+                         succedJobs, "RECREATE", isCorrected, false);   
     }
     else if(launch == "sme"){
         system("./bin/modulation_creator");
     }
     else{
+        gen.generateMCforComp(sampleList_MC, triggerList, ttbarList, 
+                       mc_rescale, "RECREATE", isClean);    
         gen.generateMC(sampleList_MC, triggerList, ttbarList, 
                        systematicList,systematicTimeList,
                        mc_rescale, "RECREATE", isClean);

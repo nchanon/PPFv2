@@ -40,7 +40,8 @@ class Generator{
 
         
         bool isTriggerPassed(TTree         * tree_p,
-                             namelist const& triggerList_p
+                             namelist const& triggerList_p,
+                             bool            is2016H = false
                             );
         
         void write(std::string       const& filename,

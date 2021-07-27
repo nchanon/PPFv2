@@ -48,7 +48,7 @@ canvas.UseCurrentStyle()
 
 
 data_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
-rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
+rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'_forComp.root')
 
 
 ################################################################################

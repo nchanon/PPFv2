@@ -208,13 +208,13 @@ effective_data_event_2017 = [
     succeeds_job(100.),    #MuonEG_B
     succeeds_job(100.),    #MuonEG_C
     succeeds_job(100.),    #MuonEG_D
-    succeeds_job(95.8),    #MuonEG_E
+    succeeds_job(100.),    #MuonEG_E
     succeeds_job(100.),    #MuonEG_F
-    succeeds_job(87.6),    #SingleElectron_B
+    succeeds_job(100.),    #SingleElectron_B
     succeeds_job(100.),    #SingleElectron_C
     succeeds_job(100.),    #SingleElectron_D
-    succeeds_job(83.3),    #SingleElectron_E
-    succeeds_job(76.5),    #SingleElectron_F
+    succeeds_job(100.),    #SingleElectron_E
+    succeeds_job(100.),    #SingleElectron_F
     succeeds_job(100.),    #SingleMuon_B
     succeeds_job(100.),    #SingleMuon_C
     succeeds_job(100.),    #SingleMuon_D
@@ -349,12 +349,12 @@ systematic_time_list = [
 
 trig_2016 = [
     'trg_muon_electron_mu23ele12_fired',
-    'trg_muon_electron_mu23ele12DZ_fired',
     'trg_muon_electron_mu8ele23_fired',
-    'trg_muon_electron_mu8ele23DZ_fired',
     'trg_muon_mu24_fired',
     'trg_muon_mutk24_fired',
-    'trg_electron_ele27_fired'
+    'trg_electron_ele27_fired',
+    'trg_muon_electron_mu8ele23DZ_fired',
+    'trg_muon_electron_mu23ele12DZ_fired'
 ]
 
 trig_2017 = [
