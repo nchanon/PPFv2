@@ -27,7 +27,7 @@ listdir = os.listdir(directory)
 listdir.sort()
 for l in listdir:
     try :
-        filein = TFile(directory+'/'+l+'/tree.root')
+        filein = TFile(directory+'/'+l+'/NtupleProducer/tree.root')
         event = filein.Get('events').GetEntriesFast()
         print l+' -> '+str(event)
     except:

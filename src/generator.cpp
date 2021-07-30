@@ -110,9 +110,7 @@ double Generator::generateWeight(TTree *tree_p,  bool isTimed)
     w *= tree_p->GetLeaf("weight_sfm_id")->GetValue();
     w *= tree_p->GetLeaf("weight_sfm_iso")->GetValue();
     //hadron
-    for(int i = 0; i< tree_p->GetLeaf("n_bjets")->GetValue(); ++i){
-        w *= tree_p->GetLeaf("weight_sfb")->GetValue();
-    }
+    w *= tree_p->GetLeaf("weight_sfb")->GetValue();
     //w *= tree_p->GetLeaf("weight_sfl")->GetValue();
     //w *= tree_p->GetLeaf("weight_sfc")->GetValue();
 
@@ -218,9 +216,9 @@ bool Generator::isTriggerPassed(TTree         * tree_p,
     }
     else{
         for(size_t i = 0; i < triggerList_p.size(); ++i){
-            if(triggerList_p[i] == "trg_muon_electron_mu8ele23_fired" or
-               triggerList_p[i] == "trg_muon_electron_mu23ele12_fired")
-               continue;
+            //if(triggerList_p[i] == "trg_muon_electron_mu8ele23_fired" or
+            //   triggerList_p[i] == "trg_muon_electron_mu23ele12_fired")
+            //   continue;
             if(tree_p->GetLeaf(triggerList_p[i].c_str())->GetValue(0) == 1){
                 ++trig;
             }
@@ -237,6 +235,7 @@ void Generator::write(std::string       const& filename,
 {
     TFile *output = new TFile(filename.c_str(), option_p.c_str());
     for(size_t i = 0; i < listObject.size(); ++i){
+        listObject[i].SetBinContent(nBin, listObject[i].GetBinContent(nBin)+listObject[i].GetBinContent(nBin+1));
         listObject[i].Write();
     }
     output->Close();
@@ -668,6 +667,7 @@ void Generator::generateData(namelist            const& sampleList_p,
     }
     filename_p += cleaned+"_data.root";
 
+    std::map<unsigned int, bool> isFilled;  
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         bool is2016H = false;
         if(sampleList_p[n].find("Run2016H") != std::string::npos){
@@ -690,14 +690,18 @@ void Generator::generateData(namelist            const& sampleList_p,
             if(isTriggerPassed(tree, triggerList_p, is2016H)){
                 if (sampleList_p[n].find("MuonEG") != std::string::npos){
                     hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
-                    continue;
-                    if (sampleList_p[n].find("SingleMuon") != std::string::npos){
+                    isFilled.emplace(tree->GetLeaf("event")->GetValue(0),1);
+                }
+                if (sampleList_p[n].find("SingleElectron") != std::string::npos){
+                    if(!isFilled[tree->GetLeaf("event")->GetValue(0)]){
                         hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
-                        continue;
-                        if (sampleList_p[n].find("SingleElectron") != std::string::npos){
-                            hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
-                            continue;
-                        }
+                        isFilled.emplace(tree->GetLeaf("event")->GetValue(0),1);
+                    }
+                }
+                if (sampleList_p[n].find("SingleMuon") != std::string::npos){
+                    if(!isFilled[tree->GetLeaf("event")->GetValue(0)]){
+                        hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
+                        isFilled.emplace(tree->GetLeaf("event")->GetValue(0),1);
                     }
                 }
             }
@@ -713,7 +717,8 @@ void Generator::generateData(namelist            const& sampleList_p,
         delete file;
     }
     groupingData(list, groupList_p, clean_p);
-
+    //for (auto& x: isFilled)
+    //    std::cout << " [" << x.first << ':' << x.second << ']' << '\n';
     write(filename_p, list, rootOption_p);
 }
 
@@ -731,7 +736,8 @@ void Generator::generateDataTimed(namelist            const& sampleList_p,
     std::string cleaned;
     if(!clean_p) cleaned = "_unclean";
     std::string filename_p = "./results/"+year+"/flattree/"+observable+"_data_timed"+std::to_string(nBin_p)+cleaned+".root";
-
+    
+    std::map<unsigned int, bool> isFilled;  
     for(size_t n = 0; n < sampleList_p.size(); ++n){
         bool is2016H = false;
         if(sampleList_p[n].find("Run2016H") != std::string::npos){
@@ -755,14 +761,18 @@ void Generator::generateDataTimed(namelist            const& sampleList_p,
             if(isTriggerPassed(tree, triggerList_p, is2016H)){
                 if (sampleList_p[n].find("MuonEG") != std::string::npos){
                     hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
-                    continue;
-                    if (sampleList_p[n].find("SingleMuon") != std::string::npos){
+                    isFilled.emplace(tree->GetLeaf("event")->GetValue(0),1);
+                }
+                if (sampleList_p[n].find("SingleElectron") != std::string::npos){
+                    if(!isFilled[tree->GetLeaf("event")->GetValue(0)]){
                         hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
-                        continue;
-                        if (sampleList_p[n].find("SingleElectron") != std::string::npos){
-                            hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
-                            continue;
-                        }
+                        isFilled.emplace(tree->GetLeaf("event")->GetValue(0),1);
+                    }
+                }
+                if (sampleList_p[n].find("SingleMuon") != std::string::npos){
+                    if(!isFilled[tree->GetLeaf("event")->GetValue(0)]){
+                        hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
+                        isFilled.emplace(tree->GetLeaf("event")->GetValue(0),1);
                     }
                 }
             }

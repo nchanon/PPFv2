@@ -44,10 +44,10 @@ cross_section_2016 = {
      #3.697,                # TTX  TTG2        
     'MC_wjets_WJets'             :61526.7,              # wjets WJets       
     'MC_wjets_WJets2'            :61526.7,              # wjets WJets2      
-    'MC_zjets_DY_50'             :6225.4,               # zjets DY        
     'MC_zjets_DY_1050'           :22635.14,              # zjets DY 10-50   
     'MC_zjets_DY_10502'          :22635.14,              # zjets DY 10-50   
-    'MC_zjets_DY_10503'          :22635.14              # zjets DY 10-50       
+    'MC_zjets_DY_10503'          :22635.14,              # zjets DY 10-50       
+    'MC_zjets_DY_50'             :6225.4               # zjets DY        
 }
 
 
@@ -81,11 +81,11 @@ cross_sec_2016 = [ # alphabetic order
 
     61526.7,              # wjets WJets       
     61526.7,              # wjets WJets2      
-
-    6225.4,               # zjets DY        
+    
     22635.14,              # zjets DY 10-50   
     22635.14,              # zjets DY 10-50   
-    22635.14              # zjets DY 10-50   
+    22635.14,              # zjets DY 10-50   
+    6225.4               # zjets DY        
 ]
 
 effective_data_event_2016 = [

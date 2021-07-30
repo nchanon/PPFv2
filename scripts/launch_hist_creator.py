@@ -21,10 +21,10 @@ observables = [
 ]
 
 years = [
-#    '2016',
+    '2016',
     '2017'
 ]
 
 for y in years:
     for o in observables:
-        os.system('./bin/histograms_creator '+o+' '+y)
+        os.system('./bin/histograms_creator '+o+' '+y+' forComp')

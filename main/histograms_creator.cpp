@@ -50,7 +50,7 @@ int main(int argc, char** argv){
         binning[0] = 25; binning[1] = 20; binning[2] = 300;
     }
     else if(observable == "n_bjets"){
-        binning[0] = 5; binning[1] = 0; binning[2] = 5;
+        binning[0] = 6; binning[1] = 0; binning[2] = 6;
     }
     else if(observable == "pt_lead"){
         binning[0] = 25; binning[1] = 0; binning[2] = 250;
@@ -160,7 +160,7 @@ int main(int argc, char** argv){
     }
     else if(launch == "data"){
         gen.generateData(sampleList_DATA, triggerList, data, 
-                         succedJobs, "RECREATE", isCorrected, false);       
+                         succedJobs, "RECREATE", isCorrected, isClean);       
     }
     else if(launch == "alt"){
         gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale);
@@ -176,7 +176,7 @@ int main(int argc, char** argv){
         gen.generateMCforComp(sampleList_MC, triggerList, ttbarList, 
                        mc_rescale, "RECREATE", isClean);    
         gen.generateData(sampleList_DATA, triggerList, data, 
-                         succedJobs, "RECREATE", isCorrected, false);   
+                         succedJobs, "RECREATE", isCorrected, isClean);   
     }
     else if(launch == "sme"){
         system("./bin/modulation_creator");

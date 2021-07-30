@@ -12,8 +12,13 @@ from tools.sample_manager import *
 def eventfilter_input(year, nature, sample, filter):
     return './inputs/'+year+'/'+nature+'/'+sample+'/'+filter+'/SkimReport.txt'
 
-def is_same_sample(name1, name2):
-    foo = False;
+def is_same_sample(name1, name2, year):
+    foo = False
+    if name1.find('TTW3') != -1 or name2.find('TTW3')  != -1 or name1.find('TTZ4') != -1 or name2.find('TTZ4')  != -1:
+	return foo
+    if year == '2017':
+	if name1.find('TTZ3') != -1 or name2.find('TTZ3')  != -1:
+	    return foo
     for c1,c2 in zip(name1, name2):
         if c1 != c2:
             try:
@@ -43,12 +48,12 @@ def generate_eventN0(year, sample_list, sampletype='MC'):
     foo.append(sum_of_weight(year,sample_list[0],sampletype))
     for i in range(1,len(sample_list)):
         foo.append(sum_of_weight(year,sample_list[i],sampletype))
-        if is_same_sample(sample_list[i], sample_list[i-1]):
+        if is_same_sample(sample_list[i], sample_list[i-1], year):
             foo[i-1] += foo[i]
             foo[i] = foo[i-1]
-            if is_same_sample(sample_list[i], sample_list[i-2]):
+            if is_same_sample(sample_list[i], sample_list[i-2], year):
                 foo[i-2] = foo[i]
-            if is_same_sample(sample_list[i], sample_list[i-3]):
+            if is_same_sample(sample_list[i], sample_list[i-3], year):
                 foo[i-3] = foo[i]
                 foo[i-2] = foo[i]
 
