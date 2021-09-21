@@ -155,7 +155,7 @@ example :
 
 For example, to make an analysis with the dilepton mass observable for 2017 with cLXX Wilson coefficient, let's type : 
 
-    # produce flattree correctred :
+    # produce corrected flattree :
     > ./bin/histograms_creator m_dilep 2017 All
     >  python bin/color_reco.py m_dilep 2017
 

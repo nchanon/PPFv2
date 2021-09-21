@@ -147,6 +147,7 @@ for n in range(nbin):
     output = TFile(out+observable+'_'+str(nbin)+'_'+str(n)+'.root', "RECREATE")
     histograms_timmed.Write()
     for h in histograms:
+        h.Scale(hist_weight.GetBinContent(n+1))
         h.Write()
     for h in hist_tim:
         h.Write()

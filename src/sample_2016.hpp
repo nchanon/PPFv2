@@ -12,8 +12,7 @@ namelist ttbarList {
     "ttx",
     "singletop",
     "dibosons",
-    "wjets",
-    "zjets"
+    "vjets"
 };
 
 namelist jecList {

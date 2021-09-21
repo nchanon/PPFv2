@@ -47,7 +47,8 @@ int main(int argc, char** argv){
 
     std::vector<int> binning(3);
     if(observable == "m_dilep"){
-        binning[0] = 25; binning[1] = 20; binning[2] = 300;
+        binning[0] = 7; binning[1] = 20; binning[2] = 300;
+        //binning[0] = 25; binning[1] = 20; binning[2] = 300;
     }
     else if(observable == "n_bjets"){
         binning[0] = 6; binning[1] = 0; binning[2] = 6;

@@ -24,7 +24,7 @@ met_like_values = [
     [0.65, 0.65, 0.87, 0.87]    # legend box
 ]
 m_dilep_like_values = [
-    [25, 0, 300],               # binnings
+    [10, 20, 300],               # binnings
     [0.65, 0.75, 0.9, 0.9]    # legend box
 ]
 unix_time_like_values = [

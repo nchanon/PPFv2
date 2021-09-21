@@ -44,6 +44,11 @@ class Card
 
         void addSystToCard_alternative(bool isSME = false);
 
+        void addProcSystToCard(std::string const& systName_p,
+                                     std::string const& shape_p,
+                                     namelist    const& groupList_p,
+                                     std::string const& process_p);
+
         void addSystToCard(std::string const& systName_p,
                            std::string const& shape_p,
                            namelist    const& groupList_p,

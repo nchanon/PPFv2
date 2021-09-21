@@ -248,7 +248,8 @@ void Generator::write(std::string       const& filename,
 {
     TFile *output = new TFile(filename.c_str(), option_p.c_str());
     for(size_t l = 0; l < listObject.size(); ++l){
-        for(size_t i = 0; i < listObject[l].size(); ++i){
+        for(size_t i = 0; i < listObject[l].size(); ++i){        
+            listObject[l][i].SetBinContent(nBin, listObject[l][i].GetBinContent(nBin)+listObject[l][i].GetBinContent(nBin+1));
             listObject[l][i].Write();
         }
     }
@@ -268,8 +269,9 @@ void Generator::groupingMC(std::vector<TH1F>      & list,
 
     for(std::string group : groupList_p){
         TH1F h((group).c_str(), (group).c_str(), nbin, min, max);
+        std::string grp = group.substr(1,group.size()-1);
         for(size_t i = 0; i < list.size(); ++i){
-            if(TString(list[i].GetName()).Contains(group))
+            if(TString(list[i].GetName()).Contains(grp))
                 h.Add(&list[i]);
         }
         list.push_back(h);
@@ -291,8 +293,9 @@ void Generator::groupingMC(std::vector<TH1F>      & list,
 
     for(std::string group : groupList_p){
         TH1F h((group+'_'+name).c_str(), (group+'_'+name).c_str(), nbin, min, max);
+        std::string grp = group.substr(1,group.size()-1);
         for(size_t i = 0; i < list.size(); ++i){
-            if(TString(list[i].GetName()).Contains(group)) 
+            if(TString(list[i].GetName()).Contains(grp))
                 h.Add(&list[i]);
         }
         list.push_back(h);
@@ -367,8 +370,9 @@ void Generator::groupingSystematics(std::vector<TH1F>      & list,
     for(std::string group : groupList_p){
         for(std::string syst : systematicsList_p){
             TH1F h((group+"_"+syst+updown).c_str(), (group+"_"+syst+updown).c_str(), nbin, min, max);  
+            std::string grp = group.substr(1,group.size()-1);
             for(size_t i = 0; i < list.size(); ++i){
-                if(TString(list[i].GetName()).Contains(group) and TString(list[i].GetName()).Contains(syst))
+                if(TString(list[i].GetName()).Contains(grp) and TString(list[i].GetName()).Contains(syst))
 
                     h.Add(&list[i]);        
             }

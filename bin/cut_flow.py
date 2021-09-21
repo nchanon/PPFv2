@@ -1,12 +1,13 @@
 import sys
 sys.path.append('./')
 
+from tools.style_manager import *
 from tools.sample_manager import *
 
 import numpy as np
 import argparse
 
-from ROOT import TFile
+from ROOT import TFile, TH1F, TH1
 
 parser = argparse.ArgumentParser()
 parser.add_argument('year', help='year of samples')
@@ -14,10 +15,116 @@ parser.add_argument('year', help='year of samples')
 args = parser.parse_args()
 year = args.year
 
-
+sample = 'MC_signal_dilep'
+observable = 'm_dilep'
 
 ################################################################################
 
+def form(key, dictionnary):
+    return ('%12s %10s %s5' % (key, dictionnary[key], int(np.sqrt(dictionnary[key]))))
+
+def table(integrals):
+    for key in integrals:
+        if key != 'total' and key != 'data_obs':
+            print  form(key, integrals)
+    print ''
+    print form('total', integrals)
+    print form('data_obs', integrals)
+
+def path(year, sample, isInput=True):
+    if isInput:
+        return './inputs/'+year+'/MC/'+sample+'/'
+    else:
+        return './inputs/'+year+'/'+sample+'/'
+
+def event_filtered(file, is_final = True):
+    event = []
+    f = open(file, 'r')
+    for i in f.read().split():
+        try:
+            event.append(int(i.strip()))
+        except:
+            pass
+    if is_final:
+        return event[1]
+    else:
+        return event[0]
+
+def get_events(year, sample, filter, is_final=True):
+    p = path(year, sample)+filter+'/efficiency.txt'
+    return event_filtered(p,is_final)
+
+def cut_flow(year, sample, weight=1.):
+    return {
+        'full'     : weight*get_events(year, sample, 'OneDilepton', False),
+        'onedilep' : weight*get_events(year, sample, 'OneDilepton'),
+        'twojets'  : weight*get_events(year, sample, 'TwoJets'),
+        'onebjet'  : weight*get_events(year, sample, 'OneBJets')
+    }
+
+def filtre(samples):
+    foo = {}
+    for l in ttbar_list:
+        foo.update({l : })
+    print samples
+    for l in samples.keys():
+        for g in ttbar_list:
+            if l.find(g) != -1:
+                foo[g] += int(sample[l])
+            if l.find('jets') != -1:
+                foo[g] += int(sample[l])
+    return foo
+
+'''
+ratio = {
+    'full'     : 1.,
+    'onedilep' : get_ratio(year, sample, 'OneDilepton'),
+    'twojets'  : get_ratio(year, sample, 'TwoJets'),
+    'onebjet'  : get_ratio(year, sample, 'OneBJets')
+}
+'''
+
+effective_N0 = generate_eventN0(year, sample_MC[year])
+mc_rescale   = rescaling(year, effective_N0)
+
+
+values = {}
+for l in range(len(sample_MC[year])):
+    values.update(
+        { sample_MC[year][l] : cut_flow(year, sample_MC[year][l], 77*mc_rescale[l])}
+    )
+
+integrals_cut = filtre(values)
+
+print integrals_cut
+
+integrals = {}
+
+nbin = 0
+min_bin = 0
+max_bin = 0
+TH1.SetDefaultSumw2(1)
+
+datafile_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
+rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'_forComp.root')
+
+integrals.update({'data_obs' : int(datafile_input.Get('data_obs').Integral())})
+integrals.update({'signal' : int(rootfile_input.Get('signal').Integral())})
+total_mc = integrals['signal']
+
+background_integral = 0
+for l in rootfile_input.GetListOfKeys():
+    for s in ttbar_list:
+        if(l.GetName() == s and not l.GetName() == 'signal'):
+            integrals.update({l.GetName() : int(rootfile_input.Get(l.GetName()).Integral()) })
+            total_mc += integrals[l.GetName()]
+            #ratio.update({l.GetName() : cut_flow})
+
+integrals.update({'total' : total_mc})
+
+#table(integrals) 
+
+'''
 def results_path(year, directory, file):
     return './results/'+year+'/'+directory+'/'+file
 
@@ -111,43 +218,6 @@ def cut_flow_human_readable(filter, year):
                        ) #Zjets
     return filter_h
 
-def latex_table(name, filter1, filter2, filter3, filter4):
-    foo = r'''
-    \begin{tabular}{|c|c|c|c|c|}\hline
-     channel & no cuts & 2 leptons & 2 jets & 1 b-jets \\ \hline \hline
-    '''
-    for i in range(len(name)):
-        foo += '    '+name[i].replace('_',' ')+' & '\
-            +str(round(filter1[i]))+'$\pm$'+str(round(np.sqrt(filter1[i])))+\
-            ' ['+str(percent(filter1[i],total_list(filter1)))+'\%] & '\
-            +str(round(filter2[i]))+'$\pm$'+str(round(np.sqrt(filter2[i])))+\
-            ' ['+str(percent(filter2[i],total_list(filter2)))+'\%] & '\
-            +str(round(filter3[i]))+'$\pm$'+str(round(np.sqrt(filter3[i])))+\
-            ' ['+str(percent(filter3[i],total_list(filter3)))+'\%] &'\
-            +str(round(filter4[i]))+'$\pm$'+str(round(np.sqrt(filter4[i])))+\
-            ' ['+str(percent(filter4[i],total_list(filter4)))+'\%]  '\
-            +'  \\\\ \n    '
-        if(i==0):
-            foo += '\hline \n    '
-    foo += '\hline \n    '
-    foo += 'total MC & '+str(round(total_list(filter1)))\
-            +'$\pm$'+str(round(np.sqrt(total_list(filter1))))\
-            +' & '+str(round(total_list(filter2)))\
-            +'$\pm$'+str(round(np.sqrt(total_list(filter2))))\
-            +' & '+str(round(total_list(filter3))) \
-            +'$\pm$'+str(round(np.sqrt(total_list(filter3))))\
-            +' & '+str(round(total_list(filter4))) \
-            +'$\pm$'+str(round(np.sqrt(total_list(filter4))))\
-            +'\\\\ \n '
-    foo += 'total data & '\
-            +' & '\
-            +' & '\
-            +' & XXXX \\\\ \n'\
-            +'\hline'\
-            +' \n '
-    foo += r'''\end{tabular}'''
-    return foo
-
 ################################################################################
 
 onebjet = 'OneBJets'
@@ -222,18 +292,8 @@ for i in range(len(integrals_h)):
     latex_two_jets.append(to_one_bjets[i]*integrals_h[i])
     latex_one_bjet.append(integrals_h[i])
 
-## Latex part
-
-header = r'''\documentclass{standalone}
-\begin{document}
-'''
-main =  latex_table(name_channel_h, latex_full, latex_one_dilep, latex_two_jets, latex_one_bjet)
-footer = r'''
-\end{document}
-''' 
-
-content = header+main+footer
 
 with open('./results/cutflow/cutflow'+year+'.tex','w') as f:
     f.write(content)
 
+'''

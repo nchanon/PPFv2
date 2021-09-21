@@ -48,7 +48,7 @@ canvas.UseCurrentStyle()
 
 
 data_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
-rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'_forComp.root')
+rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
 
 
 ################################################################################
@@ -80,6 +80,7 @@ hist_mc_down = []
 
 for l in rootfile_input.GetListOfKeys():
     for s in ttbar_list:
+        print l.GetName(),s
         if(l.GetName() == s):
             hist_mc.append(rootfile_input.Get(l.GetName()))
             mc_integral_i.append([rootfile_input.Get(l.GetName()).Integral(), l.GetName()])
@@ -137,17 +138,25 @@ import numpy as np
 for h in range(len(hist_mc)):
     for i in range(hist_mc[h].GetNbinsX()):
         val = float(hist_mc[h].GetBinContent(i+1))
-        if val == 0:
-            val = 0.00001
         hist_mc[h].SetBinContent(i+1,0)
         hist_mc[h].SetBinError(i+1,hist_mc[h].GetBinError(i+1)/np.sqrt(val))
 
         up   = hist_mc_up[h].GetBinContent(i+1)-val
         down = hist_mc_down[h].GetBinContent(i+1)-val
-        hist_mc_up[h].SetBinContent(i+1, float(up)/val*100)
-        hist_mc_down[h].SetBinContent(i+1, float(down)/val*100)
-    hist_mc[h].SetMaximum(hist_mc_up[h].GetMaximum()+hist_mc_up[h].GetMaximum()/10)
-    hist_mc[h].SetMinimum(-hist_mc_up[h].GetMaximum()-hist_mc_up[h].GetMaximum()/10)
+        if up==0:
+            hist_mc_up[h].SetBinContent(i+1, 0)
+        else:
+            hist_mc_up[h].SetBinContent(i+1, float(up)/val*100)
+        if down==0:
+            hist_mc_down[h].SetBinContent(i+1,0)
+        else:
+            hist_mc_down[h].SetBinContent(i+1, float(down)/val*100)
+    mmax = hist_mc_up[h].GetMaximum()+hist_mc_up[h].GetMaximum()/10
+    mmin = hist_mc_down[h].GetMaximum()+hist_mc_down[h].GetMaximum()/10
+    if mmin> mmax:
+        mmax = mmin
+    hist_mc[h].SetMaximum(mmax)
+    hist_mc[h].SetMinimum(-mmax)
 
 outputdir = './results/'+year+'/systematics/'
 

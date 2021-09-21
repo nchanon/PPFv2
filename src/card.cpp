@@ -100,16 +100,34 @@ void Card::addSystToCard_alternative(bool isSME)
     if(!isSME){
 //   datacard += "CP5                     shape 1              0              0              0              0              0              \n";
 //   datacard += "hdamp                   shape 1              0              0              0              0              0              \n";
-//   datacard += "color_reco              shape 1              0              0              0              0              0              \n";
-   datacard += "jec              shape 1              1              1              1              1              1              \n";
+   datacard += "color_reco              shape 1              0              0              0              0              0              \n";
+   datacard += "jec              shape 1              1              1              1              1              \n";
     }
     else{
    //datacard += "CP5                     shape - 1              -              -              -              -              -              \n";
    //datacard += "hdamp                   shape 0 1              -              -              -              -              -              \n";
    //datacard += "color_reco              shape 0 1              -              -              -              -              -              \n";
-   datacard += "jec              shape 0 1              1              1              1              1              1              \n";       
+   datacard += "jec              shape 0 1              1              1              1              1              \n";       
     }
 
+}
+
+void Card::addProcSystToCard(std::string const& systName_p,
+                             std::string const& shape_p,
+                             namelist    const& groupList_p,
+                             std::string const& process_p
+                             )
+{
+    datacard += completeBlock(systName_p, block_syst) 
+            + completeBlock(shape_p, block_proc-block_syst);
+    for(size_t i = 0; i < groupList_p.size(); ++i)
+    {
+        if(groupList_p[i] == process_p)
+            datacard += completeBlock("1", block_grp);
+        else 
+            datacard += completeBlock("0", block_grp);
+    }
+    datacard += '\n';
 }
 
 

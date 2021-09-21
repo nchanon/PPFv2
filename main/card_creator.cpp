@@ -13,6 +13,8 @@ int main(int argc, char** argv){
     std::string process;
     std::string wilson;
 
+    std::string debug_syst = "...";
+
     if(argc < 4 or argc >5){
         Log("Wrong number of arguments !!!");
         Log(" missing arguments : observable, year, combine process (OneBin, Unolled), [wilson] (fXX_L, fXZ_C, ...");
@@ -56,11 +58,21 @@ int main(int argc, char** argv){
             datacard.addProcToCard(observable, ttbarList);
             datacard.addSeparator();
             datacard.addRateToCard(ttbarList, systematicRate);
-            for(std::string const& syst : systematicList)
-                datacard.addSystToCard(syst, "shape", ttbarList);
+            for(std::string const& syst : systematicList){
+                if(syst == "syst_pt_top")
+                    datacard.addProcSystToCard(syst, "shape", ttbarList, "signal");
+                else if(syst == debug_syst)
+                    continue;
+                else
+                    datacard.addSystToCard(syst, "shape", ttbarList);
+            }
             //datacard.addSystToCard("lumi", "lnN", groupList_p, "1.023");
-            for(std::string const& syst : systematicTimeList)
-                datacard.addSystToCard(syst, "shape", ttbarList);
+            for(std::string const& syst : systematicTimeList){
+                if(syst == debug_syst)
+                    continue;
+                else
+                    datacard.addSystToCard(syst, "shape", ttbarList);
+            }
             datacard.addSystToCard_alternative();
             datacard.addSeparator();
             //datacard.addLine("* autoMCStats 5");
@@ -92,8 +104,12 @@ int main(int argc, char** argv){
         datacard.addProcToCard(observable, ttbarList);
         datacard.addSeparator();
         datacard.addRateToCard(ttbarList, systematicRate);
-        for(std::string const& syst : systematicList)
-            datacard.addSystToCard(syst, "shape", ttbarList);
+        for(std::string const& syst : systematicList){
+            if(syst == "syst_pt_top")
+                datacard.addProcSystToCard(syst, "shape", ttbarList, "signal");
+            else
+                datacard.addSystToCard(syst, "shape", ttbarList);
+        }
         //datacard.addSystToCard("lumi", "lnN", ttbarList, "1.023");
         for(std::string const& syst : systematicTimeList)
             datacard.addSystToCard(syst, "shape", ttbarList);
@@ -130,8 +146,12 @@ int main(int argc, char** argv){
         datacard.addProcToCard(observable, ttbarList);
         datacard.addSeparator();
         datacard.addRateToCard(ttbarList, systematicRate);
-        for(std::string const& syst : systematicList)
-            datacard.addSystToCard(syst, "shape", ttbarList);
+        for(std::string const& syst : systematicList){
+            if(syst == "syst_pt_top")
+                datacard.addProcSystToCard(syst, "shape", ttbarList, "signal");
+            else
+                datacard.addSystToCard(syst, "shape", ttbarList);
+        }
         //datacard.addSystToCard("lumi", "lnN", ttbarList, "1.023");
         for(std::string const& syst : systematicTimeList)
             datacard.addSystToCard(syst, "shape", ttbarList);
