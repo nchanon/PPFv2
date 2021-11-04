@@ -7,8 +7,10 @@ def succeeds_job(percent):
     return 100./(percent)
 
 def inputs_name(path, year, nature):
+    print(year + ' ' + nature)
     foo = os.listdir('./'+path+'/'+year+'/'+nature+'/')
     foo.sort()
+    print foo
     if(not foo):
         print 'Error : dataset list is empty'
     return foo
@@ -43,7 +45,7 @@ cross_section_2016 = {
      #3.697,                # TTX  TTG        
      #3.697,                # TTX  TTG2        
     'MC_wjets_WJets'             :61526.7,              # wjets WJets       
-    'MC_wjets_WJets2'            :61526.7,              # wjets WJets2      
+    #'MC_wjets_WJets2'            :61526.7,              # wjets WJets2      
     'MC_zjets_DY_1050'           :22635.14,              # zjets DY 10-50   
     'MC_zjets_DY_10502'          :22635.14,              # zjets DY 10-50   
     'MC_zjets_DY_10503'          :22635.14,              # zjets DY 10-50       
@@ -80,7 +82,7 @@ cross_sec_2016 = [ # alphabetic order
     #3.697,                # TTX  TTG2        
 
     61526.7,              # wjets WJets       
-    61526.7,              # wjets WJets2      
+    #61526.7,              # wjets WJets2      
     
     22635.14,              # zjets DY 10-50   
     22635.14,              # zjets DY 10-50   
@@ -138,6 +140,43 @@ alt_list_2016 = [
 'alt_MC_QCDbased'
 ]
 
+cross_sec_2016_alt = [
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429            # signal semilep     
+]
+
 ################################################################################
 ## 2017
 ################################################################################
@@ -167,7 +206,7 @@ cross_section_2017 = {
     'MC_wjets_WJets2'             :61526.7,   
     'MC_zjets_DY_1050'            :22635.1,  
     'MC_zjets_DY_50'              :6225.4,   
-    #'MC_zjets_DY_502'             :6225.4    
+    'MC_zjets_DY_502'             :6225.4    
 
 }
 
@@ -189,19 +228,19 @@ cross_sec_2017 = [
     80.95,    # singletop STt antitop
     136.02,   # singletop STt top
 
-    0.2043,   # TTX TTW         
-    0.2043,   # TTX TTW2        
-    0.4062,   # TTX TTW3        
-    0.2529,   # TTX TTZ         
-    0.2529,   # TTX TTZ2        
-    0.5297,   # TTX TTZ3        
+    0.2043,   # TTX TTW  (Wlnu)       
+    0.2043,   # TTX TTW2 (Wlnu) 
+    0.4062,   # TTX TTW3 (Wqq) 
+    0.2529,   # TTX TTZ  (Zll)        
+    0.2529,   # TTX TTZ2 (Zll)   
+    0.5297,   # TTX TTZ3 (Zqq)       
 
     61526.7,   # wjets WJets       
     61526.7,   # wjets Wjets2      
 
     22635.1,  # zjets DY 10-50     
     6225.4,   # zjets DY        
-    #6225.4    # zjets DY2         
+    6225.4    # zjets DY2         
 ]
 
 effective_data_event_2017 = [
@@ -248,6 +287,47 @@ alt_list_2017 = [
     'alt_MC_mtop175p5_pmx',
     'alt_MC_QCDbased',
     'alt_MC_QCDbased_ext'
+]
+
+cross_sec_2017_alt = [
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
+
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+    377.96006,            # signal hadronic    
+
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429,            # signal semilep     
+    366.91429            # signal semilep     
 ]
 
 ################################################################################
@@ -298,6 +378,11 @@ cross_sec = {
     '2018' : 0
 }
 
+cross_sec_alt = {
+    '2016' : cross_sec_2016_alt,
+    '2017' : cross_sec_2017_alt,
+    '2018' : 0
+}
 
 ttbar_list = [ 
     'signal',
@@ -321,10 +406,10 @@ systematic_list = [
     'syst_muon_iso',
     'syst_pu',
     'syst_b',
-    #
     # 'syst_c',
     #'syst_l',
-    'syst_pt_top'
+    'syst_pt_top',
+    'syst_prefiring'
 ]
 
 alt_syst_list = [
@@ -410,17 +495,21 @@ def is_same_sample(name1, name2, year):
     if year == '2017':
 	if name1.find('TTZ3') != -1 or name2.find('TTZ3')  != -1:
 	    return foo
-    for c1,c2 in zip(name1, name2):
-        if c1 != c2:
-            try:
-                if(int(c1)-int(c2) == 1):
-                    return True
-            except:
-                pass
-            if foo:
-                return False
-        else:
-            foo = True
+#    for c1,c2 in zip(name1, name2):
+#        if c1 != c2:
+#            try:
+#                if(int(c1)-int(c2) == 1):
+#                    return True
+#            except:
+#                pass
+#            if foo:
+#                return False
+#        else:
+#            foo = True
+#    if(abs(int(c1)-int(c2)) == 1):
+    if (name1.find("2")!=-1 or name1.find("3")!=-1 or name1.find("4")!=-1 or name1.find("pmx")!=-1 or name1.find("ext")!=-1):
+       foo = True
+    #print(name1+ ' '+name2+' is_same_sample='+str(foo))
     return foo
 
 def sum_of_weight(year, sample, sampletype='MC'):
@@ -432,35 +521,42 @@ def sum_of_weight(year, sample, sampletype='MC'):
             event.append(float(i.strip()))
         except:
             pass
+    print(filterfile+' sum_of_weight='+str(event[3]))
     return float(event[3])
 
 def generate_eventN0(year, sample_list, sampletype='MC'):
     foo = []
     foo.append(sum_of_weight(year,sample_list[0],sampletype))
+    #print(sample_list[0]+' sum_of_weight='+str(sum_of_weight(year,sample_list[0],sampletype))+' sum_of_weight_all='+str(foo[0]))
     for i in range(1,len(sample_list)):
         foo.append(sum_of_weight(year,sample_list[i],sampletype))
         if is_same_sample(sample_list[i], sample_list[i-1], year):
             foo[i-1] += foo[i]
-            foo[i] = foo[i-1]
-            if is_same_sample(sample_list[i], sample_list[i-2], year):
-                foo[i-2] = foo[i]
-            if is_same_sample(sample_list[i], sample_list[i-3], year):
-                foo[i-3] = foo[i]
-                foo[i-2] = foo[i]
-
+            #foo[i] = foo[i-1]
+            if is_same_sample(sample_list[i-1], sample_list[i-2], year):
+		foo[i-2] += foo[i]
+		#foo[i-1] += foo[i]  
+                #foo[i] = foo[i-2]
+            	if is_same_sample(sample_list[i-2], sample_list[i-3], year):
+                   foo[i-3] += foo[i]
+                   #foo[i-2] += foo[i]
+		   #foo[i-1] += foo[i]
+		   #foo[i] = foo[i-3]
+	    foo[i] = foo[i-1]
+    print('sum_of_weight_all='+str(foo))
     return foo
 
 def rescaling(year, N0_list, sampletype='MC'):
     foo = []
-    cross_sec_alt = {
-    '2016' : 89.0482256,
-    '2017' : 89.0482256
+    #cross_sec_alt = {
+    #'2016' : 89.0482256,
+    #'2017' : 89.0482256
     #    '2018' : trig_2018    
-    }
+    #}
     for n in range(len(N0_list)):
-        if sampletype=='MC':
+        if sampletype=='MC' or sampletype.find('JEC')!=-1:
             foo.append(1000.*luminosity[year]*cross_sec[year][n]/N0_list[n]) 
-        else:
-            foo.append(1000.*luminosity[year]*cross_sec_alt[year]/N0_list[n]) 
+        if sampletype=='ALT':
+            foo.append(1000.*luminosity[year]*cross_sec_alt[year][n]/N0_list[n]) 
     return foo
 

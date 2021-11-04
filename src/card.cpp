@@ -98,16 +98,26 @@ void Card::addProcToCard(std::string const& observable_p,
 void Card::addSystToCard_alternative(bool isSME)
 {
     if(!isSME){
-//   datacard += "CP5                     shape 1              0              0              0              0              0              \n";
-//   datacard += "hdamp                   shape 1              0              0              0              0              0              \n";
-   datacard += "color_reco              shape 1              0              0              0              0              0              \n";
-   datacard += "jec              shape 1              1              1              1              1              \n";
+      datacard += "CP5                     shape 1              0              0              0              0              \n";
+      datacard += "hdamp                   shape 1              0              0              0              0              \n";
+      datacard += "erdOn                   shape 1              0              0              0              0              \n";
+      datacard += "QCDinspired             shape 1              0              0              0              0              \n";
+      datacard += "GluonMove               shape 1              0              0              0              0              \n";
+      datacard += "mtop                    shape 1              0              0              0              0              \n";
+      //datacard += "color_reco              shape 1              0              0              0              0              \n";
+      datacard += "jec              	   shape 1              1              1              1              1              \n";
     }
     else{
-   //datacard += "CP5                     shape - 1              -              -              -              -              -              \n";
-   //datacard += "hdamp                   shape 0 1              -              -              -              -              -              \n";
-   //datacard += "color_reco              shape 0 1              -              -              -              -              -              \n";
-   datacard += "jec              shape 0 1              1              1              1              1              \n";       
+      //datacard += "CP5                     shape - 1              -              -              -              -              \n";
+      //datacard += "hdamp                   shape 0 1              -              -              -              -              \n";
+      //datacard += "color_reco              shape 0 1              -              -              -              -              \n";
+      datacard += "CP5                     shape 1              1              0              0              0              0              \n";
+      datacard += "hdamp                   shape 1              1              0              0              0              0              \n";
+      datacard += "erdOn                   shape 1              1              0              0              0              0              \n";
+      datacard += "QCDinspired             shape 1              1              0              0              0              0              \n";
+      datacard += "GluonMove               shape 1              1              0              0              0              0              \n";
+      datacard += "mtop                    shape 1              1              0              0              0              0              \n";
+      datacard += "jec              	  shape 1              1              1              1              1              1	\n";
     }
 
 }
@@ -115,17 +125,26 @@ void Card::addSystToCard_alternative(bool isSME)
 void Card::addProcSystToCard(std::string const& systName_p,
                              std::string const& shape_p,
                              namelist    const& groupList_p,
-                             std::string const& process_p
+                             std::string const& process_p,
+			     bool isSME
                              )
 {
     datacard += completeBlock(systName_p, block_syst) 
             + completeBlock(shape_p, block_proc-block_syst);
     for(size_t i = 0; i < groupList_p.size(); ++i)
     {
-        if(groupList_p[i] == process_p)
-            datacard += completeBlock("1", block_grp);
-        else 
-            datacard += completeBlock("0", block_grp);
+	if (!isSME){
+          if(groupList_p[i] == process_p)
+              datacard += completeBlock("1", block_grp);
+          else 
+              datacard += completeBlock("0", block_grp);
+	}
+	else if (isSME){
+          if(groupList_p[i] == process_p || i==0)
+              datacard += completeBlock("1", block_grp);
+          else 
+              datacard += completeBlock("0", block_grp);
+	}
     }
     datacard += '\n';
 }
@@ -145,7 +164,8 @@ void Card::addSystToCard(std::string const& systName_p,
 }
 
 void Card::addRateToCard(namelist    const& groupList_p,
-                         namelist    const& systematicsRate_p
+                         namelist    const& systematicsRate_p,
+			 bool isSME
                         )
 {
     for(size_t i = 1; i < groupList_p.size(); ++i){
@@ -154,6 +174,8 @@ void Card::addRateToCard(namelist    const& groupList_p,
         for(size_t j = 0; j < groupList_p.size(); ++j){
             if(i == j)
                 line += completeBlock(systematicsRate_p[j], block_grp);
+	    else if (j == 0 && i==1 && isSME)
+		line += completeBlock(systematicsRate_p[0], block_grp);
             else
                 line += completeBlock("0", block_grp);
         }  

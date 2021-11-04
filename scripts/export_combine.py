@@ -16,6 +16,6 @@ directory = args.directory
 year = args.year
 
 path_in = './combine/'+year+'/'+directory+'/inputs/'
-path_out = 'acarle@lyoserv.in2p3.fr:/gridgroup/cms/acarle/CMSSW_8_1_0/src/Analyse/'+directory+'/inputs/'+year+'/'
+path_out = '/gridgroup/cms/nchanon/CMSSW_10_2_13/src/combine-ttbar/'+directory+'/inputs/'+year+'/'
 
 os.system('scp '+path_in+'* '+path_out)

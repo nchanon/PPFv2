@@ -48,7 +48,7 @@ int main(int argc, char** argv){
     std::vector<int> binning(3);
     if(observable == "m_dilep"){
         binning[0] = 7; binning[1] = 20; binning[2] = 300;
-        //binning[0] = 25; binning[1] = 20; binning[2] = 300;
+        //binning[0] = 24; binning[1] = 20; binning[2] = 500;
     }
     else if(observable == "n_bjets"){
         binning[0] = 6; binning[1] = 0; binning[2] = 6;
@@ -83,6 +83,14 @@ int main(int argc, char** argv){
     else if(observable == "j1_eta"){
         binning[0] = 50; binning[1] = -3; binning[2] = 3;
     }
+    else if(observable == "j2_pt"){
+        binning[0] = 25; binning[1] = 0; binning[2] = 250;
+    }
+    else if(observable == "j2_eta"){
+        binning[0] = 50; binning[1] = -3; binning[2] = 3;
+    }
+
+
 
 // ------------------------------------------------------------- //
 

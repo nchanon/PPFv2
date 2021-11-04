@@ -103,7 +103,8 @@ double Generator::generateWeight(TTree *tree_p,  bool isTimed)
     double w = 1;
     w *= tree_p->GetLeaf("weight_pu")->GetValue();
     w *= tree_p->GetLeaf("weight_generator")->GetValue();
-    w *= tree_p->GetLeaf("weight_top")->GetValue();
+    w *= tree_p->GetLeaf("weight_top")->GetValue(); //should be applied only to signal, not ttx
+    w *= tree_p->GetLeaf("weight_prefiring")->GetValue();
     //lepton
     w *= tree_p->GetLeaf("weight_sfe_id")->GetValue();
     w *= tree_p->GetLeaf("weight_sfe_reco")->GetValue();
@@ -111,7 +112,7 @@ double Generator::generateWeight(TTree *tree_p,  bool isTimed)
     w *= tree_p->GetLeaf("weight_sfm_iso")->GetValue();
     //hadron
     w *= tree_p->GetLeaf("weight_sfb")->GetValue();
-    //w *= tree_p->GetLeaf("weight_sfl")->GetValue();
+    w *= tree_p->GetLeaf("weight_sfl")->GetValue();
     //w *= tree_p->GetLeaf("weight_sfc")->GetValue();
 
     //trigger
@@ -154,6 +155,12 @@ double Generator::generateSystematics(TTree            * tree_p,
             return tree_p->GetLeaf("weight_sfl_up")->GetValue(0)/tree_p->GetLeaf("weight_sfl")->GetValue(0);
         else
             return tree_p->GetLeaf("weight_sfl_down")->GetValue(0)/tree_p->GetLeaf("weight_sfl")->GetValue(0);
+    }
+    else if(systematicName == "syst_prefiring"){
+        if(isUp)
+            return tree_p->GetLeaf("weight_prefiring_up")->GetValue(0)/tree_p->GetLeaf("weight_prefiring")->GetValue(0);
+        else
+            return tree_p->GetLeaf("weight_prefiring_down")->GetValue(0)/tree_p->GetLeaf("weight_prefiring")->GetValue(0);
     }
     else{
         double foo = tree_p->GetLeaf(systematicName.c_str())->GetValue(0);
@@ -417,8 +424,8 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
             TH1F* hist      = new TH1F((jecList_p[jl]+sampleList_p[n]).c_str(), (jecList_p[jl]+sampleList_p[n]).c_str(), nBin, minBin, maxBin);
             for(int i = 0; i < tree->GetEntriesFast(); ++i){
                 tree->GetEntry(i);
-                double weight = generateWeight(tree);
-                if(isTriggerPassed(tree, triggerList_p)){
+                double weight = generateWeight(tree,true);
+                if(isTriggerPassed(tree, triggerList_p,true)){
                         hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
                 }
                 if(i % 100000 == 0)
@@ -463,15 +470,15 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
         std::cout << "sdlfksldfsldf" <<filename.c_str() << std::endl;
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
-            double weight = generateWeight(tree);
-            if(sampleList_p[n].find("alt") == std::string::npos){
-                if(isTriggerPassed(tree, triggerList_p)){
+            double weight = generateWeight(tree,true);
+            //if(sampleList_p[n].find("alt") == std::string::npos){
+                if(isTriggerPassed(tree, triggerList_p,true)){
                     hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
                 }
-            }
-            else{
-                hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
-            }
+            //}
+            //else{
+            //    hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+            //}
             
             if(i % 100000 == 0)
                 std::cout << "100 000 events passed" << std::endl;
@@ -485,7 +492,18 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
         delete tree;
         delete file;
     }
-    groupingMC(list, groupList_p, false);
+    groupingMC(list, groupList_p, true);
+
+    for (unsigned int i=0; i<list.size(); i++){
+      std::cout << list.at(i).GetName() << std::endl;
+      std::string histname = "signal_" + std::string(list.at(i).GetName());
+      int pos = histname.find("169");
+      if (pos!=-1) histname.replace(pos, 3, "Down");
+      pos = histname.find("175");
+      if (pos!=-1) histname.replace(pos, 3, "Up");
+      list.at(i).SetName(histname.c_str());
+    }
+
     write(filename_p, list, "RECREATE");
 }
 
@@ -540,8 +558,8 @@ void Generator::generateMC(namelist            const& sampleList_p,
 
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
-            double weight = generateWeight(tree);
-            if(isTriggerPassed(tree, triggerList_p)){
+            double weight = generateWeight(tree,true);
+            if(isTriggerPassed(tree, triggerList_p,true)){
                 hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
                 for(size_t j = 0; j < systematicsList_p.size(); ++j){
                     double systUp = generateSystematics(tree, systematicsList_p[j], true);
@@ -628,7 +646,7 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
             double weight = generateWeight(tree, false);
-            if(isTriggerPassed(tree, triggerList_p)){
+            if(isTriggerPassed(tree, triggerList_p,true)){
                 hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
             }
             if(i % 100000 == 0)

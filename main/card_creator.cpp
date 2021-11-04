@@ -57,10 +57,10 @@ int main(int argc, char** argv){
 
             datacard.addProcToCard(observable, ttbarList);
             datacard.addSeparator();
-            datacard.addRateToCard(ttbarList, systematicRate);
+            datacard.addRateToCard(ttbarList, systematicRate,false);
             for(std::string const& syst : systematicList){
                 if(syst == "syst_pt_top")
-                    datacard.addProcSystToCard(syst, "shape", ttbarList, "signal");
+                    datacard.addProcSystToCard(syst, "shape", ttbarList, "signal",false);
                 else if(syst == debug_syst)
                     continue;
                 else
@@ -103,16 +103,18 @@ int main(int argc, char** argv){
 
         datacard.addProcToCard(observable, ttbarList);
         datacard.addSeparator();
-        datacard.addRateToCard(ttbarList, systematicRate);
+        datacard.addRateToCard(ttbarList, systematicRate,false);
         for(std::string const& syst : systematicList){
             if(syst == "syst_pt_top")
-                datacard.addProcSystToCard(syst, "shape", ttbarList, "signal");
+                datacard.addProcSystToCard(syst, "shape", ttbarList, "signal",false);
             else
                 datacard.addSystToCard(syst, "shape", ttbarList);
         }
         //datacard.addSystToCard("lumi", "lnN", ttbarList, "1.023");
         for(std::string const& syst : systematicTimeList)
             datacard.addSystToCard(syst, "shape", ttbarList);
+	datacard.addSystToCard_alternative();
+
         datacard.saveCard("./combine/"+year+"/unrolled/inputs/"+name+"_datacard.txt");
     }
 
@@ -145,10 +147,10 @@ int main(int argc, char** argv){
 
         datacard.addProcToCard(observable, ttbarList);
         datacard.addSeparator();
-        datacard.addRateToCard(ttbarList, systematicRate);
+        datacard.addRateToCard(ttbarList, systematicRate,true);
         for(std::string const& syst : systematicList){
             if(syst == "syst_pt_top")
-                datacard.addProcSystToCard(syst, "shape", ttbarList, "signal");
+                datacard.addProcSystToCard(syst, "shape", ttbarList, "signal",true);
             else
                 datacard.addSystToCard(syst, "shape", ttbarList);
         }

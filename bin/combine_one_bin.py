@@ -79,6 +79,7 @@ for l in data_file.GetListOfKeys():
         histograms.append(hist)
 
 
+#alt_file = TFile('./results/'+year+'/flattree/'+observable+'_alt.root')
 alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco.root')
 for l in alt_file.GetListOfKeys():
     h = alt_file.Get(l.GetName())

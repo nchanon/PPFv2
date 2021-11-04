@@ -18,6 +18,10 @@ observables = [
     'eta_muon',
     'j1_eta',
     'b1_eta'
+    'b2_pt',
+    'j2_pt',
+    'j2_eta',
+    'b2_eta'
 ]
 
 years = [

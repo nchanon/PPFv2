@@ -47,7 +47,8 @@ class Card
         void addProcSystToCard(std::string const& systName_p,
                                      std::string const& shape_p,
                                      namelist    const& groupList_p,
-                                     std::string const& process_p);
+                                     std::string const& process_p,
+				     bool isSME);
 
         void addSystToCard(std::string const& systName_p,
                            std::string const& shape_p,
@@ -56,7 +57,8 @@ class Card
                           );
 
         void addRateToCard(namelist    const& groupList_p,
-                           namelist    const& systematicsRate_p
+                           namelist    const& systematicsRate_p,
+			   bool isSME
                           );
 
 

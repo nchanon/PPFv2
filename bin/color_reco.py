@@ -84,17 +84,19 @@ h_nominal.Draw()
 ####
 
 alt_file = TFile('./results/'+year+'/flattree/'+observable+'_alt.root')
-h_gluon = alt_file.Get('GluonMove')
-h_erd = alt_file.Get('erdOn')
-h_qcd = alt_file.Get('QCD')
-h_hdampUp =  alt_file.Get('hdampUp')
-h_hdampDown =  alt_file.Get('hdampDown')
-h_CP5Up =  alt_file.Get('CP5Up')
-h_CP5Down =  alt_file.Get('CP5Down')
+h_gluon = alt_file.Get('signal_GluonMove')
+h_erd = alt_file.Get('signal_erdOn')
+h_qcd = alt_file.Get('signal_QCD')
+h_hdampUp =  alt_file.Get('signal_hdampUp')
+h_hdampDown =  alt_file.Get('signal_hdampDown')
+h_CP5Up =  alt_file.Get('signal_CP5Up')
+h_CP5Down =  alt_file.Get('signal_CP5Down')
+h_mtopUp = alt_file.Get('signal_mtopUp')
+h_mtopDown = alt_file.Get('signal_mtopDown')
 
-################
-## Color reco
-################
+##################
+## Color reco comb
+##################
 
 h_gluon.SetLineColor(2)
 h_erd.SetLineColor(5)
@@ -115,9 +117,9 @@ for i in range(nbin):
                   h_erd.GetBinContent(i+1),
                   h_qcd.GetBinContent(i+1),
                   h_nominal.GetBinContent(i+1))
-    #h_colorUp.SetBinContent(i+1, h_nominal.GetBinContent(i+1)*bin_max)
+    h_colorUp.SetBinContent(i+1, h_nominal.GetBinContent(i+1)*bin_max)
     h_colorDown.SetBinContent(i+1, h_nominal.GetBinContent(i+1)*bin_min)
-    h_colorUp.SetBinContent(i+1, h_nominal.GetBinContent(i+1)*(2-bin_min))
+    #h_colorUp.SetBinContent(i+1, h_nominal.GetBinContent(i+1)*(2-bin_min))
 
 h_colorUp.SetLineColor(2)
 h_colorDown.SetLineColor(3)
@@ -151,24 +153,57 @@ h_hdampUp.SetLineColor(3)
 h_hdampDown.SetLineColor(2)
 
 
-int_cp5Up     = int_nom/h_CP5Up.Integral()
-int_cp5Down   = int_nom/h_CP5Down.Integral()
-int_hdampUp   = int_nom/h_hdampUp.Integral()
-int_hdampDown = int_nom/h_hdampDown.Integral()
+#int_cp5Up     = int_nom/h_CP5Up.Integral()
+#int_cp5Down   = int_nom/h_CP5Down.Integral()
+#int_hdampUp   = int_nom/h_hdampUp.Integral()
+#int_hdampDown = int_nom/h_hdampDown.Integral()
 
-h_hdampUp.Scale(int_hdampUp)
-h_hdampDown.Scale(int_hdampDown)
-h_CP5Up.Scale(int_cp5Up)
-h_CP5Down.Scale(int_cp5Down)
+#h_hdampUp.Scale(int_hdampUp)
+#h_hdampDown.Scale(int_hdampDown)
+#h_CP5Up.Scale(int_cp5Up)
+#h_CP5Down.Scale(int_cp5Down)
 
 rename(h_hdampUp,'signal_hdampUp')
 rename(h_hdampDown,'signal_hdampDown')
+
 rename(h_CP5Up,'signal_CP5Up')
 rename(h_CP5Down,'signal_CP5Down')
+
+#########################
+## Color reco individuals
+#########################
+
+rename(h_erd, 'signal_erdOnUp')
+rename(h_gluon, 'signal_GluonMoveUp')
+rename(h_qcd, 'signal_QCDinspiredUp')
+
+h_erdDown = h_nominal.Clone()
+rename(h_erdDown, 'signal_erdOnDown')
+h_gluonDown = h_nominal.Clone()
+rename(h_gluonDown, 'signal_GluonMoveDown')
+h_qcdDown = h_nominal.Clone()
+rename(h_qcdDown, 'signal_QCDinspiredDown')
+
 
 h_CP5Up.Draw('SAME')
 h_CP5Down.Draw('SAME')
 
+
+#########################
+## Top mass 1 GeV
+#########################
+
+h_mtopUpNew = h_nominal.Clone()
+h_mtopDownNew = h_nominal.Clone()
+
+for i in range(nbin):
+  val_up = h_nominal.GetBinContent(i+1) + (h_mtopUp.GetBinContent(i+1)-h_nominal.GetBinContent(i+1))/3.
+  val_down = h_nominal.GetBinContent(i+1) + (h_mtopDown.GetBinContent(i+1)-h_nominal.GetBinContent(i+1))/3.
+  h_mtopUpNew.SetBinContent(i+1,val_up)
+  h_mtopDownNew.SetBinContent(i+1,val_down)
+
+rename(h_mtopUpNew, 'signal_mtopUp')
+rename(h_mtopDownNew, 'signal_mtopDown')
 
 
 ################################################################################
@@ -181,12 +216,21 @@ h_CP5Down.Draw('SAME')
 
 
 output = TFile('./results/'+year+'/flattree/'+observable+'_color_reco.root', "RECREATE")
-h_colorUp.Write()
-h_colorDown.Write()
+#h_nominal.Write()
 h_hdampUp.Write()
 h_hdampDown.Write()
 h_CP5Up.Write()
 h_CP5Down.Write()
+h_erd.Write()
+h_erdDown.Write()
+h_gluon.Write()
+h_gluonDown.Write()
+h_qcd.Write()
+h_qcdDown.Write()
+h_colorUp.Write()
+h_colorDown.Write()
+h_mtopUpNew.Write()
+h_mtopDownNew.Write()
 
 output.Close()
 

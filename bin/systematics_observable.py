@@ -14,7 +14,8 @@ from ROOT import TLegend, TApplication, TRatioPlot, TPad, TFrame
 import tools.tdrstyle as tdr
 tdr.setTDRStyle()
 
-print systematic_list
+#print "Systematics list"
+#print ['Total'] #systematic_list
 
 ################################################################################
 ## Initialisation stuff
@@ -48,8 +49,10 @@ canvas.UseCurrentStyle()
 
 
 data_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
-rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
 
+rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
+rootfile_input_jec = TFile('./results/'+year+'/flattree/'+observable+'_jec.root')
+rootfile_input_alt = TFile('./results/'+year+'/flattree/'+observable+'_alt.root')
 
 ################################################################################
 ## Create Histo 
@@ -77,20 +80,51 @@ hist_mc = []
 hist_mc_up = []
 hist_mc_down = []
 
+print ttbar_list
+rootfile_input_syst = rootfile_input
+slist = ttbar_list
+
+if (systematic == 'syst_pt_top' or systematic == 'CP5' or systematic == 'hdamp' or systematic == 'mtop' or systematic == 'erd' or systematic == 'QCD' or systematic == 'GluonMove'):
+   slist = ['signal']
 
 for l in rootfile_input.GetListOfKeys():
-    for s in ttbar_list:
+    for s in slist:
         print l.GetName(),s
         if(l.GetName() == s):
+            print 'Nominal'
             hist_mc.append(rootfile_input.Get(l.GetName()))
             mc_integral_i.append([rootfile_input.Get(l.GetName()).Integral(), l.GetName()])
-        elif(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and TString(l.GetName()).Contains('Up')):
-            name = s + '_' + systematic + 'Up'
-            hist_mc_up.append(rootfile_input.Get(l.GetName()))
-        elif(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and TString(l.GetName()).Contains('Down')):
-            name = s + '_' + systematic + 'Down'
-            hist_mc_down.append(rootfile_input.Get(l.GetName()))
 
+if (systematic == 'Total'): #Total JEC
+    rootfile_input_syst = rootfile_input_jec
+    slist = ttbar_list
+
+if (systematic == 'CP5' or systematic == 'hdamp' or systematic == 'mtop' or systematic == 'erd' or systematic == 'QCD' or systematic == 'GluonMove'):
+    rootfile_input_syst = rootfile_input_alt
+
+
+for l in rootfile_input_syst.GetListOfKeys():
+    for s in slist: #ttbar_list:
+        print l.GetName(),s
+#        if(l.GetName() == s):
+#	    print 'Nominal'
+#            hist_mc.append(rootfile_input.Get(l.GetName()))
+#            mc_integral_i.append([rootfile_input.Get(l.GetName()).Integral(), l.GetName()])
+        if(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and TString(l.GetName()).Contains('Up')):
+	    print 'Up'
+            name = s + '_' + systematic + 'Up'
+            hist_mc_up.append(rootfile_input_syst.Get(l.GetName()))
+        elif(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and TString(l.GetName()).Contains('Down')):
+	    print 'Down'
+            name = s + '_' + systematic + 'Down'
+            hist_mc_down.append(rootfile_input_syst.Get(l.GetName()))
+	elif(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic)):
+	    print 'Up'
+	    name = s + '_' + systematic + 'Up'
+            hist_mc_up.append(rootfile_input_syst.Get(l.GetName()))
+	    hist_mc_down.append(hist_mc[-1].Clone())
+
+print "Selected histos"
 for l in range(len(hist_mc)):
     print hist_mc[l].GetName(),  hist_mc_up[l].GetName(),  hist_mc_down[l].GetName() 
 
@@ -100,12 +134,11 @@ for l in range(len(hist_mc)):
 ## Legend stuff
 ################################################################################
 
-legend_args = (0.2, 0.79, 0.4
-, 0.91, '', 'NDC')
+legend_args = (0.2, 0.79, 0.55, 0.95, '', 'NDC')
 legend = []
 for index in range(len(hist_mc)):
     legend.append(TLegend(*legend_args))
-    #legend[index].SetHeader(systematic)
+    legend[index].SetHeader(systematic + ' ' + year)
     legend[index].AddEntry(hist_mc[index], hist_mc[index].GetName())
     legend[index].AddEntry(hist_mc_up[index], 'up')    
     legend[index].AddEntry(hist_mc_down[index], 'down')
@@ -135,14 +168,18 @@ elif(year=='2017'):
 ################################################################################
 import numpy as np
 
+edge = []
+
 for h in range(len(hist_mc)):
     for i in range(hist_mc[h].GetNbinsX()):
         val = float(hist_mc[h].GetBinContent(i+1))
+	val_err = float(hist_mc[h].GetBinError(i+1))
         hist_mc[h].SetBinContent(i+1,0)
-        hist_mc[h].SetBinError(i+1,hist_mc[h].GetBinError(i+1)/np.sqrt(val))
-
+        #hist_mc[h].SetBinError(i+1,hist_mc[h].GetBinError(i+1)/np.sqrt(val))
+	hist_mc[h].SetBinError(i+1,val_err/val*100)
         up   = hist_mc_up[h].GetBinContent(i+1)-val
         down = hist_mc_down[h].GetBinContent(i+1)-val
+
         if up==0:
             hist_mc_up[h].SetBinContent(i+1, 0)
         else:
@@ -151,21 +188,41 @@ for h in range(len(hist_mc)):
             hist_mc_down[h].SetBinContent(i+1,0)
         else:
             hist_mc_down[h].SetBinContent(i+1, float(down)/val*100)
-    mmax = hist_mc_up[h].GetMaximum()+hist_mc_up[h].GetMaximum()/10
-    mmin = hist_mc_down[h].GetMaximum()+hist_mc_down[h].GetMaximum()/10
-    if mmin> mmax:
-        mmax = mmin
-    hist_mc[h].SetMaximum(mmax)
-    hist_mc[h].SetMinimum(-mmax)
+
+    max_nom = hist_mc[h].GetMaximum()
+    max_up = hist_mc_up[h].GetMaximum()
+    max_down = hist_mc_down[h].GetMaximum()
+    min_nom = hist_mc[h].GetMinimum()
+    min_up = hist_mc_up[h].GetMinimum()
+    min_down = hist_mc_down[h].GetMinimum()
+    newmax = 0
+    newmin = 0
+    if (max_up > max_nom and max_up > max_down):
+        newmax = max_up
+    elif (max_down > max_nom and max_down > max_up):
+	newmax = max_down
+    elif (max_nom > max_up and max_nom > max_down):
+	newmax = max_nom
+    if (min_up < min_nom and min_up < min_down):
+        newmin = min_up
+    elif (min_down < min_nom and min_down < min_up):
+        newmin = min_down
+    elif (min_nom < min_up and min_nom < min_down):
+        newmin = min_nom
+    if (abs(newmax) >= abs(newmin)): edge.append(abs(newmax))
+    elif (abs(newmin) > abs(newmax)): edge.append(abs(newmin))
+    else: print 'Did not find histo max and min'
 
 outputdir = './results/'+year+'/systematics/'
 
 for index in range(len(hist_mc)):
     name = observable+'_'+hist_mc[index].GetName()+'_'+systematic
     canvas = TCanvas(name, name)
-    hist_mc[index].Draw('')
-    maxi = hist_mc[index].GetMaximum()
-    hist_mc[index].GetYaxis().SetRangeUser(-maxi-2*maxi/3.,maxi+2*maxi/3.)
+    hist_mc[index].SetAxisRange(-edge[index]*1.7, edge[index]*1.7, "Y")
+    #hist_mc[index].Draw('')
+    #maxi = hist_mc[index].GetMaximum()
+    #hist_mc[index].GetYaxis().SetRangeUser(-maxi-2*maxi/3.,maxi+2*maxi/3.)
+    hist_mc[index].Draw('HIST')
     hist_mc_up[index].Draw('HIST SAME')
     hist_mc_down[index].Draw('HIST SAME')
     legend[index].Draw('SAME')

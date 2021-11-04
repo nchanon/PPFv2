@@ -28,8 +28,9 @@ observable = args.observable
 year = args.year
 title = args.title
 
-def integral_complete(histo, max_bin):
-    return histo.Integral()+histo.GetBinContent(int(max_bin+1))+histo.GetBinContent(0)
+def integral_complete(histo, max_bin): 
+     return histo.Integral()
+#    return histo.Integral()+histo.GetBinContent(int(max_bin+1))+histo.GetBinContent(0)
 
 
 nbin = 0
@@ -134,9 +135,9 @@ stack.GetXaxis().SetLabelSize(0)
 stack.GetXaxis().SetTitleSize(0)
 
 if(year=='2016'):
-    tdr.cmsPrel(35900., 13.)
+    tdr.cmsPrel(35900., 13.,simOnly=False,thisIsPrelim=True)
 elif(year=='2017'):
-    tdr.cmsPrel(41530., 13.)
+   tdr.cmsPrel(41500., 13.,simOnly=False,thisIsPrelim=True)
 
 ################################################################################
 ## Ratio
@@ -192,11 +193,12 @@ canvas.SaveAs(resultname+'.pdf')
 rootfile_output.Close()
 
 
-print 'Data integral       : ', data_integral
-print 'Signal integral     : ', signal_integral
-print 'Background integral : ', background_integral
-print ''
+print 'Signal integral     : ','%.2f'%signal_integral
 for i in background_integral_i:
-    print i[1],i[0]
+    print i[1], '      : ', '%.2f'%i[0]
+print 'Total Background integral : ', '%.2f'%background_integral
+print 'Total MC integral : ', '%.2f'%(signal_integral+background_integral)
+print 'Data integral       : ', data_integral
+print 'Data/MC agreement  : ', '%.1f'%(100*(signal_integral+background_integral-data_integral)/(signal_integral+background_integral)), '%'
 
 #raw_input('exit')

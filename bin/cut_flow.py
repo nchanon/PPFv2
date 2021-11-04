@@ -55,6 +55,7 @@ def get_events(year, sample, filter, is_final=True):
     return event_filtered(p,is_final)
 
 def cut_flow(year, sample, weight=1.):
+    #print 'Get cut-flow ',year,' ',sample
     return {
         'full'     : weight*get_events(year, sample, 'OneDilepton', False),
         'onedilep' : weight*get_events(year, sample, 'OneDilepton'),
@@ -64,10 +65,11 @@ def cut_flow(year, sample, weight=1.):
 
 def filtre(samples):
     foo = {}
-    for l in ttbar_list:
-        foo.update({l : })
+#    for l in ttbar_list:
+#        foo.update({l : })
     print samples
     for l in samples.keys():
+	print l
         for g in ttbar_list:
             if l.find(g) != -1:
                 foo[g] += int(sample[l])
@@ -86,17 +88,62 @@ ratio = {
 
 effective_N0 = generate_eventN0(year, sample_MC[year])
 mc_rescale   = rescaling(year, effective_N0)
+print 'N0=',effective_N0
+print 'mc_rescale=',mc_rescale
 
+#values = {}
+#for l in range(len(sample_MC[year])):
+    #values.append(
+#    values.update(
+#        { sample_MC[year][l] : cut_flow(year, sample_MC[year][l], mc_rescale[l])}
+#        { sample_MC[year][l] : cut_flow(year, sample_MC[year][l], 77*mc_rescale[l])}
+#    )
 
-values = {}
+print ttbar_list
+
+cutflowtable = []
+
+for i in range(len(ttbar_list)): 
+  proc = [ttbar_list[i], 0, 0, 0, 0]
+  cutflowtable.append(proc)
+  #cutflowtable[i].append(0)
+  #cutflowtable[i].append(0)
+  #cutflowtable[i].append(0)
+  #cutflowtable[i].append(0) 
+print cutflowtable
+
+ 
 for l in range(len(sample_MC[year])):
-    values.update(
-        { sample_MC[year][l] : cut_flow(year, sample_MC[year][l], 77*mc_rescale[l])}
-    )
+	print sample_MC[year][l]
+	print 'nocut'     , mc_rescale[l]*get_events(year, sample_MC[year][l], 'OneDilepton', False)
+	print 'onedilep' , mc_rescale[l]*get_events(year, sample_MC[year][l], 'OneDilepton')
+	print 'twojets'  , mc_rescale[l]*get_events(year, sample_MC[year][l], 'TwoJets')
+	print 'onebjet'  , mc_rescale[l]*get_events(year, sample_MC[year][l], 'OneBJets')
+	n_nocut = mc_rescale[l]*get_events(year, sample_MC[year][l], 'OneDilepton', False)
+	n_onedilep = mc_rescale[l]*get_events(year, sample_MC[year][l], 'OneDilepton')
+	n_twojets = mc_rescale[l]*get_events(year, sample_MC[year][l], 'TwoJets')
+	n_onebjet = mc_rescale[l]*get_events(year, sample_MC[year][l], 'OneBJets')
+	for i in range(len(ttbar_list)):
+	  if (sample_MC[year][l].find(ttbar_list[i])!=-1): 
+		cutflowtable[i][1] += int(n_nocut)
+                cutflowtable[i][2] += int(n_onedilep)
+                cutflowtable[i][3] += int(n_twojets)
+                cutflowtable[i][4] += int(n_onebjet)
+	  if (sample_MC[year][l].find("wjets")!=-1 or sample_MC[year][l].find("zjets")!=-1):
+		cutflowtable[-1][1] += int(n_nocut)
+                cutflowtable[-1][2] += int(n_onedilep)
+                cutflowtable[-1][3] += int(n_twojets)
+                cutflowtable[-1][4] += int(n_onebjet)
+		
 
-integrals_cut = filtre(values)
+print 'Process		nocut		onedilep		twojets		onebjet'
+for i in [0, 1, 2, 3, 4]:
+#print ttbar_list[0], '             ',ttbar_list[1], '             ',ttbar_list[2], '             ',ttbar_list[3], '             ',ttbar_list[4]
+#print cutflowtable[0][1], '             ',cutflowtable[1][1],'             ',cutflowtable[2][1],'             ',cutflowtable[3][1],'             ',cutflowtable[4][1]
+  print ttbar_list[i], '		', cutflowtable[i][1], '	',cutflowtable[i][2],'		',cutflowtable[i][3],'		',cutflowtable[i][4]
+#integrals_cut = filtre(values)
 
-print integrals_cut
+#print integrals_cut
 
 integrals = {}
 
@@ -122,7 +169,7 @@ for l in rootfile_input.GetListOfKeys():
 
 integrals.update({'total' : total_mc})
 
-#table(integrals) 
+table(integrals) 
 
 '''
 def results_path(year, directory, file):

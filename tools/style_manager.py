@@ -35,7 +35,7 @@ unix_time_like_values = [
 def observable_values(observable):
     if(observable.find('pt_') != -1): #changer ca
         return pt_like_values
-    elif(observable.find('j1_pt') != -1): #changer ca
+    elif(observable.find('j1_pt') != -1 or observable.find('_pt') != -1): #changer ca
         return pt_like_values
     elif(observable.find('j2_pt') != -1): #changer ca
         return pt_like_values
