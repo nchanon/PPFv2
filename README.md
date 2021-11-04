@@ -12,7 +12,7 @@ This framework is built with python2.7 !
 
 In your terminal type following commands : 
 
-    > git clone https://github.com/Arc-Pintade/PPFv2.git
+    > git clone https://github.com/nchanon/PPFv2.git
 
 In the pyplotframework directory :
 
@@ -20,15 +20,16 @@ In the pyplotframework directory :
     > bash scripts/install.sh
 
     # will generate all the sample utils from tools/sample_manager.py in a C++ header file in src directory. 
-    NB : a compilation will be launched.
+    # NB : a compilation will be launched: to be redone (or type make) if a C++ file is modified
+    # Relaunch this command each time new input rootfiles are available
     > python scripts/sample_update.py
 
-    # this file need to be update with your path to sourcing ROOT
+    # this file need to be update with your path to sourcing ROOT (local machine)
+    # NB: Caution, you need to have ROOT-CERN lirbary on your computer. And the rootenv
+    # need to be update (if needed) in function of your own ROOT installation path.
     > source rootenv
-
-NB: Caution, you need to have ROOT-CERN lirbary on your computer. And the rootenv 
-need to be update (if needed) in function of your own ROOT installation path.
-
+    # if working on lyoserv or lyoui, use instead (loading devtoolset and an appropriate version of root):
+    > source setup.sh
 
 # Presentation of the framework 
 
@@ -64,12 +65,27 @@ The list of option is : [All, mc, data, jec, alt, timed, sme]
 
     > ./bin/histograms_creator "observable" "year" "option"
 
-example : 
+To produce all histograms (takes some times...):
 
     > ./bin/histograms_creator m_dilep 2017 All
 
-NB : The particular case of alternative samples is for now in progress.
-To make the treatment of the flattree produced by 'histograms_creator' for color reconection for exemple, you need call the command :
+Producing histograms specifically for data/mc comparisons:
+
+    > ./bin/histograms_creator m_dilep 2017 forComp  
+
+Producing nominal MC histograms + weight uncertainties (needed for differential/sme measurement):
+
+    > ./bin/histograms_creator m_dilep 2017 mc
+
+Producing JEC uncertainties histograms (needed for differential/sme measurement):
+
+    > ./bin/histograms_creator m_dilep 2017 jec
+
+Producing alternative uncertainties histograms (needed for differential/sme measurement):
+
+    > ./bin/histograms_creator m_dilep 2017 alt
+
+Alternative uncertainties need an additional layer:
 
     >  python bin/color_reco.py "observable" "year"
 
@@ -77,24 +93,34 @@ example :
 
     >  python bin/color_reco.py m_dilep 2017
 
-
-If your not sure of what you need, type option "All".
-
 # Comparaison Data/Monte-Carlo
 
-Data/mc comparaison are created for a given observable
+Once the histograms produced with the "forComp" option, data/mc comparaison can be created for a given observable:
 
     > python ./bin/data_mc_comparaison.py "observable" "year" "title"
 
 example : 
 
-    > python ./bin/data_mc_comparaison.py m_dilep 2017 "Mass dileptonic"
+    > python ./bin/data_mc_comparaison.py m_dilep 2017 "Dilepton mass (GeV)"
 
-# Check Systematics
+If willing to produce all data/mc comparisons in one shot:
 
-In PPFv2 there is 2 scripts to check systematics, the first is to get an particular systematics, the other to get them all in one time. The results are stored in './results/'year'/systematics'
+    > python scripts/launch_hist_creator.py
+    > source scripts/launch_datamccomp.bash
 
-It's possible to check each systematics : 
+# Checking Systematics
+
+Checking all systematics at a time (weight uncertainties, ALT and JEC):
+
+    > python scripts/control_systematics.py "year"
+
+As an example:
+
+    > python scripts/control_systematics.py 2017
+
+By modifying the script, you can choose to plot some systematics and some other not.
+
+It's also possible to check each systematics individually (function called by the contro_systematics.py): 
 
     > python ./bin/systematics_observable.py "observable" "year" "systematic" "title"
 
@@ -106,27 +132,21 @@ In case you don't sure what systematics are implemented just type :
 
     > python ./bin/systematics_observable.py
 
-If you want you can run for all systematics in one time with the scripts :
+In case you want to check specifically the JEC or ALT systematics (with lower quality plots), you can also use:
 
-    > python scripts/control_systematics.py
+    > python bin/check_systematics.py  "observable" "year" "systematic"
 
-You can change the content of this scripts as you wish to run with other observable.
+For instance:
 
-##
+    > python bin/check_systematics.py m_dilep 2017 mtop
 
-In the particular case of alternative sample systematics and jec systematics, the scripts is work in progress but you can draw plots with : 
-
-    > python bin/check_systematics.py "observable" "year" "systematics"
-
-example: 
-
-    > python bin/check_systematics.py m_dilep 2017 jec
+For the special case of mtop, this command line will check into the color_reco.py output the top mass up/down variation where the difference to nominal has been divided by 3 (at the moment, the plots produced by systematics_observable.py or control_systematics.py do not include this).
 
 The result are stored in './results/'year'/other directory'. For now the accessible systematics are : 'jec', 'hdamp', 'CP5'
 
 # Combine input file creation 
 
-For combine work, you will need to create combine inputs and datacard separatly.
+For combine work, you will need to create combine inputs and datacards.
 All will be stored in the ./combine/year/ directory.
 
     # combine inputs file
@@ -141,8 +161,13 @@ example :
 
     or 
 
-    > python ./bin/combine_one_bin.py n_bjets 2016 
-    > ./bin/card_creator n_bjets 2016 OneBin
+    > python ./bin/combine_one_bin.py m_dilep 2016 
+    > ./bin/card_creator m_dilep 2016 OneBin
+
+    or 
+
+    > python ./bin/combine_unrolled.py m_dilep 2017
+    > ./bin/card_creator m_dilep 2016 SME cLXX
 
 Some usefull scripts can be used in the self-named directory. 
 
@@ -151,19 +176,49 @@ example :
     This command will create combine inputs then datacards then export in the directory of your servers (adress in ./scripts/export_combine.py)
     > bash scripts/launch_unrolled_stuff.sh m_dilep 2017
 
+# Exporting the combine inputs to combine area
+
+First modify the line 19 of file script/scripts/export_combine.py, to set the path of your combine area, for instance:
+ 
+    # path_out = '/gridgroup/cms/nchanon/CMSSW_10_2_13/src/combine-ttbar/'+directory+'/inputs/'+year+'/'
+
+Export the inputs to differential measurement combine area:
+
+    > python scripts/export_combine.py one_bin 2017
+
+Export the inputs to SME measurement combine area:
+
+    > python scripts/export_combine.py sme 2017
+
 # Example of full analysis.
 
-For example, to make an analysis with the dilepton mass observable for 2017 with cLXX Wilson coefficient, let's type : 
+Produce data/mc comparisons:
 
-    # produce corrected flattree :
-    > ./bin/histograms_creator m_dilep 2017 All
-    >  python bin/color_reco.py m_dilep 2017
+    > python scripts/sample_update.py
+    > ./bin/histograms_creator m_dilep 2017 forComp
+    > python ./bin/data_mc_comparaison.py m_dilep 2017 "Dilepton mass (GeV)"
 
-    # produce inputs for combine, differential part :
-    > python ./bin/combine_one_bin.py m_dilep 2017 
+Check systematics:
+
+    > python scripts/control_systematics.py 2017
+
+Prepare histograms for combine:
+
+    > ./bin/histograms_creator m_dilep 2017 mc
+    > ./bin/histograms_creator m_dilep 2017 alt
+    > ./bin/histograms_creator m_dilep 2017 jec
+    > python bin/color_reco.py m_dilep 2017
+
+Prepare combine inputs for differential measurement and export it to the combine area:
+
+    > python ./bin/combine_one_bin.py m_dilep 2017
     > ./bin/card_creator m_dilep 2017 OneBin
-    
-    # produce inputs for combine, cmunu measurement part :
+    > python scripts/export_combine.py one_bin 2017
+
+Prepare combine inputs for SME fit and export it to the combine area:
+
     > python ./bin/combine_unrolled.py m_dilep 2017 
     > ./bin/card_creator m_dilep 2017 SME cLXX
+    > python scripts/export_combine.py sme 2017
+
 
