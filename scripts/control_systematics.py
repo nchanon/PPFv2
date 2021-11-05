@@ -45,6 +45,6 @@ large_syst_list.append('mtop')
 for y in [year]:
     for o in observable:
         for s in large_syst_list: #['Total']:
-            cmd = 'python ./bin/systematics_observable_new.py '+o[0]+' '+y+' '+s+' '+o[1]
+            cmd = 'python ./bin/systematics_observable.py '+o[0]+' '+y+' '+s+' '+o[1]
             print cmd
             os.system(cmd)

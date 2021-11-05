@@ -198,16 +198,17 @@ Produce data/mc comparisons:
     > ./bin/histograms_creator m_dilep 2017 forComp
     > python ./bin/data_mc_comparaison.py m_dilep 2017 "Dilepton mass (GeV)"
 
-Check systematics:
-
-    > python scripts/control_systematics.py 2017
-
 Prepare histograms for combine:
 
     > ./bin/histograms_creator m_dilep 2017 mc
     > ./bin/histograms_creator m_dilep 2017 alt
     > ./bin/histograms_creator m_dilep 2017 jec
+    > ./bin/histograms_creator m_dilep 2017 timed
     > python bin/color_reco.py m_dilep 2017
+
+Check systematics:
+
+    > python scripts/control_systematics.py 2017
 
 Prepare combine inputs for differential measurement and export it to the combine area:
 

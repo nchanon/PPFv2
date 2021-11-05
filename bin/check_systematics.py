@@ -82,7 +82,7 @@ legend.Draw('SAME')
 
 output = './results/'+year+'/other/'+observable+'_'+syst
 
-canvas.SaveAs(output+'_'+year+'.png')
+canvas.SaveAs(output+'_'+year+'_check.pdf')
 
 
 raw_input('quit')
