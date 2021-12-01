@@ -43,6 +43,23 @@ SME &SME::operator=(SME const& other)
 }
 
 
+SME::SME(Wilson wilson_p, int bin)
+{
+
+    wilson = wilson_p;
+
+    if(wilson != Wilson::L and wilson != Wilson::R and
+       wilson != Wilson::C and wilson != Wilson::D){
+        Log("Error with Wilson coefficent choice");
+        exit(0);
+    }
+
+    std::vector<double> matrix = generateMatrixPerMassBin(wilson, bin);
+    Axx = matrix[0];
+    Azz = matrix[10];
+}
+
+
 /////////////////////////////////
 // Private methods
 /////////////////////////////////
@@ -76,17 +93,62 @@ double SME::a5() const
 
 std::vector<double> SME::generateMatrix(Wilson wilson_p) const
 {
-    double nPqq              = readNumberOfEvents("./inputs/pheno/13TeVCMSPqqbar.txt");
-    std::vector<double> mPqq = readElementMatrix("./inputs/pheno/13TeVCMSPqqbar.txt");
-    double nP2g              = readNumberOfEvents("./inputs/pheno/13TeVCMSP2g.txt");
-    std::vector<double> mP2g = readElementMatrix("./inputs/pheno/13TeVCMSP2g.txt");
-    double nF                = readNumberOfEvents("./inputs/pheno/13TeVCMSF.txt");
-    std::vector<double> mF   = readElementMatrix("./inputs/pheno/13TeVCMSF.txt");
 
+    std::string cutName = "13TeVCMSnew";
+    std::string suffix = "_inc";
 
+    std::string File_qqbar = "./inputs/pheno/" + cutName + "Pqqbar" + suffix + ".txt";
+    std::string File_gg = "./inputs/pheno/" + cutName + "P2g" + suffix + ".txt";
+    std::string File_F = "./inputs/pheno/" + cutName + "F" + suffix + ".txt";
+
+    double nPqq              = readNumberOfEvents(File_qqbar);
+    std::vector<double> mPqq = readElementMatrix(File_qqbar);
+    double nP2g              = readNumberOfEvents(File_gg);
+    std::vector<double> mP2g = readElementMatrix(File_gg);
+    double nF                = readNumberOfEvents(File_F);
+    std::vector<double> mF   = readElementMatrix(File_F);
+
+    //double nPqq              = readNumberOfEvents("./inputs/pheno/13TeVCMSPqqbar.txt");
+    //std::vector<double> mPqq = readElementMatrix("./inputs/pheno/13TeVCMSPqqbar.txt");
+    //double nP2g              = readNumberOfEvents("./inputs/pheno/13TeVCMSP2g.txt");
+    //std::vector<double> mP2g = readElementMatrix("./inputs/pheno/13TeVCMSP2g.txt");
+    //double nF                = readNumberOfEvents("./inputs/pheno/13TeVCMSF.txt");
+    //std::vector<double> mF   = readElementMatrix("./inputs/pheno/13TeVCMSF.txt");
 
     std::vector<double> matrix(mF.size());
 
+    for(size_t i = 0; i < matrix.size(); ++i){
+        if(wilson_p == Wilson::L)
+            matrix[i] = 0.5*(nPqq/nF)*mPqq[i] + 0.5*(nP2g/nF)*mP2g[i] + mF[i];
+        else if(wilson_p == Wilson::R)
+            matrix[i] = 0.5*(nPqq/nF)*mPqq[i] + 0.5*(nP2g/nF)*mP2g[i];
+        else if(wilson_p == Wilson::C)
+            matrix[i] = (nPqq/nF)*mPqq[i] + (nP2g/nF)*mP2g[i] + mF[i];
+        else if(wilson_p == Wilson::D)
+            matrix[i] = mF[i];
+    }
+    return matrix;
+}
+
+std::vector<double> SME::generateMatrixPerMassBin(Wilson wilson_p, int bin) const
+{
+    
+    std::string cutName = "13TeVCMSnew";
+    std::string suffix = "_" + std::to_string(bin);
+    
+    std::string File_qqbar = "./inputs/pheno/" + cutName + "Pqqbar" + suffix + ".txt";
+    std::string File_gg = "./inputs/pheno/" + cutName + "P2g" + suffix + ".txt";
+    std::string File_F = "./inputs/pheno/" + cutName + "F" + suffix + ".txt";
+    
+    double nPqq              = readNumberOfEvents(File_qqbar);
+    std::vector<double> mPqq = readElementMatrix(File_qqbar);
+    double nP2g              = readNumberOfEvents(File_gg);
+    std::vector<double> mP2g = readElementMatrix(File_gg);
+    double nF                = readNumberOfEvents(File_F);
+    std::vector<double> mF   = readElementMatrix(File_F);
+    
+    std::vector<double> matrix(mF.size());
+    
     for(size_t i = 0; i < matrix.size(); ++i){
         if(wilson_p == Wilson::L)
             matrix[i] = 0.5*(nPqq/nF)*mPqq[i] + 0.5*(nP2g/nF)*mP2g[i] + mF[i];
@@ -155,6 +217,9 @@ double SME::fYZ(double t) const{
 
 void SME::generateModulation(int t0, int nBin)
 {
+
+    std::cout << "t0="<< t0 << "nBin="<<nBin<<std::endl;
+
     std::string wilsonName;
     if(wilson == Wilson::L)
         wilsonName = "cL";
@@ -169,6 +234,34 @@ void SME::generateModulation(int t0, int nBin)
     TH1F *hXY = new TH1F((wilsonName+"XY").c_str(), (wilsonName+"XY").c_str(), nBin, 0, nBin);
     TH1F *hXZ = new TH1F((wilsonName+"XZ").c_str(), (wilsonName+"XZ").c_str(), nBin, 0, nBin);
     TH1F *hYZ = new TH1F((wilsonName+"YZ").c_str(), (wilsonName+"YZ").c_str(), nBin, 0, nBin);
+    for(int i = 0; i < nBin; ++i){
+        hXX->SetBinContent(i+1, fXX((t0+i)%24*3600));
+        hXY->SetBinContent(i+1, fXY((t0+i)%24*3600));
+        hXZ->SetBinContent(i+1, fXZ((t0+i)%24*3600));
+        hYZ->SetBinContent(i+1, fYZ((t0+i)%24*3600));
+    }
+    hXX->Write();
+    hXY->Write();
+    hXZ->Write();
+    hYZ->Write();
+}
+
+void SME::generateModulationPerMassBin(int t0, int nBin, int binMass)
+{
+    std::string wilsonName;
+    if(wilson == Wilson::L)
+        wilsonName = "cL";
+    else if(wilson == Wilson::R)
+        wilsonName = "cR";
+    else if(wilson == Wilson::C)
+        wilsonName = "c";
+    else if(wilson == Wilson::D)
+        wilsonName = "d";
+
+    TH1F *hXX = new TH1F((wilsonName+"XX_"+std::to_string(binMass)).c_str(), (wilsonName+"XX_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
+    TH1F *hXY = new TH1F((wilsonName+"XY_"+std::to_string(binMass)).c_str(), (wilsonName+"XY_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
+    TH1F *hXZ = new TH1F((wilsonName+"XZ_"+std::to_string(binMass)).c_str(), (wilsonName+"XZ_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
+    TH1F *hYZ = new TH1F((wilsonName+"YZ_"+std::to_string(binMass)).c_str(), (wilsonName+"YZ_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
     for(int i = 0; i < nBin; ++i){
         hXX->SetBinContent(i+1, fXX((t0+i)%24*3600));
         hXY->SetBinContent(i+1, fXY((t0+i)%24*3600));

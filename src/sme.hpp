@@ -30,6 +30,7 @@ class SME{
         double a5() const;
 
         std::vector<double> generateMatrix(Wilson wilson_p) const;
+        std::vector<double> generateMatrixPerMassBin(Wilson wilson_p, int bin) const;
         double readNumberOfEvents(std::string const& path_p) const;
         std::vector<double> readElementMatrix(std::string const& path_p) const;
 
@@ -43,9 +44,11 @@ class SME{
         SME();
         SME(Wilson wilson_p);
         SME(SME const& other);
+        SME(Wilson wilson_p, int bin);
 
         SME &operator=(SME const& other);
 
         void generateModulation(int t0,int nBin = 24);
+	void generateModulationPerMassBin(int t0, int nBin, int binMass);
 
 };
