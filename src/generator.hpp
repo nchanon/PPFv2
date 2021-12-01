@@ -25,7 +25,8 @@ class Generator{
 
         double siderealHour(double time_p);
 
-        double luminosityCorrection(TTree *top);
+	double luminositySumOfWeight(TTree *tree_p);
+        double luminosityCorrection(TTree *tree_p, double lumiavg);
 
         double generateWeight(TTree *tree_p, bool isTimed=true);
 
@@ -143,6 +144,7 @@ class Generator{
                                namelist            const& groupList_p,
                                std::vector<double> const& correction_p,
                                int                        nBin_p,
+                               bool                       correctedLumi,
                                bool                       clean_p = true
                               );
 

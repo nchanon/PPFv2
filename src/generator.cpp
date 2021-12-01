@@ -91,11 +91,24 @@ double Generator::siderealHour(double time_p)
         return 0;
 }
 
-double Generator::luminosityCorrection(TTree *tree_p)
+double Generator::luminositySumOfWeight(TTree *tree_p)
 {
-    return 1;
+    double sumoflumi = 0;
+    for(int i = 0; i < tree_p->GetEntriesFast(); ++i){
+        tree_p->GetEntry(i);
+	sumoflumi += tree_p->GetLeaf("lumi")->GetValue();
+    }
+    double lumiavg = sumoflumi / tree_p->GetEntriesFast();
+
+    return lumiavg;
 }
 
+double Generator::luminosityCorrection(TTree *tree_p, double lumiavg)
+{
+    double w = lumiavg/tree_p->GetLeaf("lumi")->GetValue();
+
+    return w;
+}
 
 
 double Generator::generateWeight(TTree *tree_p,  bool isTimed)
@@ -703,33 +716,50 @@ void Generator::generateData(namelist            const& sampleList_p,
         TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
         TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
 
-        if(correctedLumi){
-            luminosityWeight = luminosityCorrection(tree);
-        }
+	double lumiSumOfOneOverWeight = 0;
+	std::vector<int> useForPlot;
+
         std::cout << " -> " << sampleList_p[n] << std::endl;
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
             if(isTriggerPassed(tree, triggerList_p, is2016H)){
                 if (sampleList_p[n].find("MuonEG") != std::string::npos){
-                    hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
                     isFilled.emplace(tree->GetLeaf("event")->GetValue(0),1);
+		    lumiSumOfOneOverWeight += 1./tree->GetLeaf("lumi")->GetValue(0);
+		    useForPlot.push_back(i);
                 }
                 if (sampleList_p[n].find("SingleElectron") != std::string::npos){
                     if(!isFilled[tree->GetLeaf("event")->GetValue(0)]){
-                        hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
                         isFilled.emplace(tree->GetLeaf("event")->GetValue(0),1);
+                        lumiSumOfOneOverWeight += 1./tree->GetLeaf("lumi")->GetValue(0);
+			useForPlot.push_back(i);
                     }
                 }
                 if (sampleList_p[n].find("SingleMuon") != std::string::npos){
                     if(!isFilled[tree->GetLeaf("event")->GetValue(0)]){
-                        hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
                         isFilled.emplace(tree->GetLeaf("event")->GetValue(0),1);
+                        lumiSumOfOneOverWeight += 1./tree->GetLeaf("lumi")->GetValue(0);
+			useForPlot.push_back(i);
                     }
                 }
             }
             if(i % 100000 == 0)
                 std::cout << "100 000 events passed" << std::endl;
         }
+	double lumiavg_oneoverweight = lumiSumOfOneOverWeight / ((double)useForPlot.size());
+
+	int nPassingEventsCheck = 0;
+	double avg_luminosityWeight = 0;
+        for(unsigned int i = 0; i < useForPlot.size(); ++i){
+            tree->GetEntry(useForPlot[i]);
+            if (correctedLumi) luminosityWeight = (1./tree->GetLeaf("lumi")->GetValue(0)) / lumiavg_oneoverweight;
+	    else luminosityWeight = 1;
+	    avg_luminosityWeight += luminosityWeight;
+	    hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
+	    nPassingEventsCheck++;
+	}
+	std::cout << "nPassingEventsCheck="<<nPassingEventsCheck<<" avg_luminosityWeight="<<avg_luminosityWeight/((double)nPassingEventsCheck)<< std::endl;
+
         hist->Scale(correction_p[n]);
         list.push_back(*hist);
 
@@ -749,15 +779,20 @@ void Generator::generateDataTimed(namelist            const& sampleList_p,
                                   namelist            const& groupList_p,
                                   std::vector<double> const& correction_p,
                                   int                        nBin_p,
+                                  bool                       correctedLumi,
                                   bool                       clean_p
                                  )
 {
     TH1F::SetDefaultSumw2(1);
     std::vector<TH1F> list;
 
+    double luminosityWeight = 1;
+
     std::string cleaned;
+    std::string lumicorr;
+    if(correctedLumi) lumicorr = "_lumicorrected";
     if(!clean_p) cleaned = "_unclean";
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_data_timed"+std::to_string(nBin_p)+cleaned+".root";
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+ lumicorr+"_data_timed"+std::to_string(nBin_p)+cleaned+".root";
     
     std::map<unsigned int, bool> isFilled;  
     for(size_t n = 0; n < sampleList_p.size(); ++n){
@@ -776,31 +811,54 @@ void Generator::generateDataTimed(namelist            const& sampleList_p,
             hist[i] = new TH1F((sampleList_p[n]+"_bin"+std::to_string(i)+'.').c_str(), (observable+"_bin"+std::to_string(i)+'.').c_str(), nBin, minBin, maxBin);
         }
 
+        double lumiSumOfOneOverWeight = 0;
+        std::vector<int> useForPlot;
+
         std::cout << " -> " << sampleList_p[n] << std::endl;
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
-            int whichBin = int(siderealHour(tree->GetLeaf("unix_time")->GetValue(0)))%nBin_p;
+            //int whichBin = int(siderealHour(tree->GetLeaf("unix_time")->GetValue(0)))%nBin_p;
             if(isTriggerPassed(tree, triggerList_p, is2016H)){
                 if (sampleList_p[n].find("MuonEG") != std::string::npos){
-                    hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
+                    //hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
                     isFilled.emplace(tree->GetLeaf("event")->GetValue(0),1);
+		    lumiSumOfOneOverWeight += 1./tree->GetLeaf("lumi")->GetValue(0);
+		    useForPlot.push_back(i);
                 }
                 if (sampleList_p[n].find("SingleElectron") != std::string::npos){
                     if(!isFilled[tree->GetLeaf("event")->GetValue(0)]){
-                        hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
+                        //hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
                         isFilled.emplace(tree->GetLeaf("event")->GetValue(0),1);
+			lumiSumOfOneOverWeight += 1./tree->GetLeaf("lumi")->GetValue(0);
+			useForPlot.push_back(i);
                     }
                 }
                 if (sampleList_p[n].find("SingleMuon") != std::string::npos){
                     if(!isFilled[tree->GetLeaf("event")->GetValue(0)]){
-                        hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
+                        //hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
                         isFilled.emplace(tree->GetLeaf("event")->GetValue(0),1);
+			lumiSumOfOneOverWeight += 1./tree->GetLeaf("lumi")->GetValue(0);
+			useForPlot.push_back(i);
                     }
                 }
             }
             if(i % 100000 == 0)
                 std::cout << "100 000 events passed" << std::endl;
         }
+        double lumiavg_oneoverweight = lumiSumOfOneOverWeight / ((double)useForPlot.size());
+
+        int nPassingEventsCheck = 0;
+        double avg_luminosityWeight = 0;
+        for(unsigned int i = 0; i < useForPlot.size(); ++i){
+            int whichBin = int(siderealHour(tree->GetLeaf("unix_time")->GetValue(0)))%nBin_p;
+            tree->GetEntry(useForPlot[i]);
+            if (correctedLumi) luminosityWeight = (1./tree->GetLeaf("lumi")->GetValue(0)) / lumiavg_oneoverweight;
+            else luminosityWeight = 1;
+            avg_luminosityWeight += luminosityWeight;
+            hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
+            nPassingEventsCheck++;
+        }
+        std::cout << "nPassingEventsCheck="<<nPassingEventsCheck<<" avg_luminosityWeight="<<avg_luminosityWeight/((double)nPassingEventsCheck)<< std::endl;
 
         for(size_t i = 0; i < hist.size(); ++i){
             hist[i]->Scale(correction_p[n]);

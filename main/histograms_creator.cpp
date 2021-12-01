@@ -179,7 +179,7 @@ int main(int argc, char** argv){
     }
     else if(launch == "timed"){
         gen.generateDataTimed(sampleList_DATA, triggerList, data, 
-                               succedJobs, 24, isClean);
+                               succedJobs, 24, isCorrected, isClean);
     }
     else if(launch == "forComp"){
         gen.generateMCforComp(sampleList_MC, triggerList, ttbarList, 
