@@ -39,6 +39,8 @@ class SME{
         double fXZ(double t) const;
         double fYZ(double t) const;
 
+	double fXX_hours(double* x, double* par) const;
+
     public:
 
         SME();

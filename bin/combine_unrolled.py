@@ -129,12 +129,16 @@ for l in systematic_time_list:
         for b in ttbar_list:
             if g.GetName() == b:
 		print(b+' nom='+str(g.Integral()))
+                if (l == 'emu_trig' or l=='lumi_stability' or l=='lumi_linearity'): 
+		    newprefix = b+'_'+l+'_'+year
+		else:
+		    newprefix = b+'_'+l
                 hist_up = g.Clone()
-                hist_up.SetName(b+'_'+l+'Up')
-                hist_up.SetTitle(b+'_'+l+'Up')
                 hist_down = g.Clone()
-                hist_down.SetName(b+'_'+l+'Down')
-                hist_down.SetTitle(b+'_'+l+'Down')
+                hist_up.SetName(newprefix+'Up')
+                hist_up.SetTitle(newprefix+'Up')
+                hist_down.SetName(newprefix+'Down')
+                hist_down.SetTitle(newprefix+'Down')
                 for iobs in range(nbintime):
                     for j in range(nbinmass):
                         if l == 'emu_trig':

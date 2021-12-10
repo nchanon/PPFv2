@@ -5,6 +5,7 @@
 #include <iostream>
 
 #include <TH1F.h>
+#include <TF1.h>
 
 /////////////////////////////////
 // Constructor and Operators
@@ -211,6 +212,18 @@ double SME::fYZ(double t) const{
     return 2*(a4()*sin(OMEGA_GMST*t) - a5()*cos(OMEGA_GMST*t));
 }
 
+double SME::fXX_hours(double* x, double* par) const 
+{
+    double T = x[0];
+    double t0 = par[0];
+    double t = t0+T;
+    double part1 = ((a1()-a2())/2)*cos(2*OMEGA_GMST*t);
+    double part2 = a3()*sin(2*OMEGA_GMST*t);
+    return 2*(part1+part2);
+}
+
+
+
 /////////////////////////////////
 // Public methods
 /////////////////////////////////
@@ -240,10 +253,31 @@ void SME::generateModulation(int t0, int nBin)
         hXZ->SetBinContent(i+1, fXZ((t0+i)%24*3600));
         hYZ->SetBinContent(i+1, fYZ((t0+i)%24*3600));
     }
+
+    //TF1* fXX = new TF1(("function_"+wilsonName+"XX").c_str(), fXX_hours,0,24);
+    //fXX->SetParameter(0, t0);
+    TH1F *hXX_details = new TH1F((wilsonName+"XX_details").c_str(), (wilsonName+"XX_details").c_str(), nBin*100, 0, nBin);
+    TH1F *hXY_details = new TH1F((wilsonName+"XY_details").c_str(), (wilsonName+"XY_details").c_str(), nBin*100, 0, nBin);
+    TH1F *hXZ_details = new TH1F((wilsonName+"XZ_details").c_str(), (wilsonName+"XZ_details").c_str(), nBin*100, 0, nBin);
+    TH1F *hYZ_details = new TH1F((wilsonName+"YZ_details").c_str(), (wilsonName+"YZ_details").c_str(), nBin*100, 0, nBin);
+
+    for (int i=0; i<nBin*3600; i++){
+	hXX_details->SetBinContent(i+1, fXX(t0+i*3600/100));
+        hXY_details->SetBinContent(i+1, fXY(t0+i*3600/100));
+        hXZ_details->SetBinContent(i+1, fXZ(t0+i*3600/100));
+        hYZ_details->SetBinContent(i+1, fYZ(t0+i*3600/100));
+    }
+
     hXX->Write();
     hXY->Write();
     hXZ->Write();
     hYZ->Write();
+
+    hXX_details->Write();
+    hXY_details->Write();
+    hXZ_details->Write();
+    hYZ_details->Write();
+
 }
 
 void SME::generateModulationPerMassBin(int t0, int nBin, int binMass)
@@ -268,9 +302,28 @@ void SME::generateModulationPerMassBin(int t0, int nBin, int binMass)
         hXZ->SetBinContent(i+1, fXZ((t0+i)%24*3600));
         hYZ->SetBinContent(i+1, fYZ((t0+i)%24*3600));
     }
+
+    TH1F *hXX_details = new TH1F((wilsonName+"XX_details"+std::to_string(binMass)).c_str(), (wilsonName+"XX_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
+    TH1F *hXY_details = new TH1F((wilsonName+"XY_details"+std::to_string(binMass)).c_str(), (wilsonName+"XY_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
+    TH1F *hXZ_details = new TH1F((wilsonName+"XZ_details"+std::to_string(binMass)).c_str(), (wilsonName+"XZ_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
+    TH1F *hYZ_details = new TH1F((wilsonName+"YZ_details"+std::to_string(binMass)).c_str(), (wilsonName+"YZ_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
+
+    for (int i=0; i<nBin*3600; i++){
+        hXX_details->SetBinContent(i+1, fXX(t0+i*3600/100));
+        hXY_details->SetBinContent(i+1, fXY(t0+i*3600/100));
+        hXZ_details->SetBinContent(i+1, fXZ(t0+i*3600/100));
+        hYZ_details->SetBinContent(i+1, fYZ(t0+i*3600/100));
+    }
+    
     hXX->Write();
     hXY->Write();
     hXZ->Write();
     hYZ->Write();
+
+    hXX_details->Write();
+    hXY_details->Write();
+    hXZ_details->Write();
+    hYZ_details->Write();
+
 }
 
