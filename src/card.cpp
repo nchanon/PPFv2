@@ -169,6 +169,7 @@ void Card::addRateToCard(namelist    const& groupList_p,
                         )
 {
     for(size_t i = 1; i < groupList_p.size(); ++i){
+	if (isSME && i==1) continue;
         std::string line = completeBlock("r"+groupList_p[i], block_syst) 
                          + completeBlock("lnN", block_proc-block_syst);
         for(size_t j = 0; j < groupList_p.size(); ++j){

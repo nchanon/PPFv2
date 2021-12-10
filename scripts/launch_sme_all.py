@@ -15,22 +15,22 @@ year = args.year
 
 
 wilson_list = [
-    'fXX_L',
-    'fXY_L',
-    'fXZ_L',
-    'fYZ_L',
-    'fXX_R',
-    'fXY_R',
-    'fXZ_R',
-    'fYZ_R',
-    'fXX_C',
-    'fXY_C',
-    'fXZ_C',
-    'fYZ_C',
-    'fXX_D',
-    'fXY_D',
-    'fXZ_D',
-    'fYZ_D'
+    'cLXX',
+    'cLXY',
+    'cLXZ',
+    'cLYZ',
+    'cRXX',
+    'cRXY',
+    'cRXZ',
+    'cRYZ',
+    'cXX',
+    'cXY',
+    'cXZ',
+    'cYZ',
+    'dXX',
+    'dXY',
+    'dXZ',
+    'dYZ'
 ]
 
 

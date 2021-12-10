@@ -29,6 +29,13 @@ int main(int argc, char** argv){
     }
 
     int nBin = 24;
+
+    std::string lumi_flat_uncorr[2] = {"1.009", "1.014"};
+    std::string lumi_flat_corr[2] = {"1.006", "1.009"};
+    int iyear = -1;
+    if (year=="2016") iyear = 0;
+    if (year=="2017") iyear = 1;
+
  //   std::cout << "number of bin : ";
  //   std::cin >> nBin;
 
@@ -75,7 +82,7 @@ int main(int argc, char** argv){
             }
             datacard.addSystToCard_alternative();
             datacard.addSeparator();
-            //datacard.addLine("* autoMCStats 5");
+            datacard.addLine("* autoMCStats 0");
 
             datacard.saveCard("./combine/"+year+"/one_bin/inputs/"+name+"_datacard.txt");
             if(i == 7){
@@ -155,11 +162,16 @@ int main(int argc, char** argv){
                 datacard.addSystToCard(syst, "shape", ttbarList);
         }
         //datacard.addSystToCard("lumi", "lnN", ttbarList, "1.023");
-        for(std::string const& syst : systematicTimeList)
-            datacard.addSystToCard(syst, "shape", ttbarList);
+        datacard.addSystToCard("lumi_flat_uncor"+year, "lnN", ttbarList, lumi_flat_uncorr[iyear]);
+        datacard.addSystToCard("lumi_flat_cor", "lnN", ttbarList, lumi_flat_corr[iyear]);
+        for(std::string const& syst : systematicTimeList){
+            if (syst == "lumi_flat") continue;
+	    if (syst != "emu_trig" && syst != "lumi_stability" && syst != "lumi_linearity") datacard.addSystToCard(syst, "shape", ttbarList);
+	    else datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
+	}
         datacard.addSystToCard_alternative(true);
         datacard.addSeparator();
-        //datacard.addLine("* autoMCStats 5");
+        datacard.addLine("* autoMCStats 0");
 
         datacard.saveCard("./combine/"+year+"/sme/inputs/"+name+"_"+wilson+"_datacard.txt");
     }
