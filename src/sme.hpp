@@ -39,7 +39,12 @@ class SME{
         double fXZ(double t) const;
         double fYZ(double t) const;
 
-	double fXX_hours(double* x, double* par) const;
+	double fXX_primitive(double t) const;
+        double fXY_primitive(double t) const;
+        double fXZ_primitive(double t) const;
+        double fYZ_primitive(double t) const;
+
+	//static double fXX_hours(double* x, double* par);
 
     public:
 
@@ -52,5 +57,7 @@ class SME{
 
         void generateModulation(int t0,int nBin = 24);
 	void generateModulationPerMassBin(int t0, int nBin, int binMass);
+
+        //double fXX_hours(double* x, double* par);
 
 };

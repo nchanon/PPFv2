@@ -197,6 +197,13 @@ double SME::fXX(double t) const
     return 2*(part1+part2);
 }
 
+double SME::fXX_primitive(double t) const
+{
+    double part1 = ((a1()-a2())/2)*sin(2*OMEGA_GMST*t)/(2*OMEGA_GMST);
+    double part2 = a3()*cos(2*OMEGA_GMST*t)/(-2*OMEGA_GMST);
+    return 2*(part1+part2);
+}
+
 double SME::fXY(double t) const
 {
     double part1 = ((a1()-a2())/2)*sin(2*OMEGA_GMST*t); 
@@ -204,24 +211,43 @@ double SME::fXY(double t) const
     return 2*(part1-part2);
 }
 
+double SME::fXY_primitive(double t) const
+{   
+    double part1 = ((a1()-a2())/2)*cos(2*OMEGA_GMST*t)/(-2*OMEGA_GMST);
+    double part2 = a3()*sin(2*OMEGA_GMST*t)/(2*OMEGA_GMST);
+    return 2*(part1-part2);
+}
+
 double SME::fXZ(double t) const{
     return 2*(a4()*cos(OMEGA_GMST*t) + a5()*sin(OMEGA_GMST*t));
+}
+
+double SME::fXZ_primitive(double t) const{
+    return 2*(a4()*sin(OMEGA_GMST*t)/OMEGA_GMST + a5()*cos(OMEGA_GMST*t)/(-OMEGA_GMST));
 }
 
 double SME::fYZ(double t) const{
     return 2*(a4()*sin(OMEGA_GMST*t) - a5()*cos(OMEGA_GMST*t));
 }
 
-double SME::fXX_hours(double* x, double* par) const 
+double SME::fYZ_primitive(double t) const{
+    return 2*(a4()*cos(OMEGA_GMST*t)/(-OMEGA_GMST) - a5()*sin(OMEGA_GMST*t)/OMEGA_GMST);
+}
+
+
+
+/*
+double SME::fXX_hours(double* x, double* par)  
 {
     double T = x[0];
     double t0 = par[0];
     double t = t0+T;
+    //return SME::fXX(t);
     double part1 = ((a1()-a2())/2)*cos(2*OMEGA_GMST*t);
     double part2 = a3()*sin(2*OMEGA_GMST*t);
     return 2*(part1+part2);
 }
-
+*/
 
 
 /////////////////////////////////
@@ -243,17 +269,19 @@ void SME::generateModulation(int t0, int nBin)
     else if(wilson == Wilson::D)
         wilsonName = "d";
 
+
     TH1F *hXX = new TH1F((wilsonName+"XX").c_str(), (wilsonName+"XX").c_str(), nBin, 0, nBin);
     TH1F *hXY = new TH1F((wilsonName+"XY").c_str(), (wilsonName+"XY").c_str(), nBin, 0, nBin);
     TH1F *hXZ = new TH1F((wilsonName+"XZ").c_str(), (wilsonName+"XZ").c_str(), nBin, 0, nBin);
     TH1F *hYZ = new TH1F((wilsonName+"YZ").c_str(), (wilsonName+"YZ").c_str(), nBin, 0, nBin);
+/*
     for(int i = 0; i < nBin; ++i){
-        hXX->SetBinContent(i+1, fXX((t0+i)%24*3600));
+        hXX->SetBinContent(i+1, SME::fXX((t0+i)%24*3600));
         hXY->SetBinContent(i+1, fXY((t0+i)%24*3600));
         hXZ->SetBinContent(i+1, fXZ((t0+i)%24*3600));
         hYZ->SetBinContent(i+1, fYZ((t0+i)%24*3600));
     }
-
+*/
     //TF1* fXX = new TF1(("function_"+wilsonName+"XX").c_str(), fXX_hours,0,24);
     //fXX->SetParameter(0, t0);
     TH1F *hXX_details = new TH1F((wilsonName+"XX_details").c_str(), (wilsonName+"XX_details").c_str(), nBin*100, 0, nBin);
@@ -262,10 +290,21 @@ void SME::generateModulation(int t0, int nBin)
     TH1F *hYZ_details = new TH1F((wilsonName+"YZ_details").c_str(), (wilsonName+"YZ_details").c_str(), nBin*100, 0, nBin);
 
     for (int i=0; i<nBin*3600; i++){
-	hXX_details->SetBinContent(i+1, fXX(t0+i*3600/100));
+	hXX_details->SetBinContent(i+1, SME::fXX(t0+i*3600/100));
         hXY_details->SetBinContent(i+1, fXY(t0+i*3600/100));
         hXZ_details->SetBinContent(i+1, fXZ(t0+i*3600/100));
         hYZ_details->SetBinContent(i+1, fYZ(t0+i*3600/100));
+    }
+
+    for (int j=0; j<nBin; j++){
+        hXX->SetBinContent(j+1,(fXX_primitive(t0+(j+1)*3600)-fXX_primitive(t0+j*3600))/3600.);
+        hXY->SetBinContent(j+1,(fXY_primitive(t0+(j+1)*3600)-fXY_primitive(t0+j*3600))/3600.);
+        hXZ->SetBinContent(j+1,(fXZ_primitive(t0+(j+1)*3600)-fXZ_primitive(t0+j*3600))/3600.);
+        hYZ->SetBinContent(j+1,(fYZ_primitive(t0+(j+1)*3600)-fYZ_primitive(t0+j*3600))/3600.);
+        hXX->SetBinError(j+1,0);
+        hXY->SetBinError(j+1,0);
+        hXZ->SetBinError(j+1,0);
+        hYZ->SetBinError(j+1,0);
     }
 
     hXX->Write();
@@ -296,25 +335,65 @@ void SME::generateModulationPerMassBin(int t0, int nBin, int binMass)
     TH1F *hXY = new TH1F((wilsonName+"XY_"+std::to_string(binMass)).c_str(), (wilsonName+"XY_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
     TH1F *hXZ = new TH1F((wilsonName+"XZ_"+std::to_string(binMass)).c_str(), (wilsonName+"XZ_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
     TH1F *hYZ = new TH1F((wilsonName+"YZ_"+std::to_string(binMass)).c_str(), (wilsonName+"YZ_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
-    for(int i = 0; i < nBin; ++i){
-        hXX->SetBinContent(i+1, fXX((t0+i)%24*3600));
-        hXY->SetBinContent(i+1, fXY((t0+i)%24*3600));
-        hXZ->SetBinContent(i+1, fXZ((t0+i)%24*3600));
-        hYZ->SetBinContent(i+1, fYZ((t0+i)%24*3600));
-    }
+//    for(int i = 0; i < nBin; ++i){
+//        hXX->SetBinContent(i+1, fXX((t0+i)%24*3600));
+//        hXY->SetBinContent(i+1, fXY((t0+i)%24*3600));
+//        hXZ->SetBinContent(i+1, fXZ((t0+i)%24*3600));
+//        hYZ->SetBinContent(i+1, fYZ((t0+i)%24*3600));
+//    }
 
     TH1F *hXX_details = new TH1F((wilsonName+"XX_details"+std::to_string(binMass)).c_str(), (wilsonName+"XX_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
     TH1F *hXY_details = new TH1F((wilsonName+"XY_details"+std::to_string(binMass)).c_str(), (wilsonName+"XY_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
     TH1F *hXZ_details = new TH1F((wilsonName+"XZ_details"+std::to_string(binMass)).c_str(), (wilsonName+"XZ_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
     TH1F *hYZ_details = new TH1F((wilsonName+"YZ_details"+std::to_string(binMass)).c_str(), (wilsonName+"YZ_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
 
+    //std::vector<double> vec_avg_XX;
+    //std::vector<double> vec_avg_XY;
+    //std::vector<double> vec_avg_XZ;
+    //std::vector<double> vec_avg_YZ;
+    //avg_XX[j]=0; 
+    //avg_XY[j]=0, avg_XZ=0, avg_YZ=0;
+    //int j=-1;
     for (int i=0; i<nBin*3600; i++){
+	//if (i%100==0) j++;
+	//avg_XX[j] += fXX(t0+i*3600/100);
+	//avg_XY[j] += fXY(t0+i*3600/100);
+	//avg_XZ[j] += fXZ(t0+i*3600/100);
+	//avg_YZ[j] += fYZ(t0+i*3600/100);
+	//hXX->Fill(0.5+j, fXX(t0+i*3600/100));
+        //hXY->Fill(0.5+j, fXY(t0+i*3600/100));
+        //hXZ->Fill(0.5+j, fXZ(t0+i*3600/100));
+        //hYZ->Fill(0.5+j, fXZ(t0+i*3600/100));
         hXX_details->SetBinContent(i+1, fXX(t0+i*3600/100));
         hXY_details->SetBinContent(i+1, fXY(t0+i*3600/100));
         hXZ_details->SetBinContent(i+1, fXZ(t0+i*3600/100));
         hYZ_details->SetBinContent(i+1, fYZ(t0+i*3600/100));
     }
-    
+
+    for (int j=0; j<nBin; j++){
+	hXX->SetBinContent(j+1,(fXX_primitive(t0+(j+1)*3600)-fXX_primitive(t0+j*3600))/3600.);
+        hXY->SetBinContent(j+1,(fXY_primitive(t0+(j+1)*3600)-fXY_primitive(t0+j*3600))/3600.);
+        hXZ->SetBinContent(j+1,(fXZ_primitive(t0+(j+1)*3600)-fXZ_primitive(t0+j*3600))/3600.);
+        hYZ->SetBinContent(j+1,(fYZ_primitive(t0+(j+1)*3600)-fYZ_primitive(t0+j*3600))/3600.);
+        hXX->SetBinError(j+1,0);
+        hXY->SetBinError(j+1,0);
+        hXZ->SetBinError(j+1,0);
+        hYZ->SetBinError(j+1,0);
+    }
+/*
+    for (int j=0; j<nBin; j++){
+	int bin1 = 1+j*100;
+	int bin2 = (j+1)*100;
+	//hXX->SetBinContent(j+1, hXX_details->Integral(bin1, bin2)/100.);
+        hXY->SetBinContent(j+1, hXY_details->Integral(bin1, bin2)/100.);
+        hXZ->SetBinContent(j+1, hXZ_details->Integral(bin1, bin2)/100.);
+        hYZ->SetBinContent(j+1, hYZ_details->Integral(bin1, bin2)/100.);
+        hXX->SetBinError(j+1,0);
+        hXY->SetBinError(j+1,0);
+        hXZ->SetBinError(j+1,0);
+        hYZ->SetBinError(j+1,0);
+    }
+*/
     hXX->Write();
     hXY->Write();
     hXZ->Write();
