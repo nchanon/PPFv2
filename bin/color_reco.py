@@ -11,7 +11,7 @@ from tools.sample_manager import *
 from ROOT import TFile, TH1, TCanvas, TH1F, THStack, TString
 from ROOT import TLegend, TApplication, TRatioPlot, TPad
 
-nbin = 24
+#nbin = 24
 
 ################################################################################
 ## Initialisation stuff
@@ -20,15 +20,19 @@ nbin = 24
 parser = argparse.ArgumentParser()
 parser.add_argument('observable', help='display your observable')
 parser.add_argument('year', help='year of samples')
+parser.add_argument('timed', help='timed or inclusive', default='timed')
 
 args = parser.parse_args()
 observable = args.observable
 year = args.year
+timed = args.timed
+
+doIntegrated = True
 
 TH1.SetDefaultSumw2(1)
 
 ################################################################################
-## function
+## functions
 ################################################################################
 
 def max(a,b,c, nom):
@@ -58,22 +62,36 @@ def min(a,b,c, nom):
             min_rat = ratio[i]
     return min_rat
 
+def get_hist_avg(hist, hist_nom):
+    avg = hist.Integral() / hist_nom.Integral()
+    #for i in range(nbin):
+    #    avg += hist.GetBinContent(i+1)/hist_nom.GetBinContent(i+1)
+    #avg = avg / nbin
+    hist_avg = hist_nom.Clone() 
+    hist_avg.Scale(avg)
+    #for i in range(nbin): 
+    #	hist_avg.SetBinContent(i+1,avg)
+    return hist_avg
+
 def rename(th1, name):
     th1.SetName(name)
     th1.SetTitle(name)
+
 
 
 ################################################################################
 ## Code body
 ################################################################################
 
+if (timed=='timed'): stime=''
+if (timed=='inclusive'): stime='_inclusive'
 
-mc_file = TFile('./results/'+year+'/flattree/'+observable+'.root')
+mc_file = TFile('./results/'+year+'/flattree/'+observable+stime+'.root')
 mc_integral = 0
 hist_mc = []
 
-lumi_file = TFile('./inputs/timed/AllTimedSyst_'+year+'.root')
-hist_weight = lumi_file.Get('h_SF_emu_sidereel_Full_UncBand')
+#lumi_file = TFile('./inputs/timed/AllTimedSyst_'+year+'.root')
+#hist_weight = lumi_file.Get('h_SF_emu_sidereel_Full_UncBand')
 
 h_nominal = mc_file.Get('signal')
 nbin = h_nominal.GetNbinsX()
@@ -83,7 +101,7 @@ h_nominal.Draw()
 
 ####
 
-alt_file = TFile('./results/'+year+'/flattree/'+observable+'_alt.root')
+alt_file = TFile('./results/'+year+'/flattree/'+observable+'_alt'+stime+'.root')
 h_gluon = alt_file.Get('signal_GluonMove')
 h_erd = alt_file.Get('signal_erdOn')
 h_qcd = alt_file.Get('signal_QCD')
@@ -148,34 +166,39 @@ h_colorDown.SetLineColor(3)
 
 h_CP5Up.SetLineColor(3)
 h_CP5Down.SetLineColor(2)
-
 h_hdampUp.SetLineColor(3)
 h_hdampDown.SetLineColor(2)
 
-
-#int_cp5Up     = int_nom/h_CP5Up.Integral()
-#int_cp5Down   = int_nom/h_CP5Down.Integral()
-#int_hdampUp   = int_nom/h_hdampUp.Integral()
-#int_hdampDown = int_nom/h_hdampDown.Integral()
-
-#h_hdampUp.Scale(int_hdampUp)
-#h_hdampDown.Scale(int_hdampDown)
-#h_CP5Up.Scale(int_cp5Up)
-#h_CP5Down.Scale(int_cp5Down)
-
-rename(h_hdampUp,'signal_hdampUp')
-rename(h_hdampDown,'signal_hdampDown')
-
-rename(h_CP5Up,'signal_CP5Up')
-rename(h_CP5Down,'signal_CP5Down')
+if doIntegrated:
+    h_hdampUpNew = get_hist_avg(h_hdampUp, h_nominal)
+    h_hdampDownNew = get_hist_avg(h_hdampDown, h_nominal)
+    h_CP5UpNew = get_hist_avg(h_CP5Up, h_nominal)
+    h_CP5DownNew = get_hist_avg(h_CP5Down, h_nominal)
+    rename(h_hdampUpNew,'signal_hdampUp')
+    rename(h_hdampDownNew,'signal_hdampDown')
+    rename(h_CP5UpNew,'signal_CP5Up')
+    rename(h_CP5DownNew,'signal_CP5Down')
+else:
+    rename(h_hdampUp,'signal_hdampUp')
+    rename(h_hdampDown,'signal_hdampDown')
+    rename(h_CP5Up,'signal_CP5Up')
+    rename(h_CP5Down,'signal_CP5Down')
 
 #########################
 ## Color reco individuals
 #########################
 
-rename(h_erd, 'signal_erdOnUp')
-rename(h_gluon, 'signal_GluonMoveUp')
-rename(h_qcd, 'signal_QCDinspiredUp')
+if doIntegrated:
+    h_erdUpNew = get_hist_avg(h_erd, h_nominal)
+    h_gluonUpNew = get_hist_avg(h_gluon, h_nominal)
+    h_qcdUpNew = get_hist_avg(h_qcd, h_nominal)
+    rename(h_erdUpNew, 'signal_erdOnUp')
+    rename(h_gluonUpNew, 'signal_GluonMoveUp')
+    rename(h_qcdUpNew, 'signal_QCDinspiredUp')
+else:
+    rename(h_erd, 'signal_erdOnUp')
+    rename(h_gluon, 'signal_GluonMoveUp')
+    rename(h_qcd, 'signal_QCDinspiredUp')
 
 h_erdDown = h_nominal.Clone()
 rename(h_erdDown, 'signal_erdOnDown')
@@ -185,8 +208,8 @@ h_qcdDown = h_nominal.Clone()
 rename(h_qcdDown, 'signal_QCDinspiredDown')
 
 
-h_CP5Up.Draw('SAME')
-h_CP5Down.Draw('SAME')
+#h_CP5Up.Draw('SAME')
+#h_CP5Down.Draw('SAME')
 
 
 #########################
@@ -210,22 +233,32 @@ rename(h_mtopDownNew, 'signal_mtopDown')
 ## Code body
 ################################################################################
 
-###########
-# data part
-###########
+##############
+# storing part
+##############
 
 
-output = TFile('./results/'+year+'/flattree/'+observable+'_color_reco.root', "RECREATE")
+output = TFile('./results/'+year+'/flattree/'+observable+'_color_reco'+stime+'.root', "RECREATE")
 #h_nominal.Write()
-h_hdampUp.Write()
-h_hdampDown.Write()
-h_CP5Up.Write()
-h_CP5Down.Write()
-h_erd.Write()
+if doIntegrated:
+    h_hdampUpNew.Write()
+    h_hdampDownNew.Write()
+    h_CP5UpNew.Write()
+    h_CP5DownNew.Write()
+    h_erdUpNew.Write()
+    h_gluonUpNew.Write()
+    h_qcdUpNew.Write()
+else:
+    h_hdampUp.Write()
+    h_hdampDown.Write()
+    h_CP5Up.Write()
+    h_CP5Down.Write()
+    h_erd.Write()
+    h_gluon.Write()
+    h_qcd.Write()
+ 
 h_erdDown.Write()
-h_gluon.Write()
 h_gluonDown.Write()
-h_qcd.Write()
 h_qcdDown.Write()
 h_colorUp.Write()
 h_colorDown.Write()

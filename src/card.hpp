@@ -48,7 +48,8 @@ class Card
                                      std::string const& shape_p,
                                      namelist    const& groupList_p,
                                      std::string const& process_p,
-				     bool isSME);
+                                     bool isSME,
+				     std::string const& value_p="1");
 
         void addSystToCard(std::string const& systName_p,
                            std::string const& shape_p,

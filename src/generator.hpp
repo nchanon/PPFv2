@@ -44,7 +44,9 @@ class Generator{
                              namelist const& triggerList_p,
                              bool            is2016H = false
                             );
-        
+       
+	float getObservableValue(TTree         * tree_p);
+ 
         void write(std::string       const& filename,
                    std::vector<TH1F>      & listObject,
                    std::string       const& option_p
@@ -102,14 +104,18 @@ class Generator{
         void generateAltMC(namelist            const& sampleList_p,
                            namelist            const& groupList_p,
                            namelist            const& triggerList_p,
-                           std::vector<double> const& correction_p
+                           std::vector<double> const& correction_p,
+                           bool                clean_p = true,
+                           bool                isTimed_p = true
                           );
 
         void generateJecMC(namelist            const& sampleList_p,
                            namelist            const& jecList_p,
                            namelist            const& groupList_p,
                            namelist            const& triggerList_p,
-                           std::vector<std::vector<double>> const& correction_p
+                           std::vector<std::vector<double>> const& correction_p,
+                           bool                clean_p = true,
+                           bool                isTimed_p = true
                           );
 
         void generateMC(namelist            const& sampleList_p,
@@ -117,9 +123,12 @@ class Generator{
                         namelist            const& groupList_p,
                         namelist            const& systematicsList_p,
                         namelist            const& systematicsTimeList_p,
+			std::vector<double>    const& numberofevents_p,
                         std::vector<double> const& correction_p,
                         std::string         const& rootOption_p,
-                        bool                       clean_p = true
+                        bool                       clean_p = true,
+                        bool                       isTimed_p = true
+
                        );
 
         void generateMCforComp(namelist            const& sampleList_p,

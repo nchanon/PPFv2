@@ -24,6 +24,7 @@ tdr.setTDRStyle()
 parser = argparse.ArgumentParser()
 parser.add_argument('observable', help='display your observable')
 parser.add_argument('year', help='year of samples')
+parser.add_argument('timed', help='timed or inclusive')
 parser.add_argument('systematic', help='display your systematic')
 parser.add_argument('title', help='display your observable title')
 
@@ -32,10 +33,15 @@ observable = args.observable
 year = args.year
 title = args.title
 systematic = args.systematic
+timed = args.timed
 
-nbin = 0
-min_bin = 0
-max_bin = 0
+stimed = ''
+if (timed=="inclusive"):
+    stimed = '_inclusive'
+
+#nbin = 0
+#min_bin = 0
+#max_bin = 0
 legend_coordinates = observable_values(observable)[1]
 TH1.SetDefaultSumw2(1)
 signal_integral = 0
@@ -48,11 +54,11 @@ canvas = TCanvas('stack_'+observable,'stack_'+observable, 800, 800)
 canvas.UseCurrentStyle()
 
 
-data_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
+#data_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
 
-rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
-rootfile_input_jec = TFile('./results/'+year+'/flattree/'+observable+'_jec.root')
-rootfile_input_alt = TFile('./results/'+year+'/flattree/'+observable+'_alt.root')
+rootfile_input = TFile('./results/'+year+'/flattree/'+observable+stimed+'.root')
+rootfile_input_jec = TFile('./results/'+year+'/flattree/'+observable+'_jec'+stimed+'.root')
+rootfile_input_alt = TFile('./results/'+year+'/flattree/'+observable+'_alt'+stimed+'.root')
 
 ################################################################################
 ## Create Histo 
@@ -62,14 +68,14 @@ rootfile_input_alt = TFile('./results/'+year+'/flattree/'+observable+'_alt.root'
 ###########
 # data part
 ###########
-hist_data = data_input.Get('data_obs')
-data_integral = hist_data.Integral()
+#hist_data = data_input.Get('data_obs')
+#data_integral = hist_data.Integral()
 
 
 # convenient variables
-nbin    = hist_data.GetNbinsX()
-min_bin = hist_data.GetXaxis().GetXmin()
-max_bin = hist_data.GetXaxis().GetXmax()
+#nbin    = hist_data.GetNbinsX()
+#min_bin = hist_data.GetXaxis().GetXmin()
+#max_bin = hist_data.GetXaxis().GetXmax()
 
 
 ###########

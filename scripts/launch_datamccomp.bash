@@ -1,3 +1,5 @@
+python ./bin/data_mc_comparaison.py m_dilep 2016 "Dilepton mass (GeV)"
+python ./bin/data_mc_comparaison.py m_dilep 2017 "Dilepton mass (GeV)"
 python ./bin/data_mc_comparaison.py eta_elec 2016 "Electron #eta"
 python ./bin/data_mc_comparaison.py eta_elec 2017 "Electron #eta"
 python ./bin/data_mc_comparaison.py pt_elec 2016 "Electron p_{T} (GeV)"

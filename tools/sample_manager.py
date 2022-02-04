@@ -409,7 +409,8 @@ systematic_list = [
     # 'syst_c',
     #'syst_l',
     'syst_pt_top',
-    'syst_prefiring'
+    'syst_prefiring',
+    'syst_em_trig'
 ]
 
 alt_syst_list = [
@@ -510,6 +511,34 @@ def is_same_sample(name1, name2, year):
     if (name1.find("2")!=-1 or name1.find("3")!=-1 or name1.find("4")!=-1 or name1.find("pmx")!=-1 or name1.find("ext")!=-1):
        foo = True
     #print(name1+ ' '+name2+' is_same_sample='+str(foo))
+    return foo
+
+
+def number_of_events(year, sample, sampletype='MC'):
+    filterfile = eventfilter_input(year, sampletype, sample, 'MCWeighter')
+    event = []
+    f = open(filterfile, 'r')
+    for i in f.read().split():
+        try:
+            event.append(int(i.strip()))
+        except:
+            pass
+    print(filterfile+' number_of_events='+str(event[0]))
+    return int(event[0])
+
+def generate_numberofevents(year, sample_list, sampletype='MC'):
+    foo = []
+    foo.append(number_of_events(year,sample_list[0],sampletype))
+    for i in range(1,len(sample_list)):
+        foo.append(number_of_events(year,sample_list[i],sampletype))
+        if is_same_sample(sample_list[i], sample_list[i-1], year):
+            foo[i-1] += foo[i]
+            if is_same_sample(sample_list[i-1], sample_list[i-2], year):
+                foo[i-2] += foo[i]
+                if is_same_sample(sample_list[i-2], sample_list[i-3], year):
+                   foo[i-3] += foo[i]
+            foo[i] = foo[i-1]
+    print('number_of_events_all='+str(foo))
     return foo
 
 def sum_of_weight(year, sample, sampletype='MC'):

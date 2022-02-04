@@ -7,6 +7,7 @@ import argparse
 
 observables = [
     'm_dilep',
+    'n_jets',
     'n_bjets',
     'pt_lead',
     'pt_sublead',
@@ -21,7 +22,8 @@ observables = [
     'b2_pt',
     'j2_pt',
     'j2_eta',
-    'b2_eta'
+    'b2_eta',
+    'dijet_m'
 ]
 
 years = [

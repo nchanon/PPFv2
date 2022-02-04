@@ -19,7 +19,8 @@ int main(){
     for(size_t i = 0; i < year.size(); ++i)
     {    
 	if (year[i]=="2016") t0 = 1451606400;
-	if (year[i]=="2017") t0 = 1483228800;
+	//if (year[i]=="2017") t0 = 1483228800;
+	if (year[i]=="2017") t0 = 1451606400;
 
         if(binage != 24)
             output = "./results/"+year[i]+"/flattree/sme"+std::to_string(binage)+".root";

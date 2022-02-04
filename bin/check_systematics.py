@@ -20,13 +20,14 @@ nbin = 24
 parser = argparse.ArgumentParser()
 parser.add_argument('observable', help='display your observable')
 parser.add_argument('year', help='year of samples')
+parser.add_argument('timed', help='timed or inclusive')
 parser.add_argument('syst', help='display your systematics')
-
 
 args = parser.parse_args()
 observable = args.observable
 year = args.year
 syst = args.syst
+timed = args.timed
 
 TH1.SetDefaultSumw2(1)
 canvas = TCanvas()
@@ -35,7 +36,11 @@ canvas = TCanvas()
 ## function
 ################################################################################
 
-mc_file = TFile('./results/'+year+'/flattree/'+observable+'.root')
+stimed = ''
+if (timed=="inclusive"):
+    stimed = '_inclusive'
+
+mc_file = TFile('./results/'+year+'/flattree/'+observable+stimed+'.root')
 
 h_nominal = mc_file.Get('signal')
 nbin = h_nominal.GetNbinsX()
@@ -43,12 +48,12 @@ int_nom = h_nominal.Integral()
 print int_nom
 
 if syst == 'jec':
-    infile = TFile('./results/'+year+'/flattree/'+observable+'_jec.root')
+    infile = TFile('./results/'+year+'/flattree/'+observable+stimed+'_jec.root')
     h_up   =  infile.Get('signal_TotalUp')
     h_down =  infile.Get('signal_TotalDown')
 
 else:
-    infile = TFile('./results/'+year+'/flattree/'+observable+'_color_reco.root')
+    infile = TFile('./results/'+year+'/flattree/'+observable+stimed+'_color_reco.root')
     h_up   =  infile.Get('signal_'+syst+'Up')
     h_down =  infile.Get('signal_'+syst+'Down')
 
@@ -80,7 +85,7 @@ h_up.Draw('SAME HIST')
 h_down.Draw('SAME HIST')
 legend.Draw('SAME')
 
-output = './results/'+year+'/other/'+observable+'_'+syst
+output = './results/'+year+'/other/'+observable+'_'+syst+stimed
 
 canvas.SaveAs(output+'_'+year+'_check.pdf')
 

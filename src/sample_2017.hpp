@@ -28,7 +28,8 @@ namelist systematicList {
     "syst_pu",
     "syst_b",
     "syst_pt_top",
-    "syst_prefiring"
+    "syst_prefiring",
+    "syst_em_trig"
 };
 
 namelist systematicAltList {
@@ -132,6 +133,34 @@ namelist sampleList_ALT_2017 {
     "alt_MCsemilep_mtop169p5_pmx",
     "alt_MCsemilep_mtop175p5",
     "alt_MCsemilep_mtop175p5_pmx"
+};
+
+std::vector<double> number_of_events_2017 {
+    7791498,
+    3857770,
+    1925931,
+    69155808,
+    130262440,
+    30245968,
+    18542034,
+    18542034,
+    15557756,
+    15557756,
+    15739428,
+    15739428,
+    3513940,
+    5708056,
+    9903448,
+    9903448,
+    811306,
+    19024650,
+    19024650,
+    750000,
+    61117713,
+    61117713,
+    39536839,
+    30992757,
+    30992757
 };
 
 std::vector<double> mc_rescale_2017 {

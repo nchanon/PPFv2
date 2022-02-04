@@ -21,13 +21,16 @@ std::string Card::completeBlock(std::string  const& word_p,
                                    unsigned int        blockSize_p
                                   )
 { 
-    unsigned int size = blockSize_p - word_p.size();
-    if(size == 0){
+    int size = blockSize_p - word_p.size();
+    //std::cout << "completeBlock " << word_p << " " <<size<<std::endl;
+
+
+    if(size <= 0){
         Log("Error with "+word_p+" block in datacard");
         return "";
     }
     std::string spaces;
-    for(size_t i = 0; i < size; ++i){
+    for(int i = 0; i < size; ++i){
         spaces += " ";
     }
     return word_p+spaces;
@@ -98,24 +101,22 @@ void Card::addProcToCard(std::string const& observable_p,
 void Card::addSystToCard_alternative(bool isSME)
 {
     if(!isSME){
-      datacard += "CP5                     shape 1              0              0              0              0              \n";
-      datacard += "hdamp                   shape 1              0              0              0              0              \n";
-      datacard += "erdOn                   shape 1              0              0              0              0              \n";
-      datacard += "QCDinspired             shape 1              0              0              0              0              \n";
-      datacard += "GluonMove               shape 1              0              0              0              0              \n";
+      //datacard += "CP5                     shape 1              0              0              0              0              \n";
+      //datacard += "hdamp                   shape 1              0              0              0              0              \n";
+      //datacard += "erdOn                   shape 1              0              0              0              0              \n";
+      //datacard += "QCDinspired             shape 1              0              0              0              0              \n";
+      //datacard += "GluonMove               shape 1              0              0              0              0              \n";
       datacard += "mtop                    shape 1              0              0              0              0              \n";
       //datacard += "color_reco              shape 1              0              0              0              0              \n";
       datacard += "jec              	   shape 1              1              1              1              1              \n";
     }
     else{
-      //datacard += "CP5                     shape - 1              -              -              -              -              \n";
-      //datacard += "hdamp                   shape 0 1              -              -              -              -              \n";
       //datacard += "color_reco              shape 0 1              -              -              -              -              \n";
-      datacard += "CP5                     shape 1              1              0              0              0              0              \n";
-      datacard += "hdamp                   shape 1              1              0              0              0              0              \n";
-      datacard += "erdOn                   shape 1              1              0              0              0              0              \n";
-      datacard += "QCDinspired             shape 1              1              0              0              0              0              \n";
-      datacard += "GluonMove               shape 1              1              0              0              0              0              \n";
+      //datacard += "CP5                     shape 1              1              0              0              0              0              \n";
+      //datacard += "hdamp                   shape 1              1              0              0              0              0              \n";
+      //datacard += "erdOn                   shape 1              1              0              0              0              0              \n";
+      //datacard += "QCDinspired             shape 1              1              0              0              0              0              \n";
+      //datacard += "GluonMove               shape 1              1              0              0              0              0              \n";
       datacard += "mtop                    shape 1              1              0              0              0              0              \n";
       datacard += "jec              	  shape 1              1              1              1              1              1	\n";
     }
@@ -126,22 +127,26 @@ void Card::addProcSystToCard(std::string const& systName_p,
                              std::string const& shape_p,
                              namelist    const& groupList_p,
                              std::string const& process_p,
-			     bool isSME
+			     bool isSME,
+                             std::string const& value_p
                              )
 {
+
+    std::cout << "addProcSystToCard "<<systName_p<<" "<<shape_p<<" "<<process_p<< " "<<value_p<<std::endl;
+
     datacard += completeBlock(systName_p, block_syst) 
             + completeBlock(shape_p, block_proc-block_syst);
     for(size_t i = 0; i < groupList_p.size(); ++i)
     {
 	if (!isSME){
           if(groupList_p[i] == process_p)
-              datacard += completeBlock("1", block_grp);
+              datacard += completeBlock(value_p, block_grp);
           else 
               datacard += completeBlock("0", block_grp);
 	}
 	else if (isSME){
           if(groupList_p[i] == process_p || i==0)
-              datacard += completeBlock("1", block_grp);
+              datacard += completeBlock(value_p, block_grp);
           else 
               datacard += completeBlock("0", block_grp);
 	}

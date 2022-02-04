@@ -56,6 +56,7 @@ years = [
 
 for year in years:
 
+    numberofevents_N0 = generate_numberofevents(year, sample_MC[year]) 
     effective_N0 = generate_eventN0(year, sample_MC[year])
     mc_rescale   = rescaling(year, effective_N0)
 
@@ -86,6 +87,7 @@ for year in years:
     core += listing('namelist', 'triggerList_'+year, triggers[year])
     core += listing('namelist', 'sampleList_MC_'+year, sample_MC[year])
     core += listing('namelist', 'sampleList_ALT_'+year, sample_ALT[year])
+    core += listing('std::vector<double>', 'number_of_events_'+year, numberofevents_N0)
     core += listing('std::vector<double>', 'mc_rescale_'+year, mc_rescale)
     core += listing('std::vector<double>', 'alt_mc_rescale_'+year, alt_mc_rescale)
     core += multilisting('std::vector<double>', 'jec_mc_rescale_'+year, jec_mc_rescale)

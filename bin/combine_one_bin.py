@@ -112,20 +112,24 @@ for n in range(nbin):
         for s in systematic_time_list:
             hist_up = data_file.Get(g).Clone()
             hist_down = data_file.Get(g).Clone()
+            if (s == 'emu_trig' or s=='lumi_stability' or s=='lumi_linearity'):
+                newprefix = g+'_'+s+'_'+year
+            else:
+                newprefix = g+'_'+s
             if s == 'emu_trig':
                 hist_up.Scale(1+lumi_syst_up[s].GetBinError(n+1))
-                hist_up.SetName(g+'_'+s+'Up')
-                hist_up.SetTitle(g+'_'+s+'Up')
+                hist_up.SetName(newprefix+'Up')
+                hist_up.SetTitle(newprefix+'Up')
                 hist_down.Scale(1-lumi_syst_up[s].GetBinError(n+1))
-                hist_down.SetName(g+'_'+s+'Down')
-                hist_down.SetTitle(g+'_'+s+'Down')
+                hist_down.SetName(newprefix+'Down')
+                hist_down.SetTitle(newprefix+'Down')
             else:
                 hist_up.Scale(lumi_syst_up[s].GetBinContent(n+1))
-                hist_up.SetName(g+'_'+s+'Up')
-                hist_up.SetTitle(g+'_'+s+'Up')
+                hist_up.SetName(newprefix+'Up')
+                hist_up.SetTitle(newprefix+'Up')
                 hist_down.Scale(lumi_syst_down[s].GetBinContent(n+1))
-                hist_down.SetName(g+'_'+s+'Down')
-                hist_down.SetTitle(g+'_'+s+'Down')
+                hist_down.SetName(newprefix+'Down')
+                hist_down.SetTitle(newprefix+'Down')
             hist_up.Scale(hist_weight.GetBinContent(n+1))
             hist_down.Scale(hist_weight.GetBinContent(n+1))
             hist_tim.append(hist_up)

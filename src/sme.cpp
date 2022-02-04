@@ -95,8 +95,10 @@ double SME::a5() const
 std::vector<double> SME::generateMatrix(Wilson wilson_p) const
 {
 
-    std::string cutName = "13TeVCMSnew";
-    std::string suffix = "_inc";
+    std::string cutName = "13TeVCMSnanoGEN";
+    std::string suffix = "_inc_particle";
+    //std::string cutName = "13TeVCMSnew";
+    //std::string suffix = "_inc";
 
     std::string File_qqbar = "./inputs/pheno/" + cutName + "Pqqbar" + suffix + ".txt";
     std::string File_gg = "./inputs/pheno/" + cutName + "P2g" + suffix + ".txt";
@@ -133,9 +135,11 @@ std::vector<double> SME::generateMatrix(Wilson wilson_p) const
 
 std::vector<double> SME::generateMatrixPerMassBin(Wilson wilson_p, int bin) const
 {
-    
-    std::string cutName = "13TeVCMSnew";
-    std::string suffix = "_" + std::to_string(bin);
+   
+    std::string cutName = "13TeVCMSnanoGEN";
+    std::string suffix = "_" + std::to_string(bin) + "_particle"; 
+    //std::string cutName = "13TeVCMSnew";
+    //std::string suffix = "_" + std::to_string(bin);
     
     std::string File_qqbar = "./inputs/pheno/" + cutName + "Pqqbar" + suffix + ".txt";
     std::string File_gg = "./inputs/pheno/" + cutName + "P2g" + suffix + ".txt";

@@ -51,7 +51,7 @@ def observable_values(observable):
         return rho_like_values
     elif(observable.find('met') != -1):
         return met_like_values
-    elif(observable.find('m_dilep') != -1):
+    elif(observable.find('m_dilep') != -1 or observable.find('dijet_m') != -1):
         return m_dilep_like_values
     elif(observable.find('unix_time') != -1):
         return unix_time_like_values

@@ -1,4 +1,4 @@
-#./bin/histograms_creator m_dilep 2017
+#!/bin/sh
 echo "  1) rootfile creation for combine"
 python ./bin/combine_one_bin.py $1 $2
 echo "  2) datacard creation for combine"

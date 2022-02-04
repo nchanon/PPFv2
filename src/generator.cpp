@@ -9,6 +9,7 @@
 #include <TLeaf.h>
 #include <TString.h>
 #include <TList.h>
+#include <TLorentzVector.h>
 
 const double OMEGA_GMST = 7.2722e-5;
 const double OMEGA_UTC  = 7.2921e-5;
@@ -84,7 +85,7 @@ time_t Generator::utcConverter(std::string const& time)
 double Generator::siderealHour(double time_p)
 {
     if(year == "2017")
-        return (OMEGA_UTC * (time_p - T0_2017) + PHASE)/OMEGA_GMST;
+        return (OMEGA_UTC * (time_p - T0_2016) + PHASE)/OMEGA_GMST;
     else if(year == "2016")
         return (OMEGA_UTC * (time_p - T0_2016) + PHASE)/OMEGA_GMST;
     else
@@ -247,6 +248,34 @@ bool Generator::isTriggerPassed(TTree         * tree_p,
 
     return(trig >= 1);
 }
+
+float Generator::getObservableValue(TTree         * tree_p)
+{
+
+    float val = -999;
+    TLorentzVector elec, muon, j1, j2; 
+    elec.SetPtEtaPhiM(tree_p->GetLeaf("pt_elec")->GetValue(0), tree_p->GetLeaf("eta_elec")->GetValue(0), tree_p->GetLeaf("phi_elec")->GetValue(0),0);
+    muon.SetPtEtaPhiM(tree_p->GetLeaf("pt_muon")->GetValue(0), tree_p->GetLeaf("eta_muon")->GetValue(0), tree_p->GetLeaf("phi_muon")->GetValue(0),0);
+    //j1.SetPtEtaPhiM(tree_p->GetLeaf("j1_pt")->GetValue(0),tree_p->GetLeaf("j1_eta")->GetValue(0),tree_p->GetLeaf("j1_phi")->GetValue(0),0);
+    //j2.SetPtEtaPhiM(tree_p->GetLeaf("j2_pt")->GetValue(0),tree_p->GetLeaf("j2_eta")->GetValue(0),tree_p->GetLeaf("j2_phi")->GetValue(0),0);
+
+    if (observable=="m_lblj"){  //mTttbar: demande de connnaitre la masse des jets (ajouter dans les heppy outputs)
+
+    }
+    else if (observable=="pt_ttbar"){
+        double j1_px = tree_p->GetLeaf("j1_pt")->GetValue(0)*TMath::Cos(tree_p->GetLeaf("j1_phi")->GetValue(0));
+	double j2_px = tree_p->GetLeaf("j2_pt")->GetValue(0)*TMath::Cos(tree_p->GetLeaf("j2_phi")->GetValue(0));
+        double j1_py = tree_p->GetLeaf("j1_pt")->GetValue(0)*TMath::Sin(tree_p->GetLeaf("j1_phi")->GetValue(0));
+        double j2_py = tree_p->GetLeaf("j2_pt")->GetValue(0)*TMath::Sin(tree_p->GetLeaf("j2_phi")->GetValue(0));
+        val = sqrt((elec.Px()+muon.Px()+j1_px+j2_px)*(elec.Px()+muon.Px()+j1_px+j2_px)+(elec.Py()+muon.Py()+j1_py+j2_py)*(elec.Py()+muon.Py()+j1_py+j2_py));
+    }
+    else if (observable=="pt_emu"){
+	val = (elec+muon).Pt();
+    }
+    else val = tree_p->GetLeaf(observable.c_str())->GetValue(0);
+
+    return val;
+}				    
 
 void Generator::write(std::string       const& filename,
                       std::vector<TH1F>      & listObject,
@@ -413,13 +442,21 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
                                namelist            const& jecList_p,
                                namelist            const& groupList_p,
                                namelist            const& triggerList_p,
-                               std::vector<std::vector<double>> const& correction_p
+                               std::vector<std::vector<double>> const& correction_p,
+                               bool                clean_p,
+                               bool                isTimed_p
                     )
 {
     TH1F::SetDefaultSumw2(1);
     std::vector<std::vector<TH1F> > list(jecList_p.size());
 
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_jec.root";
+    std::string cleaned="";
+    if(!clean_p) cleaned = "_unclean";
+
+    std::string sinc="";
+    if (!isTimed_p) sinc = "_inclusive";
+
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_jec"+sinc+cleaned+".root";
     
     for(size_t jl = 0; jl < jecList_p.size(); ++jl)
     {
@@ -437,9 +474,10 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
             TH1F* hist      = new TH1F((jecList_p[jl]+sampleList_p[n]).c_str(), (jecList_p[jl]+sampleList_p[n]).c_str(), nBin, minBin, maxBin);
             for(int i = 0; i < tree->GetEntriesFast(); ++i){
                 tree->GetEntry(i);
-                double weight = generateWeight(tree,true);
+                double weight = generateWeight(tree,isTimed_p);
                 if(isTriggerPassed(tree, triggerList_p,true)){
-                        hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+			hist->Fill(getObservableValue(tree), weight);
+                        //hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
                 }
                 if(i % 100000 == 0)
                     std::cout << "100 000 events passed" << std::endl;
@@ -452,7 +490,7 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
             delete tree;
             delete file;
         }
-        groupingMC(list[jl], groupList_p, jecList_p[jl], true);
+        groupingMC(list[jl], groupList_p, jecList_p[jl], clean_p);
     }
     write(filename_p, list, "RECREATE");
 }
@@ -461,13 +499,21 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
 void Generator::generateAltMC(namelist            const& sampleList_p,
                            namelist            const& groupList_p,
                     namelist            const& triggerList_p,
-                    std::vector<double> const& correction_p
+                    std::vector<double> const& correction_p,
+                    bool                       clean_p,
+                    bool                       isTimed_p
                     )
 {
     TH1F::SetDefaultSumw2(1);
     std::vector<TH1F> list;
 
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_alt.root";
+    std::string cleaned="";
+    if(!clean_p) cleaned = "_unclean";
+
+    std::string sinc="";
+    if (!isTimed_p) sinc = "_inclusive";
+
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_alt"+sinc+cleaned+".root";
     
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
@@ -483,10 +529,11 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
         std::cout << "sdlfksldfsldf" <<filename.c_str() << std::endl;
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
-            double weight = generateWeight(tree,true);
+            double weight = generateWeight(tree,isTimed_p);
             //if(sampleList_p[n].find("alt") == std::string::npos){
                 if(isTriggerPassed(tree, triggerList_p,true)){
-                    hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+                    hist->Fill(getObservableValue(tree), weight);
+                    //hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
                 }
             //}
             //else{
@@ -505,7 +552,7 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
         delete tree;
         delete file;
     }
-    groupingMC(list, groupList_p, true);
+    groupingMC(list, groupList_p, clean_p);
 
     for (unsigned int i=0; i<list.size(); i++){
       std::cout << list.at(i).GetName() << std::endl;
@@ -526,9 +573,11 @@ void Generator::generateMC(namelist            const& sampleList_p,
                            namelist            const& groupList_p,
                            namelist            const& systematicsList_p,
                            namelist            const& systematicsTimeList_p,
+			   std::vector<double>    const& numberofevents_p,
                            std::vector<double> const& correction_p,
                            std::string         const& option_p,
-                           bool                       clean_p
+                           bool                       clean_p,
+                           bool                       isTimed_p
                           )
 {
     TH1F::SetDefaultSumw2(1);
@@ -538,14 +587,19 @@ void Generator::generateMC(namelist            const& sampleList_p,
     std::vector<TH1F> listTimeUp;    
     std::vector<TH1F> listTimeDown;
 
-    std::string cleaned;
+    std::string cleaned="";
     if(!clean_p) cleaned = "_unclean";
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+cleaned+".root";
-    std::string filenameTime_p = "./results/"+year+"/flattree/"+observable+"_timed"+cleaned+".root";
 
-    std::vector<double> timeSystWeightUp(systematicsTimeList_p.size(), 0);
-    std::vector<double> timeSystWeightDown(systematicsTimeList_p.size(), 0);
-    generateTimeSystematics(timeSystWeightUp, timeSystWeightDown);
+    std::string sinc=""; 
+    if (!isTimed_p) sinc = "_inclusive";
+
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+sinc+cleaned+".root";
+    //std::string filenameTime_p = "./results/"+year+"/flattree/"+observable+"_timed"+cleaned+".root";
+
+    //std::vector<double> timeSystWeightUp(systematicsTimeList_p.size(), 0);
+    //std::vector<double> timeSystWeightDown(systematicsTimeList_p.size(), 0);
+    //generateTimeSystematics(timeSystWeightUp, timeSystWeightDown);
+
     for(size_t n = 0; n < sampleList_p.size(); ++n){
     
         std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/NtupleProducer/tree.root";
@@ -554,43 +608,62 @@ void Generator::generateMC(namelist            const& sampleList_p,
         file->GetObject("events", tree);
         TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
         TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
+        TH1F* hist_events      = new TH1F((sampleList_p[n] + "_events").c_str(), observable.c_str(), nBin, minBin, maxBin);
         std::vector<TH1F*> histUp(systematicsList_p.size());
         std::vector<TH1F*> histDown(systematicsList_p.size());
-        std::vector<TH1F*> histUpTime(systematicsList_p.size());
-        std::vector<TH1F*> histDownTime(systematicsList_p.size());
+        //std::vector<TH1F*> histUpTime(systematicsList_p.size());
+        //std::vector<TH1F*> histDownTime(systematicsList_p.size());
         for(size_t i = 0; i < systematicsList_p.size(); ++i){
             histUp[i]   = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+"Up").c_str(), (observable+"Up").c_str(), nBin, minBin, maxBin);
             histDown[i] = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+"Down").c_str(), (observable+"Down").c_str(), nBin, minBin, maxBin);
         }
-        for(size_t i = 0; i < systematicsTimeList_p.size(); ++i){
-            histUpTime[i]   = new TH1F((sampleList_p[n]+"_"+systematicsTimeList_p[i]+"Up").c_str(), (observable+"Up").c_str(), nBin, minBin, maxBin);
-            histDownTime[i] = new TH1F((sampleList_p[n]+"_"+systematicsTimeList_p[i]+"Down").c_str(), (observable+"Down").c_str(), nBin, minBin, maxBin);
-        }
+        //for(size_t i = 0; i < systematicsTimeList_p.size(); ++i){
+        //    histUpTime[i]   = new TH1F((sampleList_p[n]+"_"+systematicsTimeList_p[i]+"Up").c_str(), (observable+"Up").c_str(), nBin, minBin, maxBin);
+        //    histDownTime[i] = new TH1F((sampleList_p[n]+"_"+systematicsTimeList_p[i]+"Down").c_str(), (observable+"Down").c_str(), nBin, minBin, maxBin);
+        //}
 
         std::cout << " -> " << sampleList_p[n] << "  " << correction_p[n] << std::endl;
 
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
-            double weight = generateWeight(tree,true);
+            double weight = generateWeight(tree,isTimed_p);
             if(isTriggerPassed(tree, triggerList_p,true)){
-                hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+                hist_events->Fill(getObservableValue(tree));
+		//hist_events->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
+		hist->Fill(getObservableValue(tree), weight);
+                //hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
                 for(size_t j = 0; j < systematicsList_p.size(); ++j){
                     double systUp = generateSystematics(tree, systematicsList_p[j], true);
                     double systDown = generateSystematics(tree, systematicsList_p[j], false);
-                    histUp[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systUp);
-                    histDown[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systDown);                        
+                    histUp[j]->Fill(getObservableValue(tree), weight*systUp);
+                    histDown[j]->Fill(getObservableValue(tree), weight*systDown);
+                    //histUp[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systUp);
+                    //histDown[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systDown);                        
                 }
-                for(size_t j = 0; j < systematicsTimeList_p.size(); ++j){
-                    double systUp = timeSystWeightUp[j];
-                    double systDown = timeSystWeightDown[j];
-                    histUpTime[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systUp);
-                    histDownTime[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systDown);                        
-                }
+                //for(size_t j = 0; j < systematicsTimeList_p.size(); ++j){
+                //    double systUp = timeSystWeightUp[j];
+                //    double systDown = timeSystWeightDown[j];
+                //    histUpTime[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systUp);
+                //    histDownTime[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systDown);                        
+                //}
             }
             if(i % 100000 == 0)
                 std::cout << "100 000 events passed" << std::endl;
         }
         hist->Scale(correction_p[n]);
+
+        bool doRecomputeUncert = false;
+
+	double bin_uncertainty_weight = 0;
+	double bin_uncertainty_binomial = 0;
+	for (int iobs=1; iobs<=nBin; iobs++){
+	    if (doRecomputeUncert) {
+		bin_uncertainty_weight = (hist->GetBinError(iobs))*(hist->GetBinError(iobs));
+		if (hist_events->GetBinContent(iobs)>0) bin_uncertainty_binomial = hist->GetBinContent(iobs)/((double)hist_events->GetBinContent(iobs)) * sqrt(((double)hist_events->GetBinContent(iobs)) * (1 - ((double)hist_events->GetBinContent(iobs))/((double)numberofevents_p[n])));
+		hist->SetBinError(iobs, sqrt(bin_uncertainty_weight*bin_uncertainty_weight+bin_uncertainty_binomial*bin_uncertainty_binomial));
+	    }
+	}
+
         list.push_back(*hist);
         for(size_t i = 0; i < systematicsList_p.size(); ++i){
             histUp[i]->Scale(correction_p[n]);
@@ -598,20 +671,20 @@ void Generator::generateMC(namelist            const& sampleList_p,
             listUp.push_back(*histUp[i]);
             listDown.push_back(*histDown[i]);
         }
-        for(size_t i = 0; i < systematicsTimeList_p.size(); ++i){
-            histUpTime[i]->Scale(correction_p[n]);
-            histDownTime[i]->Scale(correction_p[n]);
-            listTimeUp.push_back(*histUpTime[i]);
-            listTimeDown.push_back(*histDownTime[i]);
-        }
+        //for(size_t i = 0; i < systematicsTimeList_p.size(); ++i){
+            //histUpTime[i]->Scale(correction_p[n]);
+            //histDownTime[i]->Scale(correction_p[n]);
+            //listTimeUp.push_back(*histUpTime[i]);
+            //listTimeDown.push_back(*histDownTime[i]);
+        //}
 
 
         delete hist;
         for(size_t i = 0; i < systematicsList_p.size(); ++i){
             delete histUp[i];
             delete histDown[i];
-            delete histUpTime[i];
-            delete histDownTime[i];
+            //delete histUpTime[i];
+            //delete histDownTime[i];
         }
         delete canvas;
         delete tree;
@@ -620,13 +693,13 @@ void Generator::generateMC(namelist            const& sampleList_p,
     groupingMC(list, groupList_p, clean_p);
     groupingSystematics(listUp, groupList_p, systematicsList_p, true, clean_p);    // isUp = true
     groupingSystematics(listDown, groupList_p, systematicsList_p, false, clean_p); // isUp = false
-    groupingSystematics(listTimeUp, groupList_p, systematicsTimeList_p, true, clean_p);    // isUp = true
-    groupingSystematics(listTimeDown, groupList_p, systematicsTimeList_p, false, clean_p); // isUp = false
+    //groupingSystematics(listTimeUp, groupList_p, systematicsTimeList_p, true, clean_p);    // isUp = true
+    //groupingSystematics(listTimeDown, groupList_p, systematicsTimeList_p, false, clean_p); // isUp = false
     write(filename_p, list, option_p);
     write(filename_p, listUp, "UPDATE");
     write(filename_p, listDown, "UPDATE");
-    write(filenameTime_p, listTimeUp, "RECREATE");
-    write(filenameTime_p, listTimeDown, "UPDATE");
+    //write(filenameTime_p, listTimeUp, "RECREATE");
+    //write(filenameTime_p, listTimeDown, "UPDATE");
 }
 
 
@@ -660,7 +733,8 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
             tree->GetEntry(i);
             double weight = generateWeight(tree, false);
             if(isTriggerPassed(tree, triggerList_p,true)){
-                hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+                hist->Fill(getObservableValue(tree), weight);
+                //hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
             }
             if(i % 100000 == 0)
                 std::cout << "100 000 events passed" << std::endl;
@@ -755,7 +829,8 @@ void Generator::generateData(namelist            const& sampleList_p,
             if (correctedLumi) luminosityWeight = (1./tree->GetLeaf("lumi")->GetValue(0)) / lumiavg_oneoverweight;
 	    else luminosityWeight = 1;
 	    avg_luminosityWeight += luminosityWeight;
-	    hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
+            hist->Fill(getObservableValue(tree),luminosityWeight);
+	    //hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
 	    nPassingEventsCheck++;
 	}
 	std::cout << "nPassingEventsCheck="<<nPassingEventsCheck<<" avg_luminosityWeight="<<avg_luminosityWeight/((double)nPassingEventsCheck)<< std::endl;
@@ -855,7 +930,8 @@ void Generator::generateDataTimed(namelist            const& sampleList_p,
             if (correctedLumi) luminosityWeight = (1./tree->GetLeaf("lumi")->GetValue(0)) / lumiavg_oneoverweight;
             else luminosityWeight = 1;
             avg_luminosityWeight += luminosityWeight;
-            hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
+            hist[whichBin]->Fill(getObservableValue(tree),luminosityWeight);
+            //hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0),luminosityWeight);
             nPassingEventsCheck++;
         }
         std::cout << "nPassingEventsCheck="<<nPassingEventsCheck<<" avg_luminosityWeight="<<avg_luminosityWeight/((double)nPassingEventsCheck)<< std::endl;
