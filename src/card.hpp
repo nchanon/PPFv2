@@ -49,12 +49,15 @@ class Card
                                      namelist    const& groupList_p,
                                      std::string const& process_p,
                                      bool isSME,
-				     std::string const& value_p="1");
+				     std::string const& value_p="1",
+	                             std::string const& process2_p=""
+				);
 
         void addSystToCard(std::string const& systName_p,
                            std::string const& shape_p,
                            namelist    const& groupList_p,
-                           std::string const& value_p = "1"
+                           std::string const& value_p = "1",
+                           std::string exludeProcess=""
                           );
 
         void addRateToCard(namelist    const& groupList_p,

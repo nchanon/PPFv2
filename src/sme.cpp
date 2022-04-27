@@ -14,7 +14,7 @@
 SME::SME()
 {}
 
-SME::SME(Wilson wilson_p)
+SME::SME(Wilson wilson_p, std::string observable)
     : wilson(wilson_p)
 {
     if(wilson != Wilson::L and wilson != Wilson::R and 
@@ -23,7 +23,7 @@ SME::SME(Wilson wilson_p)
         exit(0);
     }
 
-    std::vector<double> matrix = generateMatrix(wilson);
+    std::vector<double> matrix = generateMatrix(wilson, observable);
     Axx = matrix[0];
     Azz = matrix[10];
 }
@@ -44,7 +44,7 @@ SME &SME::operator=(SME const& other)
 }
 
 
-SME::SME(Wilson wilson_p, int bin)
+SME::SME(Wilson wilson_p, int bin, std::string observable)
 {
 
     wilson = wilson_p;
@@ -55,7 +55,7 @@ SME::SME(Wilson wilson_p, int bin)
         exit(0);
     }
 
-    std::vector<double> matrix = generateMatrixPerMassBin(wilson, bin);
+    std::vector<double> matrix = generateMatrixPerMassBin(wilson, bin, observable);
     Axx = matrix[0];
     Azz = matrix[10];
 }
@@ -92,7 +92,7 @@ double SME::a5() const
     return cos(LATITUDE)*cos(AZIMUT)*sin(AZIMUT)*(Azz-Axx);
 }
 
-std::vector<double> SME::generateMatrix(Wilson wilson_p) const
+std::vector<double> SME::generateMatrix(Wilson wilson_p, std::string observable) const
 {
 
     std::string cutName = "13TeVCMSnanoGEN";
@@ -100,9 +100,9 @@ std::vector<double> SME::generateMatrix(Wilson wilson_p) const
     //std::string cutName = "13TeVCMSnew";
     //std::string suffix = "_inc";
 
-    std::string File_qqbar = "./inputs/pheno/" + cutName + "Pqqbar" + suffix + ".txt";
-    std::string File_gg = "./inputs/pheno/" + cutName + "P2g" + suffix + ".txt";
-    std::string File_F = "./inputs/pheno/" + cutName + "F" + suffix + ".txt";
+    std::string File_qqbar = "./inputs/pheno/" + observable + "_" + cutName + "Pqqbar" + suffix + ".txt";
+    std::string File_gg = "./inputs/pheno/" + observable + "_" + cutName + "P2g" + suffix + ".txt";
+    std::string File_F = "./inputs/pheno/" + observable + "_" + cutName + "F" + suffix + ".txt";
 
     double nPqq              = readNumberOfEvents(File_qqbar);
     std::vector<double> mPqq = readElementMatrix(File_qqbar);
@@ -133,7 +133,7 @@ std::vector<double> SME::generateMatrix(Wilson wilson_p) const
     return matrix;
 }
 
-std::vector<double> SME::generateMatrixPerMassBin(Wilson wilson_p, int bin) const
+std::vector<double> SME::generateMatrixPerMassBin(Wilson wilson_p, int bin, std::string observable) const
 {
    
     std::string cutName = "13TeVCMSnanoGEN";
@@ -141,10 +141,12 @@ std::vector<double> SME::generateMatrixPerMassBin(Wilson wilson_p, int bin) cons
     //std::string cutName = "13TeVCMSnew";
     //std::string suffix = "_" + std::to_string(bin);
     
-    std::string File_qqbar = "./inputs/pheno/" + cutName + "Pqqbar" + suffix + ".txt";
-    std::string File_gg = "./inputs/pheno/" + cutName + "P2g" + suffix + ".txt";
-    std::string File_F = "./inputs/pheno/" + cutName + "F" + suffix + ".txt";
-    
+    std::string File_qqbar = "./inputs/pheno/" + observable + "_" + cutName + "Pqqbar" + suffix + ".txt";
+    std::string File_gg = "./inputs/pheno/" + observable + "_" + cutName + "P2g" + suffix + ".txt";
+    std::string File_F = "./inputs/pheno/" + observable + "_" + cutName + "F" + suffix + ".txt";
+   
+    std::cout  << "File_qqbar "<< File_qqbar<<std::endl;
+ 
     double nPqq              = readNumberOfEvents(File_qqbar);
     std::vector<double> mPqq = readElementMatrix(File_qqbar);
     double nP2g              = readNumberOfEvents(File_gg);

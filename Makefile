@@ -26,9 +26,9 @@
 ######################## Compiler variable definitions #########################
 
 CC     = g++
-CFLAGS = -O3 -Wall -Wextra -Wpedantic 
+CFLAGS = -O3 -march=native -ffast-math -Wall -Wextra -Wpedantic 
 LIBS   = -lm -lstdc++
-
+#-fopt-info-vec-missed
 ######################## Directory variable definitions ########################
 
 Qt_INC_DIRS  =  -I/usr/include/qt4		$\

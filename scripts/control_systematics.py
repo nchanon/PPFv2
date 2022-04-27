@@ -16,8 +16,8 @@ year = args.year
 timed = args.timed
 
 observable = [
-    #['m_dilep', '\"Dilepton mass (GeV)\"'],
-    ['pt_emu', '\"Dilepton p_{T} (GeV)\"'],
+    ['m_dilep', '\"Dilepton mass (GeV)\"'],
+    #['pt_emu', '\"Dilepton p_{T} (GeV)\"'],
     #['n_bjets', '\"b-jets multiplicity\"'],
     #['pt_lead', '\"Leading lepton pt\"']
 ]
@@ -29,15 +29,17 @@ observable = [
 
 
 #large_syst_list = []
-large_syst_list = systematic_list
-large_syst_list.append('Total')
-large_syst_list.append('CP5')
-large_syst_list.append('hdamp')
-large_syst_list.append('erd')
-large_syst_list.append('QCD')
-large_syst_list.append('GluonMove')
-large_syst_list.append('mtop')
+#large_syst_list = systematic_list
+#large_syst_list.append('Total')
+#large_syst_list.append('CP5')
+#large_syst_list.append('hdamp')
+#large_syst_list.append('erd')
+#large_syst_list.append('QCD')
+#large_syst_list.append('GluonMove')
+#large_syst_list.append('mtop')
 
+
+large_syst_list = ['syst_qcdscale', 'syst_pdfas']
 #large_syst_list = ['syst_prefiring']
 #large_syst_list = ['Total']
 #large_syst_list = ['CP5', 'hdamp', 'mtop']

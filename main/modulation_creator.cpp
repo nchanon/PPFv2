@@ -7,7 +7,22 @@
 #include <TH1F.h>
 
 
-int main(){
+int main(int argc, char** argv){
+
+    std::string obs;
+
+    if(argc != 2){
+        Log("Wrong number of arguments !!!");
+        Log(" missing arguments : observable, year and option");
+        return 0;
+    }
+    else{
+         obs = argv[1];
+         //year = argv[2];
+         //launch = argv[3];
+    }
+
+    std::cout << "Observable: "<<obs << std::endl;
 
     //int binage = 86400;
     int binage = 24;
@@ -23,31 +38,33 @@ int main(){
 	if (year[i]=="2017") t0 = 1451606400;
 
         if(binage != 24)
-            output = "./results/"+year[i]+"/flattree/sme"+std::to_string(binage)+".root";
+            output = "./results/"+year[i]+"/flattree/"+obs+"_sme"+std::to_string(binage)+".root";
         else
-            output = "./results/"+year[i]+"/flattree/sme.root";
+            output = "./results/"+year[i]+"/flattree/"+obs+"_sme.root";
 
 
         TFile * file = new TFile(output.c_str(), "RECREATE");
 
         std::vector<SME> sme{
-            SME(Wilson::L),
-            SME(Wilson::R),
-            SME(Wilson::C),
-            SME(Wilson::D)
+            SME(Wilson::L, obs),
+            SME(Wilson::R, obs),
+            SME(Wilson::C, obs),
+            SME(Wilson::D, obs)
         };
         for(size_t j = 0; j < 4; ++j){
+	    //sme[j].observable = obs;
             sme[j].generateModulation(t0, binage);
         }
 
 	for (int m=0; m<8; m++){
 	  std::vector<SME> smePerMassBin{
-              SME(Wilson::L, m),
-              SME(Wilson::R, m),
-              SME(Wilson::C, m),
-              SME(Wilson::D, m)
+              SME(Wilson::L, m, obs),
+              SME(Wilson::R, m, obs),
+              SME(Wilson::C, m, obs),
+              SME(Wilson::D, m, obs)
           };
 	  for(size_t j = 0; j < 4; ++j){
+	    //smePerMassBin[j].observable = obs;
             smePerMassBin[j].generateModulationPerMassBin(t0, binage, m);
           }
 	}

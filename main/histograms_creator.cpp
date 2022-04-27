@@ -102,6 +102,12 @@ int main(int argc, char** argv){
     else if (observable == "pt_ttbar"){
         binning[0] = 7; binning[1] = 0; binning[2] = 420;
     }
+    else if (observable == "m_lblj"){
+        binning[0] = 7; binning[1] = 0; binning[2] = 700;
+    }
+    else if (observable == "m_lb"){
+        binning[0] = 7; binning[1] = 0; binning[2] = 350;
+    }
 
 // ------------------------------------------------------------- //
 
@@ -211,7 +217,8 @@ int main(int argc, char** argv){
                          succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean);
     }
     else if(launch == "sme"){
-        system("./bin/modulation_creator");
+	std::string cmd_sme = "./bin/modulation_creator "+observable;
+        system(cmd_sme.c_str());
     }
     else{
         gen.generateMCforComp(sampleList_MC, triggerList, ttbarList, 
@@ -232,7 +239,9 @@ int main(int argc, char** argv){
                        number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, false);
         gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, false);
         gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, jec_mc_rescale, isIndividualSampleClean, false);
-        system("./bin/modulation_creator");
+        std::string cmd_sme = "./bin/modulation_creator "+observable;
+        system(cmd_sme.c_str());
+
     }
 
 

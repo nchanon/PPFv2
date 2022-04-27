@@ -35,6 +35,10 @@ class Generator{
                                    bool               isUp
                                   );
 
+	void generateLHEweightSystematics(TTree            * tree_p,
+                                          std::string const& systematicName,
+                                          double           * systList);
+
         void generateTimeSystematics(std::vector<double>      & weightsUp,
                                      std::vector<double>      & weightsDown
                                     );
@@ -89,6 +93,12 @@ class Generator{
                                  bool                     clean
                                 );
 
+	void groupingLHEweightSystematics(std::vector<TH1F>      & listLHE,
+                                          std::vector<TH1F>      & list,
+                                    	  namelist          const& groupList_p,
+                                          std::string           syst,
+                                    	  bool                     clean
+                                   	);
         
 
 

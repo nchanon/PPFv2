@@ -45,7 +45,7 @@ cross_section_2016 = {
      #3.697,                # TTX  TTG        
      #3.697,                # TTX  TTG2        
     'MC_wjets_WJets'             :61526.7,              # wjets WJets       
-    #'MC_wjets_WJets2'            :61526.7,              # wjets WJets2      
+     'MC_wjets_WJets2'            :61526.7,              # wjets WJets2      
     'MC_zjets_DY_1050'           :22635.14,              # zjets DY 10-50   
     'MC_zjets_DY_10502'          :22635.14,              # zjets DY 10-50   
     'MC_zjets_DY_10503'          :22635.14,              # zjets DY 10-50       
@@ -82,7 +82,7 @@ cross_sec_2016 = [ # alphabetic order
     #3.697,                # TTX  TTG2        
 
     61526.7,              # wjets WJets       
-    #61526.7,              # wjets WJets2      
+    61526.7,              # wjets WJets2      
     
     22635.14,              # zjets DY 10-50   
     22635.14,              # zjets DY 10-50   
@@ -190,9 +190,9 @@ cross_section_2017 = {
     'MC_signal_semilep'           :366.91429,   
     'MC_singletop_ST_s'           :10.32,    
     'MC_singletop_ST_s2'          :10.32,    
-    'MC_singletop_ST_tW_antitop'  :35.5,     
+    #'MC_singletop_ST_tW_antitop'  :35.5,     
     'MC_singletop_ST_tW_antitop2' :35.5,     
-    'MC_singletop_ST_tW_top'      :35.5,     
+    #'MC_singletop_ST_tW_top'      :35.5,     
     'MC_singletop_ST_tW_top2'     :35.5,     
     'MC_singletop_ST_t_antitop'   :80.95,    
     'MC_singletop_ST_t_top'       :136.02,   
@@ -221,9 +221,9 @@ cross_sec_2017 = [
 
     10.32,    # singletop STs
     10.32,    # singletop STs2
-    35.85,     # singletop tW antitop
+    #35.85,     # singletop tW antitop
     35.85,     # singletop tw2 antitop
-    35.85,     # singletop tW  top
+    #35.85,     # singletop tW  top
     35.85,     # singletop tW2 top
     80.95,    # singletop STt antitop
     136.02,   # singletop STt top
@@ -405,12 +405,20 @@ systematic_list = [
     'syst_muon_id',
     'syst_muon_iso',
     'syst_pu',
-    'syst_b',
+    #'syst_b',
+    'syst_b_correlated',
+    'syst_b_uncorrelated',
     # 'syst_c',
     #'syst_l',
+    'syst_l_correlated',
+    'syst_l_uncorrelated',
     'syst_pt_top',
     'syst_prefiring',
-    'syst_em_trig'
+    'syst_em_trig',
+    'syst_ps_isr',
+    'syst_ps_fsr',
+    'syst_qcdscale',
+    'syst_pdfas'
 ]
 
 alt_syst_list = [

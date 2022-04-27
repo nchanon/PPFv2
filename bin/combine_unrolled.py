@@ -168,7 +168,7 @@ for l in systematic_time_list:
 ###########
 
 cmunu = 0.001
-sme_file = TFile('./results/'+year+'/flattree/sme.root')
+sme_file = TFile('./results/'+year+'/flattree/'+observable+'_sme.root')
 sme_sig = sme_file.Get(wilson)
 
 sme_sig_massbin = []

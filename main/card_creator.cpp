@@ -58,6 +58,8 @@ int main(int argc, char** argv){
     if (process == "Inclusive") sinc = "_inclusive";
 
     string f_nom_name = "./results/" + year + "/flattree/" + observable + sinc + ".root";
+    std::cout << "Histogram file: "<<f_nom_name<<std::endl;
+
     TFile* f_nom = new TFile(f_nom_name.c_str(), "READ");
     string f_colorreco_name = "./results/" + year + "/flattree/" + observable + "_color_reco"+sinc+".root";
     TFile* f_colorreco = new TFile(f_colorreco_name.c_str(), "READ");
@@ -94,6 +96,9 @@ int main(int argc, char** argv){
 
     if(process == "OneBin"){
 
+	bool doExpTimeNuisance = true;
+	string timebin="";
+
         std::vector<double> numberOfEvents;
         double number = 0;
         std::ifstream f("./combine/"+year+"/"+observable+"_noe_data_timed.txt");
@@ -105,6 +110,10 @@ int main(int argc, char** argv){
         for(int i = 0; i < nBin; ++i){
             Card datacard;
             std::string name = observable+"_"+std::to_string(nBin)+"_"+std::to_string(i);
+
+            if (doExpTimeNuisance){
+		timebin = "_t" + std::to_string(i);
+            }   
 
             datacard.addGlobalParameter(ttbarList);
             datacard.addSeparator();
@@ -119,10 +128,29 @@ int main(int argc, char** argv){
             for(std::string const& syst : systematicList){
                 if(syst == "syst_pt_top")
                     datacard.addProcSystToCard(syst, "shape", ttbarList, "signal",false);
+                else if (syst == "syst_em_trig") continue;
+		else if (syst == "syst_b_uncorrelated" || syst == "syst_l_uncorrelated")
+		    datacard.addSystToCard(syst + "_" + year + timebin, "shape", ttbarList);
+		else if (syst == "syst_qcdscale"){
+		    datacard.addProcSystToCard(syst + "_signal", "shape", ttbarList, "signal",false);
+		    datacard.addProcSystToCard(syst + "_singletop", "shape", ttbarList, "singletop",false);
+                    datacard.addProcSystToCard(syst + "_ttx", "shape", ttbarList, "ttx",false);
+                    datacard.addProcSystToCard(syst + "_vjets", "shape", ttbarList, "vjets",false);
+		}
+                else if (syst == "syst_pdfas"){
+		    datacard.addSystToCard("syst_pdfas", "shape", ttbarList, "1", "dibosons");
+                }
+		else if (syst == "syst_ps_isr"){
+		     datacard.addProcSystToCard(syst + "_signal", "shape", ttbarList, "signal",false);
+                     datacard.addProcSystToCard(syst + "_singletop", "shape", ttbarList, "singletop",false);
+		}
+		else if (syst == "syst_ps_fsr"){
+		     datacard.addProcSystToCard(syst, "shape", ttbarList, "signal", false, "1", "singletop");
+		}
                 else if(syst == debug_syst)
                     continue;
                 else
-                    datacard.addSystToCard(syst, "shape", ttbarList);
+                    datacard.addSystToCard(syst + timebin, "shape", ttbarList);
             }
             datacard.addSystToCard("lumi_flat_uncor_"+year, "lnN", ttbarList, lumi_flat_uncorr[iyear]);
             datacard.addSystToCard("lumi_flat_cor", "lnN", ttbarList, lumi_flat_corr[iyear]);
@@ -131,6 +159,8 @@ int main(int argc, char** argv){
             datacard.addProcSystToCard("erdOn", "lnN", ttbarList, "signal", false, alt_erdOn[iyear]);
             datacard.addProcSystToCard("GluonMove", "lnN", ttbarList, "signal", false, alt_GluonMove[iyear]);
             datacard.addProcSystToCard("QCDinspired", "lnN", ttbarList, "signal", false, alt_QCDinspired[iyear]);
+	    datacard.addProcSystToCard("mtop", "shape", ttbarList, "signal",false);
+	    datacard.addSystToCard("jec" + timebin, "shape", ttbarList);
 
             for(std::string const& syst : systematicTimeList){
                 if (syst == "lumi_flat") continue;
@@ -138,14 +168,7 @@ int main(int argc, char** argv){
                 else datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
             }
 
-            //datacard.addSystToCard("lumi", "lnN", groupList_p, "1.023");
-            //for(std::string const& syst : systematicTimeList){
-            //    if(syst == debug_syst)
-            //        continue;
-            //    else
-            //        datacard.addSystToCard(syst, "shape", ttbarList);
-            //}
-            datacard.addSystToCard_alternative(false);
+            //datacard.addSystToCard_alternative(false);
             datacard.addSeparator();
             datacard.addLine("* autoMCStats 0");
 
@@ -158,9 +181,12 @@ int main(int argc, char** argv){
     }
     else if(process == "Inclusive"){
 
-        double numberOfEvents;
-        std::ifstream f("./combine/"+year+"/"+observable+"_noe_data.txt");
-        f >> numberOfEvents;
+        string f_data_name = "./results/" + year + "/flattree/" + observable + "_data.root";
+        TFile* f_data = new TFile(f_data_name.c_str(), "READ");
+	TH1F* h_data = (TH1F*) f_data->Get("data_obs");
+        double numberOfEvents = h_data->Integral();
+        //std::ifstream f("./combine/"+year+"/"+observable+"_noe_data.txt");
+        //f >> numberOfEvents;
         std::cout << "Number of events in data : " << numberOfEvents << std::endl;
 
         Card datacard;
@@ -181,6 +207,24 @@ int main(int argc, char** argv){
                 datacard.addProcSystToCard(syst, "shape", ttbarList, "signal",false);
             else if (syst == "syst_em_trig")
                 datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
+            else if (syst == "syst_b_uncorrelated" || syst == "syst_l_uncorrelated")
+                datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
+            else if (syst == "syst_qcdscale"){
+                datacard.addProcSystToCard(syst + "_signal", "shape", ttbarList, "signal",false);
+                datacard.addProcSystToCard(syst + "_singletop", "shape", ttbarList, "singletop",false);
+                datacard.addProcSystToCard(syst + "_ttx", "shape", ttbarList, "ttx",false);
+                datacard.addProcSystToCard(syst + "_vjets", "shape", ttbarList, "vjets",false);
+            }
+            else if (syst == "syst_pdfas"){
+                datacard.addSystToCard("syst_pdfas", "shape", ttbarList, "1", "dibosons");
+            }
+            else if (syst == "syst_ps_isr"){
+                datacard.addProcSystToCard(syst + "_signal", "shape", ttbarList, "signal",false);
+                datacard.addProcSystToCard(syst + "_singletop", "shape", ttbarList, "singletop",false);
+            }
+            else if (syst == "syst_ps_fsr"){
+                datacard.addProcSystToCard(syst, "shape", ttbarList, "signal", false, "1", "singletop");
+            }
             else
                 datacard.addSystToCard(syst, "shape", ttbarList);
         }
@@ -192,17 +236,15 @@ int main(int argc, char** argv){
         datacard.addProcSystToCard("erdOn", "lnN", ttbarList, "signal", false, alt_erdOn[iyear]);
         datacard.addProcSystToCard("GluonMove", "lnN", ttbarList, "signal", false, alt_GluonMove[iyear]);
         datacard.addProcSystToCard("QCDinspired", "lnN", ttbarList, "signal", false, alt_QCDinspired[iyear]);
+        datacard.addProcSystToCard("mtop", "shape", ttbarList, "signal",false);
+        datacard.addSystToCard("jec", "shape", ttbarList);
 
-        //for(std::string const& syst : systematicTimeList){
-        //    if (syst == "lumi_flat") continue;
-        //    if (syst != "emu_trig" && syst != "lumi_stability" && syst != "lumi_linearity") datacard.addSystToCard(syst, "shape", ttbarList);
-        //    else datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
-        //}
-        datacard.addSystToCard_alternative(false);
+        //datacard.addSystToCard_alternative(false);
         datacard.addSeparator();
         datacard.addLine("* autoMCStats 0");
 
         datacard.saveCard("./combine/"+year+"/inclusive/inputs/"+name+"_datacard.txt");
+	datacard.printCard();
 
     }
     else if(process == "Unrolled"){
@@ -274,6 +316,24 @@ int main(int argc, char** argv){
             if(syst == "syst_pt_top")
                 datacard.addProcSystToCard(syst, "shape", ttbarList, "signal",true);
             else if (syst == "syst_em_trig") continue;
+            else if (syst == "syst_b_uncorrelated" || syst == "syst_l_uncorrelated")
+                datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
+            else if (syst == "syst_qcdscale"){
+                datacard.addProcSystToCard(syst + "_signal", "shape", ttbarList, "signal",true);
+                datacard.addProcSystToCard(syst + "_singletop", "shape", ttbarList, "singletop",false);
+                datacard.addProcSystToCard(syst + "_ttx", "shape", ttbarList, "ttx",false);
+                datacard.addProcSystToCard(syst + "_vjets", "shape", ttbarList, "vjets",false);
+            }
+            else if (syst == "syst_pdfas"){
+                datacard.addSystToCard("syst_pdfas", "shape", ttbarList, "1", "dibosons");
+            }
+            else if (syst == "syst_ps_isr"){
+                datacard.addProcSystToCard(syst + "_signal", "shape", ttbarList, "signal",true);
+                datacard.addProcSystToCard(syst + "_singletop", "shape", ttbarList, "singletop",false);
+            }
+            else if (syst == "syst_ps_fsr"){
+                datacard.addProcSystToCard(syst, "shape", ttbarList, "signal", false, "1", "singletop");
+            }
             else
                 datacard.addSystToCard(syst, "shape", ttbarList);
         }
@@ -285,13 +345,15 @@ int main(int argc, char** argv){
         datacard.addProcSystToCard("erdOn", "lnN", ttbarList, "signal", true, alt_erdOn[iyear]);
         datacard.addProcSystToCard("GluonMove", "lnN", ttbarList, "signal", true, alt_GluonMove[iyear]);
         datacard.addProcSystToCard("QCDinspired", "lnN", ttbarList, "signal", true, alt_QCDinspired[iyear]);
+        datacard.addProcSystToCard("mtop", "shape", ttbarList, "signal",true);
+        datacard.addSystToCard("jec", "shape", ttbarList);
 
         for(std::string const& syst : systematicTimeList){
             if (syst == "lumi_flat") continue;
 	    if (syst != "emu_trig" && syst != "lumi_stability" && syst != "lumi_linearity") datacard.addSystToCard(syst, "shape", ttbarList);
 	    else datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
 	}
-        datacard.addSystToCard_alternative(true);
+        //datacard.addSystToCard_alternative(true);
         datacard.addSeparator();
         datacard.addLine("* autoMCStats 0");
 

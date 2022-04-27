@@ -49,23 +49,68 @@ for l in data_file.GetListOfKeys():
     hist = data_file.Get(l.GetName())
     histograms.append(hist)
 
+h_nom = []
+
 mc_file = TFile('./results/'+year+'/flattree/'+observable+'_inclusive.root')
 for l in mc_file.GetListOfKeys():
     hist = mc_file.Get(l.GetName())
-    hname = hist.GetName()
-    newname = hname
-    if (hname.find("syst_em_trigUp")!=-1):
-	newname = hname[:-2] + '_'+year+'Up'
-    if (hname.find("syst_em_trigDown")!=-1):
-        newname = hname[:-4] + '_'+year+'Down'
-    hist.SetName(newname)
-    hist.SetTitle(newname) 
+    #hname = hist.GetName()
+    #newname = hname
+    #if (hname.find("syst_em_trigUp")!=-1):
+    #	newname = hname[:-2] + '_'+year+'Up'
+    #if (hname.find("syst_em_trigDown")!=-1):
+    #    newname = hname[:-4] + '_'+year+'Down'
+    #hist.SetName(newname)
+    #hist.SetTitle(newname) 
     histograms.append(hist)
+    for proc in ttbar_list:
+        if l.GetName()==proc:
+            h_nom.append(mc_file.Get(l.GetName()))
+
+
+    if TString(l.GetName()).Contains('syst_em_trig') or TString(l.GetName()).Contains('syst_b_uncorrelated') or TString(l.GetName()).Contains('syst_l_uncorrelated'):
+        curname = histograms[-1].GetName()
+        found = curname.find('Up')
+        if (found==-1):
+            found = curname.find('Down')
+        newname = curname[:found] + '_' + year + curname[found:]
+        histograms[-1].SetName(newname)
+
+    if TString(l.GetName()).Contains('syst_qcdscale') or TString(l.GetName()).Contains('syst_ps_isr'):
+        curname = histograms[-1].GetName()
+        found = curname.find('Up')
+        if (found==-1):
+            found = curname.find('Down')
+        for h in h_nom:
+            proc = h.GetName()
+            if TString(curname).Contains(proc):
+                newname = curname[:found] + '_' + proc + curname[found:]
+                histograms[-1].SetName(newname)
+
+    if TString(l.GetName()).Contains('syst_qcdscale') or TString(l.GetName()).Contains('syst_ps_isr') or TString(l.GetName()).Contains('syst_ps_fsr') or TString(l.GetName()).Contains('syst_pdfas') or TString(l.GetName()).Contains('syst_pt_top') or TString(l.GetName()).Contains('mtop'):
+        curname = histograms[-1].GetName()
+        for h in h_nom:
+            proc = h.GetName()
+            if TString(curname).Contains(proc):
+                area = histograms[-1].Integral()
+                histograms[-1].Scale(h.Integral()/area)
+
+
+
 
 mc_alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco_inclusive.root')
 for l in mc_alt_file.GetListOfKeys():
     hist = mc_alt_file.Get(l.GetName())
     histograms.append(hist)
+
+    if TString(l.GetName()).Contains('mtop'):
+        curname = histograms[-1].GetName()
+        for h in h_nom:
+            proc = h.GetName()
+            if TString(curname).Contains(proc):
+                area = histograms[-1].Integral()
+                histograms[-1].Scale(h.Integral()/area)
+
 
 mc_jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec_inclusive.root')
 for l in mc_jec_file.GetListOfKeys():

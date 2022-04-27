@@ -3,9 +3,9 @@
 
 #include <fstream>
 
-unsigned int block_proc = 30;
-unsigned int block_syst = 24;
-unsigned int block_grp  = 15;
+unsigned int block_proc = 36; //30;
+unsigned int block_syst = 30; //24;
+unsigned int block_grp  = 21; //15;
 
 /////////////////////////////////
 // Constructor
@@ -128,24 +128,26 @@ void Card::addProcSystToCard(std::string const& systName_p,
                              namelist    const& groupList_p,
                              std::string const& process_p,
 			     bool isSME,
-                             std::string const& value_p
+                             std::string const& value_p,
+			     std::string const& process2_p
                              )
 {
 
-    std::cout << "addProcSystToCard "<<systName_p<<" "<<shape_p<<" "<<process_p<< " "<<value_p<<std::endl;
+    //std::cout << "addProcSystToCard "<<systName_p<<" "<<shape_p<<" "<<process_p<< " "<<value_p<<std::endl;
 
     datacard += completeBlock(systName_p, block_syst) 
             + completeBlock(shape_p, block_proc-block_syst);
+
     for(size_t i = 0; i < groupList_p.size(); ++i)
     {
 	if (!isSME){
-          if(groupList_p[i] == process_p)
+          if(groupList_p[i] == process_p || groupList_p[i] == process2_p)
               datacard += completeBlock(value_p, block_grp);
           else 
               datacard += completeBlock("0", block_grp);
 	}
 	else if (isSME){
-          if(groupList_p[i] == process_p || i==0)
+          if(groupList_p[i] == process_p  || groupList_p[i] == process2_p || i==0)
               datacard += completeBlock(value_p, block_grp);
           else 
               datacard += completeBlock("0", block_grp);
@@ -158,14 +160,22 @@ void Card::addProcSystToCard(std::string const& systName_p,
 void Card::addSystToCard(std::string const& systName_p,
                             std::string const& shape_p,
                             namelist    const& groupList_p,
-                            std::string const& value_p
+                            std::string const& value_p,
+			    std::string exludeProcess
                            )
 {
     datacard += completeBlock(systName_p, block_syst) 
              + completeBlock(shape_p, block_proc-block_syst);
-    for(size_t i = 0; i < groupList_p.size(); ++i)
-        datacard += completeBlock(value_p, block_grp);
+
+    for(size_t i = 0; i < groupList_p.size(); ++i){
+	if (exludeProcess=="" || (exludeProcess!="" && groupList_p[i]!=exludeProcess))
+            datacard += completeBlock(value_p, block_grp);
+	else if (groupList_p[i]==exludeProcess)
+	    datacard += completeBlock("0", block_grp);
+    }
+
     datacard += '\n';
+
 }
 
 void Card::addRateToCard(namelist    const& groupList_p,
