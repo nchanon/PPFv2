@@ -85,13 +85,16 @@ Producing alternative uncertainties histograms (needed for differential/sme meas
 
     > ./bin/histograms_creator m_dilep 2017 alt
 
-Alternative uncertainties need an additional layer:
+Alternative uncertainties need an additional layer (requiring the histograms_creator alt command is already done):
 
-    >  python bin/color_reco.py "observable" "year"
+    >  python bin/color_reco.py m_dilep 2017 timed
 
-example :
+If you want to run the inclusive analysis in one shot:
 
-    >  python bin/color_reco.py m_dilep 2017
+    > ./bin/histograms_creator m_dilep 2017 inclusive
+
+    >  python bin/color_reco.py m_dilep 2017 inclusive
+
 
 # Comparaison Data/Monte-Carlo
 
@@ -209,6 +212,12 @@ Prepare histograms for combine:
 Check systematics:
 
     > python scripts/control_systematics.py 2017
+
+Prepare combine inputs for inclusive measurement and export it to the combine area:
+
+    > python ./bin/combine_inclusive.py m_dilep 2017
+    > ./bin/card_creator m_dilep 2017 Inclusive
+    > python scripts/export_combine.py inclusive 2017
 
 Prepare combine inputs for differential measurement and export it to the combine area:
 
