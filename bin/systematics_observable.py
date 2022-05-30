@@ -59,6 +59,12 @@ canvas.UseCurrentStyle()
 rootfile_input = TFile('./results/'+year+'/flattree/'+observable+stimed+'.root')
 rootfile_input_jec = TFile('./results/'+year+'/flattree/'+observable+'_jec'+stimed+'.root')
 rootfile_input_alt = TFile('./results/'+year+'/flattree/'+observable+'_alt'+stimed+'.root')
+rootfile_input_color_reco = TFile('./results/'+year+'/flattree/'+observable+'_color_reco'+stimed+'.root')
+
+rootfile_input_time = []
+if timed=='timed':
+    for i in range(24):
+        rootfile_input_time.append(TFile('./combine/'+year+'/one_bin/inputs/'+observable+'_24_'+str(i)+'.root'))
 
 ################################################################################
 ## Create Histo 
@@ -86,7 +92,7 @@ hist_mc = []
 hist_mc_up = []
 hist_mc_down = []
 
-print ttbar_list
+#print ttbar_list
 rootfile_input_syst = rootfile_input
 slist = ttbar_list
 
@@ -95,32 +101,34 @@ if (systematic == 'syst_pt_top' or systematic == 'CP5' or systematic == 'hdamp' 
 
 for l in rootfile_input.GetListOfKeys():
     for s in slist:
-        print l.GetName(),s
+        #print l.GetName(),s
         if(l.GetName() == s):
-            print 'Nominal'
+            #print 'Nominal'
             hist_mc.append(rootfile_input.Get(l.GetName()))
             mc_integral_i.append([rootfile_input.Get(l.GetName()).Integral(), l.GetName()])
 
-if (systematic == 'Total'): #Total JEC
+if (systematic == 'Total' or systematic == 'Absolute' or systematic == 'Absolute_'+year or systematic == 'FlavorQCD' or systematic == 'BBEC1' or systematic == 'BBEC1_'+year or systematic=='RelativeBal' or systematic=='RelativeSample_'+year): #Total JEC
     rootfile_input_syst = rootfile_input_jec
     slist = ttbar_list
 
 if (systematic == 'CP5' or systematic == 'hdamp' or systematic == 'mtop' or systematic == 'erd' or systematic == 'QCD' or systematic == 'GluonMove'):
     rootfile_input_syst = rootfile_input_alt
+if systematic == 'mtop':
+    rootfile_input_syst = rootfile_input_color_reco
 
 
 for l in rootfile_input_syst.GetListOfKeys():
     for s in slist: #ttbar_list:
-        print l.GetName(),s
+        #print l.GetName(),s
 #        if(l.GetName() == s):
 #	    print 'Nominal'
 #            hist_mc.append(rootfile_input.Get(l.GetName()))
 #            mc_integral_i.append([rootfile_input.Get(l.GetName()).Integral(), l.GetName()])
-        if(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and TString(l.GetName()).Contains('Up')):
+        if(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and (TString(l.GetName()).Contains('Up') or TString(l.GetName()).Contains('up'))):
 	    print 'Up'
             name = s + '_' + systematic + 'Up'
             hist_mc_up.append(rootfile_input_syst.Get(l.GetName()))
-        elif(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and TString(l.GetName()).Contains('Down')):
+        elif(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and (TString(l.GetName()).Contains('Down') or TString(l.GetName()).Contains('down'))):
 	    print 'Down'
             name = s + '_' + systematic + 'Down'
             hist_mc_down.append(rootfile_input_syst.Get(l.GetName()))
@@ -129,6 +137,33 @@ for l in rootfile_input_syst.GetListOfKeys():
 	    name = s + '_' + systematic + 'Up'
             hist_mc_up.append(rootfile_input_syst.Get(l.GetName()))
 	    hist_mc_down.append(hist_mc[-1].Clone())
+
+if timed=='timed' and (TString(systematic).Contains('emu_trig') or TString(systematic).Contains('lumi_stability') or TString(systematic).Contains('lumi_linearity')):
+    del hist_mc[:]
+    slist = ttbar_list
+    for s in slist:
+	h_time = TH1F(s, s, 24,0,24)
+        h_time_up = TH1F(s + '_' + systematic + 'Up',s + '_' + systematic + 'Up',24,0,24)
+        h_time_down = TH1F(s + '_' + systematic + 'Down',s + '_' + systematic + 'Down',24,0,24)
+        for i in range(24):
+	    for l in rootfile_input_time[i].GetListOfKeys():
+		if l.GetName()==s:
+		    print(str(i)+' Nom')
+		    h_time.SetBinContent(i+1, rootfile_input_time[i].Get(l.GetName()).Integral())
+		if(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and (TString(l.GetName()).Contains('Up'))):
+		    print(str(i)+' Up')
+		    h_time_up.SetBinContent(i+1, rootfile_input_time[i].Get(l.GetName()).Integral())
+                    #name = s + '_' + systematic + 'Up'
+		    #hist_mc_up.append(rootfile_input_time[i].Get(l.GetName()))
+                if(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and (TString(l.GetName()).Contains('Down'))):
+                    print(str(i)+' Down')
+		    h_time_down.SetBinContent(i+1, rootfile_input_time[i].Get(l.GetName()).Integral())
+                    #name = s + '_' + systematic + 'Down'
+                    #hist_mc_down.append(rootfile_input_time[i].Get(l.GetName()))
+        hist_mc.append(h_time)
+	hist_mc_up.append(h_time_up)
+	hist_mc_down.append(h_time_down)
+
 
 print "Selected histos"
 for l in range(len(hist_mc)):
@@ -161,7 +196,10 @@ for index in range(len(hist_mc)):
     style_histo(hist_mc_up[index], 2, 1, 2, 3004, 0)
     style_histo(hist_mc_down[index], 4, 1, 4, 3005, 0)
     style_histo(hist_mc[index], 1, 1, 0, 3001, 1, 20)
-    style_labels_counting(hist_mc[index], 'Uncertainty (in %)', title)
+    if (TString(systematic).Contains('emu_trig') or TString(systematic).Contains('lumi_stability') or TString(systematic).Contains('lumi_linearity')):
+	style_labels_counting(hist_mc[index], 'Uncertainty (in %)', 'sidereal time (h)')
+    else:
+        style_labels_counting(hist_mc[index], 'Uncertainty (in %)', title)
 
 
 if(year=='2016'):
@@ -182,18 +220,25 @@ for h in range(len(hist_mc)):
 	val_err = float(hist_mc[h].GetBinError(i+1))
         hist_mc[h].SetBinContent(i+1,0)
         #hist_mc[h].SetBinError(i+1,hist_mc[h].GetBinError(i+1)/np.sqrt(val))
-	hist_mc[h].SetBinError(i+1,val_err/val*100)
+	if val!=0:
+	    hist_mc[h].SetBinError(i+1,val_err/val*100)
+	elif val==0:
+	     hist_mc[h].SetBinError(i+1,0)
         up   = hist_mc_up[h].GetBinContent(i+1)-val
         down = hist_mc_down[h].GetBinContent(i+1)-val
-
-        if up==0:
-            hist_mc_up[h].SetBinContent(i+1, 0)
-        else:
-            hist_mc_up[h].SetBinContent(i+1, float(up)/val*100)
-        if down==0:
-            hist_mc_down[h].SetBinContent(i+1,0)
-        else:
-            hist_mc_down[h].SetBinContent(i+1, float(down)/val*100)
+	
+	if val!=0:
+            if up==0:
+                hist_mc_up[h].SetBinContent(i+1, 0)
+            else:
+                hist_mc_up[h].SetBinContent(i+1, float(up)/val*100)
+            if down==0:
+                hist_mc_down[h].SetBinContent(i+1,0)
+            else:
+                hist_mc_down[h].SetBinContent(i+1, float(down)/val*100)
+	elif val==0:
+	    hist_mc_up[h].SetBinContent(i+1, 0)
+	    hist_mc_down[h].SetBinContent(i+1,0)
 
     max_nom = hist_mc[h].GetMaximum()
     max_up = hist_mc_up[h].GetMaximum()

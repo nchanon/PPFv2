@@ -45,29 +45,52 @@ int main(int argc, char** argv){
 
         TFile * file = new TFile(output.c_str(), "RECREATE");
 
+	//ttbar production and decay
         std::vector<SME> sme{
-            SME(Wilson::L, obs),
-            SME(Wilson::R, obs),
-            SME(Wilson::C, obs),
-            SME(Wilson::D, obs)
+            SME(Wilson::L, obs, false),
+            SME(Wilson::R, obs, false),
+            SME(Wilson::C, obs, false),
+            SME(Wilson::D, obs, false)
         };
         for(size_t j = 0; j < 4; ++j){
-	    //sme[j].observable = obs;
-            sme[j].generateModulation(t0, binage);
+            sme[j].generateModulation(t0, binage, false);
         }
 
 	for (int m=0; m<8; m++){
 	  std::vector<SME> smePerMassBin{
-              SME(Wilson::L, m, obs),
-              SME(Wilson::R, m, obs),
-              SME(Wilson::C, m, obs),
-              SME(Wilson::D, m, obs)
+              SME(Wilson::L, m, obs, false),
+              SME(Wilson::R, m, obs, false),
+              SME(Wilson::C, m, obs, false),
+              SME(Wilson::D, m, obs, false)
           };
 	  for(size_t j = 0; j < 4; ++j){
-	    //smePerMassBin[j].observable = obs;
-            smePerMassBin[j].generateModulationPerMassBin(t0, binage, m);
+            smePerMassBin[j].generateModulationPerMassBin(t0, binage, m, false);
           }
 	}
+
+	//single top decay
+        std::vector<SME> sme_singletop{
+            SME(Wilson::L, obs, true),
+            SME(Wilson::R, obs, true),
+            SME(Wilson::C, obs, true),
+            SME(Wilson::D, obs, true)
+        };
+        for(size_t j = 0; j < 4; ++j){
+            sme_singletop[j].generateModulation(t0, binage, true);
+        }
+
+        for (int m=0; m<8; m++){
+          std::vector<SME> smePerMassBin_singletop{
+              SME(Wilson::L, m, obs, true),
+              SME(Wilson::R, m, obs, true),
+              SME(Wilson::C, m, obs, true),
+              SME(Wilson::D, m, obs, true)
+          };
+          for(size_t j = 0; j < 4; ++j){
+            smePerMassBin_singletop[j].generateModulationPerMassBin(t0, binage, m, true);
+          }
+        }
+	
 
         file->Close();
         delete file;

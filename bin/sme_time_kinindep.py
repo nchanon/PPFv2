@@ -26,7 +26,7 @@ tdr.setTDRStyle()
 parser = argparse.ArgumentParser()
 parser.add_argument('observable', help='display your observable')
 #parser.add_argument('year', help='year of samples')
-parser.add_argument('wilson', help='wilson coefficent (cLXX, cRXX, ...)', default='cLXX')
+parser.add_argument('wilson', help='wilson coefficent (cL, cR, ...)', default='cL')
 parser.add_argument('singletop', help='year of samples', default='')
 
 args = parser.parse_args()
@@ -64,12 +64,19 @@ if singletop=='singletop':
 cmunu = 0.01
 
 sme_file = TFile('./results/2016/flattree/'+observable+'_sme.root')
-hist = sme_file.Get(prefix+wilson+'_details')
-hist.Scale(cmunu)
 
+hist_XX = sme_file.Get(prefix+wilson+'XX_details')
+hist_XX.Scale(cmunu)
+hist_XY = sme_file.Get(prefix+wilson+'XY_details')
+hist_XY.Scale(cmunu)
+hist_XZ = sme_file.Get(prefix+wilson+'XZ_details')
+hist_XZ.Scale(cmunu)
+hist_YZ = sme_file.Get(prefix+wilson+'YZ_details')
+hist_YZ.Scale(cmunu)
+
+'''
 smassbin = [20,60,100,140,180,220,260]
 sptemubin = [0,35,70,105,140,175,210,245]
-snbjetsbin = [0, 1, 2, 3, 4, 5]
 
 if observable=='m_dilep':
     svar = 'm_{ll}'
@@ -77,9 +84,6 @@ if observable=='m_dilep':
 elif observable=='pt_emu':
     svar = 'p_{T,ll}'
     skinbin = sptemubin
-elif observable=='n_bjets':
-    svar = 'n_{bjets}'
-    skinbin = snbjetsbin
 
 hist_massbin = []
 for i in range(8):
@@ -89,58 +93,78 @@ for i in range(8):
     if (observable=='pt_emu' and i<7):
         hist_massbin.append(sme_file.Get(prefix+wilson+'_details'+str(i)))
         hist_massbin[-1].Scale(cmunu)
-    if (observable=='n_bjets' and i<5):
-        hist_massbin.append(sme_file.Get(prefix+wilson+'_details'+str(i)))
-        hist_massbin[-1].Scale(cmunu)
-
-
-nhist_max = 7
-if (observable=='n_bjets'):
-    nhist_max = 5
-
-
+'''
 ################################################################################
 ## Legend stuff
 ################################################################################
 
+if (wilson=="cL"): 
+    modwilson1 = "c_{L,XX}=-c_{L,YY}=" + str(cmunu)
+    modwilson2 = "c_{L,XY}=c_{L,YX}=" + str(cmunu)
+    modwilson3 = "c_{L,XZ}=c_{L,ZX}=" + str(cmunu)
+    modwilson4 = "c_{L,YZ}=c_{L,ZY}=" + str(cmunu)
+
+if (wilson=="cR"): 
+    modwilson1 = "c_{R,XX}=-c_{R,YY}=" + str(cmunu)
+    modwilson2 = "c_{R,XY}=c_{R,YX}=" + str(cmunu)
+    modwilson3= "c_{R,XZ}=c_{R,ZX}=" + str(cmunu)
+    modwilson4 = "c_{R,YZ}=c_{R,ZY}=" + str(cmunu)
+
+if (wilson=="c"): 
+    modwilson1 = "c_{XX}=-c_{YY}=" + str(cmunu)
+    modwilson2 = "c_{XY}=c_{YX}=" + str(cmunu)
+    modwilson3 = "c_{XZ}=c_{ZX}=" + str(cmunu)
+    modwilson4 = "c_{YZ}=c_{ZY}=" + str(cmunu)
+
+if (wilson=="d"): 
+    modwilson1 = "d_{XX}=-d_{YY}=" + str(cmunu)
+    modwilson2 = "d_{XY}=d_{YX}=" + str(cmunu)
+    modwilson3 = "d_{XZ}=d_{ZX}=" + str(cmunu)
+    modwilson4 = "d_{YZ}=d_{ZY}=" + str(cmunu)
+
 #smassbin = [20,60,100,140,180,220,260]
 #sptemubin = [0,35,70,105,140,175,210,245]
 
-legend = TLegend(0.66,0.64,0.93,0.94)
+legend = TLegend(0.66,0.8,0.93,0.94)
 legend.SetTextSize(0.023)
 
-if (observable!='n_bjets'):
-    legend.AddEntry(hist, 'inclusive ('+svar+'>'+str(skinbin[0])+' GeV)', 'l')
-    for i in range(nhist_max):
-        legend.AddEntry(hist_massbin[i], str(skinbin[i])+'<'+svar+'<'+str(skinbin[i+1])+' GeV', 'l')
-    legend.AddEntry(hist_massbin[6], svar+'>'+str(skinbin[6])+' GeV', 'l')
-if (observable=='n_bjets'):
-    legend.AddEntry(hist, 'inclusive ('+svar+'>='+str(skinbin[0])+')', 'l')
-    for i in range(nhist_max):
-        legend.AddEntry(hist_massbin[i], svar+'='+str(skinbin[i]), 'l')
+legend.AddEntry(hist_XX, modwilson1, 'l')
+legend.AddEntry(hist_XY, modwilson2, 'l')
+legend.AddEntry(hist_XZ, modwilson3, 'l')
+legend.AddEntry(hist_YZ, modwilson4, 'l')
+
+#for i in range(6):
+#    legend.AddEntry(hist_massbin[i], str(skinbin[i])+'<'+svar+'<'+str(skinbin[i+1])+' GeV', 'l')
+#legend.AddEntry(hist_massbin[6], svar+'>'+str(skinbin[6])+' GeV', 'l')
 
 
 ################################################################################
 ## Draw stuff
 ################################################################################
 
-min = hist.GetMinimum()
-max = hist.GetMaximum()
-hist.SetLineColor(1)
-hist.SetLineWidth(2)
-hist.Draw("hist")
+min = hist_XX.GetMinimum()
+max = hist_XX.GetMaximum()
+hist_XX.SetLineColor(1)
+hist_XX.SetLineWidth(2)
+hist_XX.Draw("hist")
+hist_XY.SetLineColor(2)
+hist_XY.SetLineWidth(2)
+hist_XY.Draw("histSAME")
+hist_XZ.SetLineColor(4)
+hist_XZ.SetLineWidth(2)
+hist_XZ.Draw("histSAME")
+hist_YZ.SetLineColor(8)
+hist_YZ.SetLineWidth(2)
+hist_YZ.Draw("histSAME")
 
-
-for i in range(nhist_max):
+'''
+for i in range(7):
     if (hist_massbin[i].GetMinimum() < min): min = hist_massbin[i].GetMinimum()
     if (hist_massbin[i].GetMaximum() > max): max = hist_massbin[i].GetMaximum()
-    if (observable!='n_bjets'):
-	hist_massbin[i].SetLineColor(gStyle.GetColorPalette((i+1)*255/8))
-    else:
-	hist_massbin[i].SetLineColor(gStyle.GetColorPalette((i+1)*255/5))
+    hist_massbin[i].SetLineColor(gStyle.GetColorPalette((i+1)*255/8))
     hist_massbin[i].SetLineWidth(2)
     hist_massbin[i].Draw("histsame")
-
+'''
 legend.Draw("SAME")
 
 ################################################################################
@@ -149,47 +173,25 @@ legend.Draw("SAME")
 
 is_center=True
 
-hist.GetYaxis().SetRangeUser(min*1.2,max*1.2)
-hist.GetYaxis().SetTitle("f(t) = #sigma_{SME} / #sigma_{SM} - 1")
-hist.GetYaxis().SetTitleSize(0.04)
-hist.GetYaxis().SetLabelSize(0.04)
+hist_XX.GetYaxis().SetRangeUser(min*1.2,max*1.2)
+hist_XX.GetYaxis().SetTitle("f(t) = #sigma_{SME} / #sigma_{SM} - 1")
+hist_XX.GetYaxis().SetTitleSize(0.04)
+hist_XX.GetYaxis().SetLabelSize(0.04)
 
-hist.GetXaxis().SetRangeUser(0,24)
-hist.GetXaxis().SetTitle('sidereal time (h)')
-hist.GetXaxis().SetTitleSize(0.04)
-hist.GetXaxis().SetLabelSize(0.04)
+hist_XX.GetXaxis().SetRangeUser(0,24)
+hist_XX.GetXaxis().SetTitle('sidereal time (h)')
+hist_XX.GetXaxis().SetTitleSize(0.04)
+hist_XX.GetXaxis().SetLabelSize(0.04)
 
 if(is_center):
-    hist.GetXaxis().CenterTitle()
-    hist.GetYaxis().CenterTitle()
+    hist_XX.GetXaxis().CenterTitle()
+    hist_XX.GetYaxis().CenterTitle()
 
 tdr.cmsPrel(-1,13.)
 
 latex = TLatex()
 latex.SetTextSize(0.65*gStyle.GetPadTopMargin())
 latex.SetNDC()
-
-if (wilson=="cLXX"): modwilson = "c_{L,XX}=-c_{L,YY}=" + str(cmunu)
-if (wilson=="cLXY"): modwilson = "c_{L,XY}=c_{L,YX}=" + str(cmunu)
-if (wilson=="cLXZ"): modwilson = "c_{L,XZ}=c_{L,ZX}=" + str(cmunu)
-if (wilson=="cLYZ"): modwilson = "c_{L,YZ}=c_{L,ZY}=" + str(cmunu)
-
-if (wilson=="cRXX"): modwilson = "c_{R,XX}=-c_{R,YY}=" + str(cmunu)
-if (wilson=="cRXY"): modwilson = "c_{R,XY}=c_{R,YX}=" + str(cmunu)
-if (wilson=="cRXZ"): modwilson = "c_{R,XZ}=c_{R,ZX}=" + str(cmunu)
-if (wilson=="cRYZ"): modwilson = "c_{R,YZ}=c_{R,ZY}=" + str(cmunu)
-
-if (wilson=="cXX"): modwilson = "c_{XX}=-c_{YY}=" + str(cmunu)
-if (wilson=="cXY"): modwilson = "c_{XY}=c_{YX}=" + str(cmunu)
-if (wilson=="cXZ"): modwilson = "c_{XZ}=c_{ZX}=" + str(cmunu)
-if (wilson=="cYZ"): modwilson = "c_{YZ}=c_{ZY}=" + str(cmunu)
-
-if (wilson=="dXX"): modwilson = "d_{XX}=-d_{YY}=" + str(cmunu)
-if (wilson=="dXY"): modwilson = "d_{XY}=d_{YX}=" + str(cmunu)
-if (wilson=="dXZ"): modwilson = "d_{XZ}=d_{ZX}=" + str(cmunu)
-if (wilson=="dYZ"): modwilson = "d_{YZ}=d_{ZY}=" + str(cmunu)
-
-latex.DrawLatex(0.25,0.9,modwilson)
 
 #if(year=='2016'):
 #    tdr.cmsPrel(35900.,13.)
@@ -200,7 +202,7 @@ latex.DrawLatex(0.25,0.9,modwilson)
 ## Save
 ################################################################################
 
-resultname = './results/2016/other/'+observable+'_sme_time_'+wilson+suffix
+resultname = './results/2016/other/'+observable+'_sme_time_'+wilson+suffix+'_kinindep'
 
 #rootfile_output = TFile(resultname+'.root', "RECREATE")
 #canvas.Write()

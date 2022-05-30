@@ -117,10 +117,11 @@ for l in mc_jec_file.GetListOfKeys():
     hist = mc_jec_file.Get(l.GetName())
     hname = hist.GetName()
     newname = hname
-    if(hname.find('TotalUp')!= -1):
-        newname = hname[:-7]+'jecUp'
-    elif(hname.find('TotalDown')!= -1):
-        newname = hname[:-9]+'jecDown'
+    if TString(hname).Contains('Total') or TString(hname).Contains('Absolute') or TString(hname).Contains('FlavorQCD') or TString(hname).Contains('BBEC1') or TString(hname).Contains('RelativeBal') or TString(hname).Contains('RelativeSample'):
+        if(hname.find('_up')!= -1):
+            newname = hname[:-3]+'_jecUp'
+        elif(hname.find('_down')!= -1):
+            newname = hname[:-5]+'_jecDown'
     hist.SetName(newname)
     hist.SetTitle(newname)
     histograms.append(hist)

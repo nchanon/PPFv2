@@ -50,21 +50,31 @@ def multilisting(cpp_type, name, content):
 ################################################################################
 
 years = [
-    '2016',
+    #'2016',
     '2017'
 ]
 
 for year in years:
 
+    numberofevents_N0 = []
+    effective_N0 = []
+    mc_rescale = []
     numberofevents_N0 = generate_numberofevents(year, sample_MC[year]) 
     effective_N0 = generate_eventN0(year, sample_MC[year])
     mc_rescale   = rescaling(year, effective_N0)
 
-    jec_effective_N0 = []
+    print effective_N0
+    print mc_rescale
+
+    #jec_effective_N0 = []
+    #jec_mc_rescale = []
+    #for l in jec_list:
+    #    jec_effective_N0.append(generate_eventN0(year, sample_MC[year],'JEC'+'/'+l))
+    #    jec_mc_rescale.append(rescaling(year, effective_N0,'JEC'+'/'+l))
+
     jec_mc_rescale = []
     for l in jec_list:
-        jec_effective_N0.append(generate_eventN0(year, sample_MC[year],'JEC'+'/'+l))
-        jec_mc_rescale.append(rescaling(year, effective_N0,'JEC'+'/'+l))
+         jec_mc_rescale.append(mc_rescale)
 
     alt_effective_N0 = generate_eventN0(year, sample_ALT[year],'ALT')
     alt_mc_rescale   = rescaling(year, alt_effective_N0,'ALT')
@@ -78,13 +88,13 @@ for year in years:
     core += '#ifndef COMMON_LIST \n'
     core += '#define COMMON_LIST \n'
     core += listing('namelist', 'ttbarList', ttbar_list)
-    core += listing('namelist', 'jecList', jec_list)
     core += listing('namelist', 'systematicList', systematic_list)
     core += listing('namelist', 'systematicAltList', alt_syst_list)
     core += listing('namelist', 'systematicTimeList', systematic_time_list)
     core += listing('namelist', 'systematicRate', systematic_rate[year])
     core += '#endif \n\n'
     core += listing('namelist', 'triggerList_'+year, triggers[year])
+    core += listing('namelist', 'jecList_'+year, jec_list[year])
     core += listing('namelist', 'sampleList_MC_'+year, sample_MC[year])
     core += listing('namelist', 'sampleList_ALT_'+year, sample_ALT[year])
     core += listing('std::vector<double>', 'number_of_events_'+year, numberofevents_N0)

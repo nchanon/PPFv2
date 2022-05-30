@@ -16,9 +16,9 @@ year = args.year
 timed = args.timed
 
 observable = [
-    ['m_dilep', '\"Dilepton mass (GeV)\"'],
+    #['m_dilep', '\"Dilepton mass (GeV)\"'],
     #['pt_emu', '\"Dilepton p_{T} (GeV)\"'],
-    #['n_bjets', '\"b-jets multiplicity\"'],
+    ['n_bjets', '\"b-jets multiplicity\"'],
     #['pt_lead', '\"Leading lepton pt\"']
 ]
 
@@ -28,18 +28,28 @@ observable = [
 #]
 
 
-#large_syst_list = []
+large_syst_list = []
 #large_syst_list = systematic_list
 #large_syst_list.append('Total')
+#large_syst_list.append('Absolute')
+#large_syst_list.append('Absolute_'+year)
+#large_syst_list.append('FlavorQCD')
+#large_syst_list.append('BBEC1')
+#large_syst_list.append('BBEC1_'+year)
+#large_syst_list.append('RelativeBal')
+#large_syst_list.append('RelativeSample_'+year)
 #large_syst_list.append('CP5')
 #large_syst_list.append('hdamp')
 #large_syst_list.append('erd')
 #large_syst_list.append('QCD')
 #large_syst_list.append('GluonMove')
 #large_syst_list.append('mtop')
+large_syst_list.append('emu_trig_'+year)
+large_syst_list.append('lumi_stability_'+year)
+large_syst_list.append('lumi_linearity_'+year)
 
 
-large_syst_list = ['syst_qcdscale', 'syst_pdfas']
+#large_syst_list = ['syst_qcdscale', 'syst_pdfas']
 #large_syst_list = ['syst_prefiring']
 #large_syst_list = ['Total']
 #large_syst_list = ['CP5', 'hdamp', 'mtop']

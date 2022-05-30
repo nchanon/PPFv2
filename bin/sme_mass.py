@@ -52,7 +52,7 @@ canvas.UseCurrentStyle()
 
 #datafile_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
 rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
-sme_file = TFile('./results/'+year+'/flattree/sme.root')
+sme_file = TFile('./results/'+year+'/flattree/'+observable+'_sme.root')
 
 
 ################################################################################
@@ -103,30 +103,36 @@ sme_inclusive = sme_file.Get(wilson)
 sme_inclusive.Scale(cmunu)
 #binmax_sme_inclusive = sme_inclusive.GetMaximumBin()
 
-sme_massbin = []
-for i in range(8):
-    if (i>0):
-        sme_massbin.append(sme_file.Get(wilson+"_"+str(i)))
-        sme_massbin[-1].Scale(cmunu)
+sme_kinbin = []
+if observable=="m_dilep":
+    for i in range(8):
+        if (i>0):
+            sme_kinbin.append(sme_file.Get(wilson+"_"+str(i)))
+            sme_kinbin[-1].Scale(cmunu)
+if observable=="pt_emu":
+    for i in range(7):
+        sme_kinbin.append(sme_file.Get(wilson+"_"+str(i)))
+        sme_kinbin[-1].Scale(cmunu)
+
 
 hist_sme_inclusive = hist_signal.Clone()
 hist_sme_inclusive.SetName("sme_inclusive")
 hist_sme_inclusive.SetTitle("sme_inclusive")
-hist_sme_inclusive.Scale(1+sme_inclusive.GetMaximum()) #show SM mass scaled by maximum SME variation
+hist_sme_inclusive.Scale(1+sme_inclusive.GetMaximum()) #show SM kin scaled by maximum SME variation
 
 min = hist_sme_inclusive.GetMinimum()
 max = hist_sme_inclusive.GetMaximum()
 
-hist_sme_mass = []
+hist_sme_kin = []
 for i in range(24):
-    hist_sme_mass.append(hist_signal.Clone())
-    hist_sme_mass[-1].SetName("sme_"+str(i))
-    hist_sme_mass[-1].SetTitle("sme_"+str(i))
-    for m in range(7):
+    hist_sme_kin.append(hist_signal.Clone())
+    hist_sme_kin[-1].SetName("sme_"+str(i))
+    hist_sme_kin[-1].SetTitle("sme_"+str(i))
+    for m in range(nbin):
         val_t = hist_signal.GetBinContent(m+1)
-	ft_m = sme_massbin[m].GetBinContent(i+1)
-	hist_sme_mass[-1].SetBinContent(m+1, val_t*(1+ft_m))
-	if (max < hist_sme_mass[-1].GetMaximum()): max = hist_sme_mass[-1].GetMaximum()
+	ft_m = sme_kinbin[m].GetBinContent(i+1)
+	hist_sme_kin[-1].SetBinContent(m+1, val_t*(1+ft_m))
+	if (max < hist_sme_kin[-1].GetMaximum()): max = hist_sme_kin[-1].GetMaximum()
 
 usedbins = [0, 5, 9, 12]
 
@@ -147,14 +153,20 @@ usedbins = [0, 5, 9, 12]
 ## Legend stuff
 ################################################################################
 
+skin=''
+if observable=='m_dilep':
+    skin='m_{ll}'
+if observable=='pt_emu':
+    skin='p_{T,ll}'
+
 legend_args = (0.45, 0.7, 0.985, 0.91, '', 'NDC')
 legend = TLegend(*legend_args)
 legend.AddEntry(hist_signal, "t#bar{t} SM any time bin", "l")
-legend.AddEntry(hist_sme_inclusive, "SME m_{ll}-inclusive, max time bin", "l")
-legend.AddEntry(hist_sme_mass[usedbins[0]], "SME m_{ll}-dependent, "+str(usedbins[0])+"-"+str(usedbins[0]+1)+"h", "l")
-legend.AddEntry(hist_sme_mass[usedbins[1]], "SME m_{ll}-dependent, "+str(usedbins[1])+"-"+str(usedbins[1]+1)+"h", "l")
-legend.AddEntry(hist_sme_mass[usedbins[2]], "SME m_{ll}-dependent, "+str(usedbins[2])+"-"+str(usedbins[2]+1)+"h", "l")
-legend.AddEntry(hist_sme_mass[usedbins[3]], "SME m_{ll}-dependent, "+str(usedbins[3])+"-"+str(usedbins[3]+1)+"h", "l")
+legend.AddEntry(hist_sme_inclusive, "SME "+skin+"-inclusive, max time bin", "l")
+legend.AddEntry(hist_sme_kin[usedbins[0]], "SME "+skin+"-dependent, "+str(usedbins[0])+"-"+str(usedbins[0]+1)+"h", "l")
+legend.AddEntry(hist_sme_kin[usedbins[1]], "SME "+skin+"-dependent, "+str(usedbins[1])+"-"+str(usedbins[1]+1)+"h", "l")
+legend.AddEntry(hist_sme_kin[usedbins[2]], "SME "+skin+"-dependent, "+str(usedbins[2])+"-"+str(usedbins[2]+1)+"h", "l")
+legend.AddEntry(hist_sme_kin[usedbins[3]], "SME "+skin+"-dependent, "+str(usedbins[3])+"-"+str(usedbins[3]+1)+"h", "l")
 
 
 #legend.AddEntry(hist_background, "non-t#bar{t}", "f")
@@ -183,21 +195,21 @@ hist_sme_inclusive.SetLineWidth(2)
 hist_sme_inclusive.SetLineColor(2)
 hist_sme_inclusive.Draw("histsame")
 
-hist_sme_mass[usedbins[0]].SetLineWidth(2)
-hist_sme_mass[usedbins[0]].SetLineColor(gStyle.GetColorPalette((usedbins[0])*255/24))
-hist_sme_mass[usedbins[0]].Draw("histsame")
+hist_sme_kin[usedbins[0]].SetLineWidth(2)
+hist_sme_kin[usedbins[0]].SetLineColor(gStyle.GetColorPalette((usedbins[0])*255/24))
+hist_sme_kin[usedbins[0]].Draw("histsame")
 
-hist_sme_mass[usedbins[1]].SetLineWidth(2)
-hist_sme_mass[usedbins[1]].SetLineColor(gStyle.GetColorPalette((usedbins[1])*255/24))
-hist_sme_mass[usedbins[1]].Draw("histsame")
+hist_sme_kin[usedbins[1]].SetLineWidth(2)
+hist_sme_kin[usedbins[1]].SetLineColor(gStyle.GetColorPalette((usedbins[1])*255/24))
+hist_sme_kin[usedbins[1]].Draw("histsame")
 
-hist_sme_mass[usedbins[2]].SetLineWidth(2)
-hist_sme_mass[usedbins[2]].SetLineColor(gStyle.GetColorPalette((usedbins[2])*255/24))
-hist_sme_mass[usedbins[2]].Draw("histsame")
+hist_sme_kin[usedbins[2]].SetLineWidth(2)
+hist_sme_kin[usedbins[2]].SetLineColor(gStyle.GetColorPalette((usedbins[2])*255/24))
+hist_sme_kin[usedbins[2]].Draw("histsame")
 
-hist_sme_mass[usedbins[3]].SetLineWidth(2)
-hist_sme_mass[usedbins[3]].SetLineColor(gStyle.GetColorPalette((usedbins[3])*255/24))
-hist_sme_mass[usedbins[3]].Draw("histsame")
+hist_sme_kin[usedbins[3]].SetLineWidth(2)
+hist_sme_kin[usedbins[3]].SetLineColor(gStyle.GetColorPalette((usedbins[3])*255/24))
+hist_sme_kin[usedbins[3]].Draw("histsame")
 
 legend.Draw("SAME")
 
@@ -273,19 +285,19 @@ ratio = THStack()
 h_inc = hist_sme_inclusive.Clone()
 h_inc.Divide(h_denom)
 ratio.Add(h_inc)
-h_0 = hist_sme_mass[usedbins[0]].Clone()
+h_0 = hist_sme_kin[usedbins[0]].Clone()
 h_0.SetName("h_0")
 h_0.Divide(h_denom)
 ratio.Add(h_0)
-h_1 = hist_sme_mass[usedbins[1]].Clone()
+h_1 = hist_sme_kin[usedbins[1]].Clone()
 h_1.SetName("h_1")
 h_1.Divide(h_denom)
 ratio.Add(h_1)
-h_2 = hist_sme_mass[usedbins[2]].Clone()
+h_2 = hist_sme_kin[usedbins[2]].Clone()
 h_2.SetName("h_2")
 h_2.Divide(h_denom)
 ratio.Add(h_2)
-h_3 = hist_sme_mass[usedbins[3]].Clone()
+h_3 = hist_sme_kin[usedbins[3]].Clone()
 h_3.SetName("h_3")
 h_3.Divide(h_denom)
 ratio.Add(h_3)
@@ -316,19 +328,19 @@ h_3.Draw("histSAME")
 ## Save
 ################################################################################
 
-resultname = './results/'+year+'/other/sme_mass_'+wilson
+resultname = './results/'+year+'/other/sme_'+observable+'_'+wilson
 
-rootfile_output = TFile(resultname+'.root', "RECREATE")
-canvas.Write()
-hist_signal.Write()
-hist_sme_inclusive.Write()
-hist_sme_mass[usedbins[0]].Write()
-hist_sme_mass[usedbins[1]].Write()
-hist_sme_mass[usedbins[2]].Write()
-hist_sme_mass[usedbins[3]].Write()
+#rootfile_output = TFile(resultname+'.root', "RECREATE")
+#canvas.Write()
+#hist_signal.Write()
+#hist_sme_inclusive.Write()
+#hist_sme_kin[usedbins[0]].Write()
+#hist_sme_kin[usedbins[1]].Write()
+#hist_sme_kin[usedbins[2]].Write()
+#hist_sme_kin[usedbins[3]].Write()
 #canvas.SaveAs(resultname+'.png')
 canvas.SaveAs(resultname+'.pdf')
-rootfile_output.Close()
+#rootfile_output.Close()
 
 raw_input('exit')
 

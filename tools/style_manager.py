@@ -5,7 +5,7 @@ pt_like_values  = [
 ]
 eta_like_values = [
     [50, -3, 3],                # binning
-    [0.65, 0.65, 0.87, 0.87]    # legend box
+    [0.73, 0.65, 0.95, 0.87]    # legend box
 ]
 n_bjets_like_values = [
     [5, 0, 5],                  # binning

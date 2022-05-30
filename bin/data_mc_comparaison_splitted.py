@@ -118,7 +118,7 @@ for l in rootfile_input.GetListOfKeys():
 ##################
 
 # The uncertainty band is wrong: please use pre-fit plot in combine-ttbar instead
-
+'''
 rootfile_forsyst = TFile('./combine/'+year+'/one_bin/inputs/'+observable+'_24_0.root')
 
 hist_ref  = []
@@ -213,15 +213,10 @@ for i in range(nbin):
     sum_i_MCstat = 0
     for hist_Down in hist_totDown:
 	if (hist_Down.GetName().find("signal")!=-1): h_tmp = hist_signal
-#val_i_Nom = hist_signal.GetBinContent(i+1)
 	if (hist_Down.GetName().find("hist_singletop")!=-1): h_tmp = hist_singletop
-#val_i_Nom = hist_singletop.GetBinContent(i+1)
 	if (hist_Down.GetName().find("ttx")!=-1): h_tmp = hist_ttx
-#val_i_Nom = hist_ttx.GetBinContent(i+1)
 	if (hist_Down.GetName().find("dibosons")!=-1): h_tmp = hist_dibosons
-#val_i_Nom = hist_dibosons.GetBinContent(i+1)
 	if (hist_Down.GetName().find("vjets")!=-1): h_tmp = hist_vjets
-#val_i_Nom = hist_vjets.GetBinContent(i+1)
 	val_i_Nom = h_tmp.GetBinContent(i+1)
 	val_i_MCstat = h_tmp.GetBinError(i+1)
 	sum_i_MCstat = math.sqrt(sum_i_MCstat*sum_i_MCstat+val_i_MCstat*val_i_MCstat)
@@ -235,15 +230,10 @@ for i in range(nbin):
     sum_i_MCstat = 0
     for hist_Up in hist_totUp:
         if (hist_Up.GetName().find("signal")!=-1): h_tmp = hist_signal
-#val_i_Nom = hist_signal.GetBinContent(i+1)
         if (hist_Up.GetName().find("hist_singletop")!=-1): h_tmp = hist_singletop
-#val_i_Nom = hist_singletop.GetBinContent(i+1)
         if (hist_Up.GetName().find("ttx")!=-1): h_tmp = hist_ttx
-#val_i_Nom = hist_ttx.GetBinContent(i+1)
         if (hist_Up.GetName().find("dibosons")!=-1): h_tmp = hist_dibosons
-#val_i_Nom = hist_dibosons.GetBinContent(i+1)
         if (hist_Up.GetName().find("vjets")!=-1): h_tmp = hist_vjets
-#val_i_Nom = hist_vjets.GetBinContent(i+1)
         val_i_Nom = h_tmp.GetBinContent(i+1)
         val_i_MCstat = h_tmp.GetBinError(i+1)
         sum_i_MCstat = math.sqrt(sum_i_MCstat*sum_i_MCstat+val_i_MCstat*val_i_MCstat)
@@ -276,12 +266,12 @@ for i in range(nbin):
 UncertaintyBand = TGraphAsymmErrors(len(x),array.array('d', x),array.array('d', y),array.array('d', ex_left),array.array('d', ex_right),array.array('d', ey_down),array.array('d', ey_up))
 
 UncertaintyBandRatio = TGraphAsymmErrors(len(x),array.array('d', x),array.array('d', yratio),array.array('d', ex_left),array.array('d', ex_right),array.array('d', ey_ratio_down),array.array('d', ey_ratio_up))
-
+'''
 ################################################################################
 ## Legend stuff
 ################################################################################
 
-legend_args = (0.645, 0.65, 0.85, 0.92, '', 'NDC')
+legend_args = (0.73, 0.65, 0.93, 0.92, '', 'NDC')
 legend = TLegend(*legend_args)
 legend.AddEntry(hist_signal, "t#bar{t} SM", "f")
 #legend.AddEntry(hist_background, "non-t#bar{t}", "f")
@@ -312,12 +302,12 @@ stack.Add(hist_signal)
 if (doLog): stack.SetMinimum(10)
 
 #stack.GetHistogram().GetXaxis().SetRange(min_bin,max_bin)
-UncertaintyBand.GetXaxis().SetRangeUser(min_bin,max_bin)
-UncertaintyBand.SetMinimum(0)
-if (doLog): UncertaintyBand.SetMinimum(10)
+#UncertaintyBand.GetXaxis().SetRangeUser(min_bin,max_bin)
+#UncertaintyBand.SetMinimum(0)
+#if (doLog): UncertaintyBand.SetMinimum(10)
 
 stack.Draw()
-UncertaintyBand.Draw("2AP SAME")
+#UncertaintyBand.Draw("2AP SAME")
 stack.Draw("HIST SAME")
 hist_data.Draw("E SAME")
 legend.Draw("SAME")
@@ -335,14 +325,14 @@ style_histo(hist_vjets, 619, 1, 619, 3005, 0)
 #style_histo(hist_background, 4, 1, 4, 3005, 0)
 style_histo(hist_data, 1, 1, 0, 3001, 1, 20)
 
-style_histo(UncertaintyBand, 1, 1, 1, 3005, 0)
-style_labels_counting(UncertaintyBand, 'Events', title)
-UncertaintyBand.GetXaxis().SetLabelSize(0)
-UncertaintyBand.GetXaxis().SetTitleSize(0)
+#style_histo(UncertaintyBand, 1, 1, 1, 3005, 0)
+#style_labels_counting(UncertaintyBand, 'Events', title)
+#UncertaintyBand.GetXaxis().SetLabelSize(0)
+#UncertaintyBand.GetXaxis().SetTitleSize(0)
 
-#style_labels_counting(stack, 'Events', title)
-#stack.GetXaxis().SetLabelSize(0)
-#stack.GetXaxis().SetTitleSize(0)
+style_labels_counting(stack, 'Events', title)
+stack.GetXaxis().SetLabelSize(0)
+stack.GetXaxis().SetTitleSize(0)
 
 if(year=='2016'):
     tdr.cmsPrel(35900., 13.,simOnly=False,thisIsPrelim=True)
@@ -374,35 +364,35 @@ h_num.GetXaxis().SetTitle("aksjd")
 ratio = THStack()
 ratio.Add(h_num)
 
-#ratio.SetMaximum(1+ratio_coef)
-#ratio.SetMinimum(1-ratio_coef)
-#ratio.Draw()
-#h_one.Draw("SAME")
-
-UncertaintyBandRatio.Draw("2A SAME")
-h_num.Draw("SAME")
+ratio.SetMaximum(1+ratio_coef)
+ratio.SetMinimum(1-ratio_coef)
+ratio.Draw()
 h_one.Draw("SAME")
 
-#style_labels_counting(ratio, 'Ratio data/mc', title)
-#ratio.GetYaxis().SetLabelSize(0.1)
-#ratio.GetYaxis().SetTitleSize(0.1)
-#ratio.GetYaxis().SetTitleOffset(0.5)
-#ratio.GetXaxis().SetLabelSize(0.15)
-#ratio.GetXaxis().SetTitleSize(0.17)
-#ratio.GetXaxis().SetLabelOffset(0.01)
+#UncertaintyBandRatio.Draw("2A SAME")
+#h_num.Draw("SAME")
+#h_one.Draw("SAME")
 
-style_histo(UncertaintyBandRatio, 1, 1, 1, 3005, 0)
-UncertaintyBandRatio.GetXaxis().SetRangeUser(min_bin,max_bin)
-UncertaintyBandRatio.SetMinimum(1-ratio_coef)
-UncertaintyBandRatio.SetMaximum(1+ratio_coef)
+style_labels_counting(ratio, 'Ratio data/mc', title)
+ratio.GetYaxis().SetLabelSize(0.1)
+ratio.GetYaxis().SetTitleSize(0.1)
+ratio.GetYaxis().SetTitleOffset(0.5)
+ratio.GetXaxis().SetLabelSize(0.15)
+ratio.GetXaxis().SetTitleSize(0.17)
+ratio.GetXaxis().SetLabelOffset(0.01)
 
-style_labels_counting(UncertaintyBandRatio, 'Ratio data/mc', title)
-UncertaintyBandRatio.GetYaxis().SetLabelSize(0.1)
-UncertaintyBandRatio.GetYaxis().SetTitleSize(0.1)
-UncertaintyBandRatio.GetYaxis().SetTitleOffset(0.5)
-UncertaintyBandRatio.GetXaxis().SetLabelSize(0.15)
-UncertaintyBandRatio.GetXaxis().SetTitleSize(0.17)
-UncertaintyBandRatio.GetXaxis().SetLabelOffset(0.01)
+#style_histo(UncertaintyBandRatio, 1, 1, 1, 3005, 0)
+#UncertaintyBandRatio.GetXaxis().SetRangeUser(min_bin,max_bin)
+#UncertaintyBandRatio.SetMinimum(1-ratio_coef)
+#UncertaintyBandRatio.SetMaximum(1+ratio_coef)
+
+#style_labels_counting(UncertaintyBandRatio, 'Ratio data/mc', title)
+#UncertaintyBandRatio.GetYaxis().SetLabelSize(0.1)
+#UncertaintyBandRatio.GetYaxis().SetTitleSize(0.1)
+#UncertaintyBandRatio.GetYaxis().SetTitleOffset(0.5)
+#UncertaintyBandRatio.GetXaxis().SetLabelSize(0.15)
+#UncertaintyBandRatio.GetXaxis().SetTitleSize(0.17)
+#UncertaintyBandRatio.GetXaxis().SetLabelOffset(0.01)
 
 
 ################################################################################
@@ -426,4 +416,4 @@ print 'Total MC integral : ', '%.2f'%(signal_integral+background_integral)
 print 'Data integral       : ', data_integral
 print 'Data/MC agreement  : ', '%.1f'%(100*(signal_integral+background_integral-data_integral)/(signal_integral+background_integral)), '%'
 
-raw_input('exit')
+#raw_input('exit')

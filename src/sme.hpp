@@ -29,8 +29,8 @@ class SME{
         double a4() const;
         double a5() const;
 
-        std::vector<double> generateMatrix(Wilson wilson_p, std::string observable) const;
-        std::vector<double> generateMatrixPerMassBin(Wilson wilson_p, int bin, std::string observable) const;
+        std::vector<double> generateMatrix(Wilson wilson_p, std::string observable, bool doSingleTop) const;
+        std::vector<double> generateMatrixPerMassBin(Wilson wilson_p, int bin, std::string observable, bool doSingleTop) const;
         double readNumberOfEvents(std::string const& path_p) const;
         std::vector<double> readElementMatrix(std::string const& path_p) const;
 
@@ -49,15 +49,16 @@ class SME{
     public:
 
         SME();
-        SME(Wilson wilson_p, std::string observable);
+        SME(Wilson wilson_p, std::string observable, bool doSingleTop);
         SME(SME const& other);
-        SME(Wilson wilson_p, int bin, std::string observable);
+        SME(Wilson wilson_p, int bin, std::string observable, bool doSingleTop);
 
         SME &operator=(SME const& other);
 
-        void generateModulation(int t0,int nBin = 24);
-	void generateModulationPerMassBin(int t0, int nBin, int binMass);
+        void generateModulation(int t0,int nBin = 24, bool doSingleTop = false);
+	void generateModulationPerMassBin(int t0, int nBin, int binMass, bool doSingleTop = false);
 
+	//bool doSingleTop = false;
         //std::string observable;
 
         //double fXX_hours(double* x, double* par);

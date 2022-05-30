@@ -45,7 +45,7 @@ cross_section_2016 = {
      #3.697,                # TTX  TTG        
      #3.697,                # TTX  TTG2        
     'MC_wjets_WJets'             :61526.7,              # wjets WJets       
-     'MC_wjets_WJets2'            :61526.7,              # wjets WJets2      
+    'MC_wjets_WJets2'            :61526.7,              # wjets WJets2      
     'MC_zjets_DY_1050'           :22635.14,              # zjets DY 10-50   
     'MC_zjets_DY_10502'          :22635.14,              # zjets DY 10-50   
     'MC_zjets_DY_10503'          :22635.14,              # zjets DY 10-50       
@@ -190,18 +190,18 @@ cross_section_2017 = {
     'MC_signal_semilep'           :366.91429,   
     'MC_singletop_ST_s'           :10.32,    
     'MC_singletop_ST_s2'          :10.32,    
-    #'MC_singletop_ST_tW_antitop'  :35.5,     
-    'MC_singletop_ST_tW_antitop2' :35.5,     
-    #'MC_singletop_ST_tW_top'      :35.5,     
-    'MC_singletop_ST_tW_top2'     :35.5,     
+    'MC_singletop_ST_tW_antitop'  :35.5,     
+    #'MC_singletop_ST_tW_antitop2' :35.5,     
+    'MC_singletop_ST_tW_top'      :35.5,     
+    #'MC_singletop_ST_tW_top2'     :35.5,     
     'MC_singletop_ST_t_antitop'   :80.95,    
     'MC_singletop_ST_t_top'       :136.02,   
     'MC_ttx_TTW'                  :0.2043,   
     'MC_ttx_TTW2'                 :0.2043,   
-    'MC_ttx_TTW3'                 :0.4062,   
+    #'MC_ttx_TTW3'                 :0.4062,   
     'MC_ttx_TTZ'                  :0.2529,   
     'MC_ttx_TTZ2'                 :0.2529,   
-    'MC_ttx_TTZ3'                 :0.5297,   
+    #'MC_ttx_TTZ3'                 :0.5297,   
     'MC_wjets_WJets'              :61526.7,   
     'MC_wjets_WJets2'             :61526.7,   
     'MC_zjets_DY_1050'            :22635.1,  
@@ -230,10 +230,10 @@ cross_sec_2017 = [
 
     0.2043,   # TTX TTW  (Wlnu)       
     0.2043,   # TTX TTW2 (Wlnu) 
-    0.4062,   # TTX TTW3 (Wqq) 
+    #0.4062,   # TTX TTW3 (Wqq) 
     0.2529,   # TTX TTZ  (Zll)        
     0.2529,   # TTX TTZ2 (Zll)   
-    0.5297,   # TTX TTZ3 (Zqq)       
+    #0.5297,   # TTX TTZ3 (Zqq)       
 
     61526.7,   # wjets WJets       
     61526.7,   # wjets Wjets2      
@@ -393,10 +393,48 @@ ttbar_list = [
 ]
 
 
-jec_list = [ 
-    'TotalUp',
-    'TotalDown',
+jec_list_2016 = [ 
+    'Total_up',
+    'Total_down',
+    'Absolute_up',
+    'Absolute_down',
+    'Absolute_2016_up',
+    'Absolute_2016_down',
+    'FlavorQCD_up',
+    'FlavorQCD_down',
+    'BBEC1_up',
+    'BBEC1_down',
+    'BBEC1_2016_up',
+    'BBEC1_2016_down',
+    'RelativeBal_up',
+    'RelativeBal_down',
+    'RelativeSample_2016_up',
+    'RelativeSample_2016_down'
 ]
+
+jec_list_2017 = [
+    'Total_up',
+    'Total_down',
+    'Absolute_up',
+    'Absolute_down',
+    'Absolute_2017_up',
+    'Absolute_2017_down',
+    'FlavorQCD_up',
+    'FlavorQCD_down',
+    'BBEC1_up',
+    'BBEC1_down',
+    'BBEC1_2017_up',
+    'BBEC1_2017_down',
+    'RelativeBal_up',
+    'RelativeBal_down',
+    'RelativeSample_2017_up',
+    'RelativeSample_2017_down'
+]
+
+jec_list = {
+    '2016' : jec_list_2016,
+    '2017' : jec_list_2017
+}
 
 
 systematic_list = [
@@ -580,10 +618,15 @@ def generate_eventN0(year, sample_list, sampletype='MC'):
 		   #foo[i-1] += foo[i]
 		   #foo[i] = foo[i-3]
 	    foo[i] = foo[i-1]
-    print('sum_of_weight_all='+str(foo))
+    print('sum_of_weight_all='+str(foo)+' len='+str(len(foo)))
     return foo
 
 def rescaling(year, N0_list, sampletype='MC'):
+
+    print 'len(cross_sec[year])='+str(len(cross_sec[year]))
+    print 'len(cross_sec_alt[year])='+str(len(cross_sec_alt[year]))
+    print 'len(N0_list)='+str(len(N0_list))
+
     foo = []
     #cross_sec_alt = {
     #'2016' : 89.0482256,
@@ -592,6 +635,7 @@ def rescaling(year, N0_list, sampletype='MC'):
     #}
     for n in range(len(N0_list)):
         if sampletype=='MC' or sampletype.find('JEC')!=-1:
+	    print 'cross_sec[year][n]='+str(cross_sec[year][n])+' N0_list[n]='+str(N0_list[n])
             foo.append(1000.*luminosity[year]*cross_sec[year][n]/N0_list[n]) 
         if sampletype=='ALT':
             foo.append(1000.*luminosity[year]*cross_sec_alt[year][n]/N0_list[n]) 

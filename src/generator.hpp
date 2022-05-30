@@ -48,6 +48,10 @@ class Generator{
                              namelist const& triggerList_p,
                              bool            is2016H = false
                             );
+
+	bool eventSelection(TTree           * tree_p);
+        bool eventSelection(TTree           * tree_p,
+                                std::string     jecName);
        
 	float getObservableValue(TTree         * tree_p);
  
@@ -123,7 +127,8 @@ class Generator{
                            namelist            const& jecList_p,
                            namelist            const& groupList_p,
                            namelist            const& triggerList_p,
-                           std::vector<std::vector<double>> const& correction_p,
+                           //std::vector<std::vector<double>> const& correction_p,
+                           std::vector<double> const& correction_p,
                            bool                clean_p = true,
                            bool                isTimed_p = true
                           );

@@ -317,6 +317,32 @@ bool Generator::isTriggerPassed(TTree         * tree_p,
     return(trig >= 1);
 }
 
+bool Generator::eventSelection(TTree      	* tree_p) 
+{
+ 
+  double n_jets = tree_p->GetLeaf("n_jets")->GetValue(0);
+  double n_bjets = tree_p->GetLeaf("n_bjets")->GetValue(0);
+
+  if (n_jets>=2 && n_bjets>=1) return 1;
+  else return 0;
+
+}
+
+bool Generator::eventSelection(TTree           * tree_p,
+                                std::string     jecName)
+{
+  std::string nJetCut = "n_jets_"+jecName; 
+  std::string nBJetCut = "n_bjets_"+jecName;
+
+  double n_jets = tree_p->GetLeaf(nJetCut.c_str())->GetValue(0);
+  double n_bjets = tree_p->GetLeaf(nBJetCut.c_str())->GetValue(0);
+
+  if (n_jets>=2 && n_bjets>=1) return 1;
+  else return 0;
+
+}
+
+
 float Generator::getObservableValue(TTree         * tree_p)
 {
 
@@ -349,9 +375,10 @@ float Generator::getObservableValue(TTree         * tree_p)
         elec.SetPtEtaPhiM(tree_p->GetLeaf("pt_elec")->GetValue(0), tree_p->GetLeaf("eta_elec")->GetValue(0), tree_p->GetLeaf("phi_elec")->GetValue(0),0);
         muon.SetPtEtaPhiM(tree_p->GetLeaf("pt_muon")->GetValue(0), tree_p->GetLeaf("eta_muon")->GetValue(0), tree_p->GetLeaf("phi_muon")->GetValue(0),0);
         b1.SetPtEtaPhiM(tree_p->GetLeaf("b1_pt")->GetValue(0),tree_p->GetLeaf("b1_eta")->GetValue(0),tree_p->GetLeaf("b1_phi")->GetValue(0),tree_p->GetLeaf("b1_m")->GetValue(0));
-	b2.SetPtEtaPhiM(tree_p->GetLeaf("b2_pt")->GetValue(0),tree_p->GetLeaf("b2_eta")->GetValue(0),tree_p->GetLeaf("b2_phi")->GetValue(0),tree_p->GetLeaf("b2_m")->GetValue(0));
-        j1.SetPtEtaPhiM(tree_p->GetLeaf("j1_pt")->GetValue(0),tree_p->GetLeaf("j1_eta")->GetValue(0),tree_p->GetLeaf("j1_phi")->GetValue(0),tree_p->GetLeaf("j1_m")->GetValue(0));
-        j2.SetPtEtaPhiM(tree_p->GetLeaf("j2_pt")->GetValue(0),tree_p->GetLeaf("j2_eta")->GetValue(0),tree_p->GetLeaf("j2_phi")->GetValue(0),tree_p->GetLeaf("j2_m")->GetValue(0));
+	double b2_pt = tree_p->GetLeaf("b2_pt")->GetValue(0);
+	//b2.SetPtEtaPhiM(tree_p->GetLeaf("b2_pt")->GetValue(0),tree_p->GetLeaf("b2_eta")->GetValue(0),tree_p->GetLeaf("b2_phi")->GetValue(0),tree_p->GetLeaf("b2_m")->GetValue(0));
+        //j1.SetPtEtaPhiM(tree_p->GetLeaf("j1_pt")->GetValue(0),tree_p->GetLeaf("j1_eta")->GetValue(0),tree_p->GetLeaf("j1_phi")->GetValue(0),tree_p->GetLeaf("j1_m")->GetValue(0));
+        //j2.SetPtEtaPhiM(tree_p->GetLeaf("j2_pt")->GetValue(0),tree_p->GetLeaf("j2_eta")->GetValue(0),tree_p->GetLeaf("j2_phi")->GetValue(0),tree_p->GetLeaf("j2_m")->GetValue(0));
 	//std::cout << "New event"<<std::endl;
 	//std::cout << "b1 pt="<<b1.Pt()<<std::endl;
         //std::cout << "b2 pt="<<b2.Pt()<<std::endl;
@@ -359,15 +386,26 @@ float Generator::getObservableValue(TTree         * tree_p)
         //std::cout << "j2 pt="<<j2.Pt()<<std::endl;
 
 	TLorentzVector b_top1, lep_top1, b_top2, lep_top2;
-	if (b2.Pt()==99){
+	if (b2_pt==99){
             //deltaR(b,lep)  le plus proche : top1  => autre  jet de plus haut pt et l'autre lep : top2
 	    b_top1 = b1;
 	    if (b1.DeltaR(elec)<b1.DeltaR(muon)) { lep_top1 = elec; lep_top2 = muon; }
 	    else { lep_top1 = muon; lep_top2 = elec; }
-	    if (j1.Pt()!=b_top1.Pt()) b_top2 = j1;
-	    else if (j2.Pt()!=b_top1.Pt()) b_top2 = j2;
+	    double j1_pt = tree_p->GetLeaf("j1_pt")->GetValue(0);
+	    double j2_pt = tree_p->GetLeaf("j2_pt")->GetValue(0);
+            //j1.SetPtEtaPhiM(tree_p->GetLeaf("j1_pt")->GetValue(0),tree_p->GetLeaf("j1_eta")->GetValue(0),tree_p->GetLeaf("j1_phi")->GetValue(0),tree_p->GetLeaf("j1_m")->GetValue(0));
+            //j2.SetPtEtaPhiM(tree_p->GetLeaf("j2_pt")->GetValue(0),tree_p->GetLeaf("j2_eta")->GetValue(0),tree_p->GetLeaf("j2_phi")->GetValue(0),tree_p->GetLeaf("j2_m")->GetValue(0));
+	    if (j1_pt!=b_top1.Pt()) {
+                j1.SetPtEtaPhiM(j1_pt,tree_p->GetLeaf("j1_eta")->GetValue(0),tree_p->GetLeaf("j1_phi")->GetValue(0),tree_p->GetLeaf("j1_m")->GetValue(0));
+		b_top2 = j1;
+	    }
+	    else if (j2_pt!=b_top1.Pt()) {
+                j2.SetPtEtaPhiM(j2_pt,tree_p->GetLeaf("j2_eta")->GetValue(0),tree_p->GetLeaf("j2_phi")->GetValue(0),tree_p->GetLeaf("j2_m")->GetValue(0));
+		b_top2 = j2;
+	    }
 	}
 	else  {
+	    b2.SetPtEtaPhiM(b2_pt,tree_p->GetLeaf("b2_eta")->GetValue(0),tree_p->GetLeaf("b2_phi")->GetValue(0),tree_p->GetLeaf("b2_m")->GetValue(0));
             //deltaR(b,lep)  le plus proche : top1  => l'autre b et l'autre lep : top2
 	    double dR = b1.DeltaR(elec);
 	    b_top1 = b1; lep_top1 = elec; b_top2 = b2; lep_top2 = muon;
@@ -655,7 +693,8 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
                                namelist            const& jecList_p,
                                namelist            const& groupList_p,
                                namelist            const& triggerList_p,
-                               std::vector<std::vector<double>> const& correction_p,
+                               //std::vector<std::vector<double>> const& correction_p,
+                               std::vector<double> const& correction_p,
                                bool                clean_p,
                                bool                isTimed_p
                     )
@@ -675,18 +714,24 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
     {
         for(size_t n = 0; n < sampleList_p.size(); ++n){
             
-            std::cout << " -> " << jecList_p[jl] << " : " << sampleList_p[n] << "  " << correction_p[jl][n] << std::endl;
+            //td::cout << " -> " << jecList_p[jl] << " : " << sampleList_p[n] << "  " << correction_p[jl][n] << std::endl;
+            std::cout << " -> " << jecList_p[jl] << " : " << sampleList_p[n] << "  " << correction_p[n] << std::endl;
 
             
-            std::string filename = "./inputs/"+year+"/JEC/"+jecList_p[jl]+'/'+sampleList_p[n]+"/NtupleProducer/tree.root";
+            //std::string filename = "./inputs/"+year+"/JEC/"+jecList_p[jl]+'/'+sampleList_p[n]+"/NtupleProducer/tree.root";
+	    std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/NtupleProducer/tree.root";
 
             TFile* file = new TFile(filename.c_str());
             TTree *tree;
             file->GetObject("events", tree);
             TCanvas *canvas = new TCanvas((jecList_p[jl]+sampleList_p[n]).c_str());
             TH1F* hist      = new TH1F((jecList_p[jl]+sampleList_p[n]).c_str(), (jecList_p[jl]+sampleList_p[n]).c_str(), nBin, minBin, maxBin);
-            for(int i = 0; i < tree->GetEntriesFast(); ++i){
+
+	    //int nEvents = 10;
+	    int nEvents = tree->GetEntriesFast();
+            for(int i = 0; i < nEvents; ++i){
                 tree->GetEntry(i);
+		if (eventSelection(tree, jecList_p[jl])!=1) continue;
                 double weight = generateWeight(tree,isTimed_p);
                 if(isTriggerPassed(tree, triggerList_p,true)){
 			hist->Fill(getObservableValue(tree), weight);
@@ -695,7 +740,8 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
                 if(i % 100000 == 0)
                     std::cout << "100 000 events passed" << std::endl;
             }
-            hist->Scale(correction_p[jl][n]);
+            //hist->Scale(correction_p[jl][n]);
+            hist->Scale(correction_p[n]);
             list[jl].push_back(*hist);
 
             delete hist;
@@ -742,6 +788,7 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
         std::cout << "sdlfksldfsldf" <<filename.c_str() << std::endl;
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
+            if (eventSelection(tree)!=1) continue;
             double weight = generateWeight(tree,isTimed_p);
             //if(sampleList_p[n].find("alt") == std::string::npos){
                 if(isTriggerPassed(tree, triggerList_p,true)){
@@ -863,6 +910,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
 
         for(int i = 0; i < nEvents; ++i){
             tree->GetEntry(i);
+            if (eventSelection(tree)!=1) continue;
             double weight = generateWeight(tree,isTimed_p);
             if(isTriggerPassed(tree, triggerList_p,true)){
                 hist_events->Fill(getObservableValue(tree));
@@ -1015,6 +1063,7 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
 
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
+            if (eventSelection(tree)!=1) continue;
             double weight = generateWeight(tree, false);
             if(isTriggerPassed(tree, triggerList_p,true)){
                 hist->Fill(getObservableValue(tree), weight);
@@ -1080,6 +1129,7 @@ void Generator::generateData(namelist            const& sampleList_p,
         std::cout << " -> " << sampleList_p[n] << std::endl;
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
+            if (eventSelection(tree)!=1) continue;
             if(isTriggerPassed(tree, triggerList_p, is2016H)){
                 if (sampleList_p[n].find("MuonEG") != std::string::npos){
                     isFilled.emplace(tree->GetLeaf("event")->GetValue(0),1);
@@ -1176,6 +1226,7 @@ void Generator::generateDataTimed(namelist            const& sampleList_p,
         std::cout << " -> " << sampleList_p[n] << std::endl;
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
+            if (eventSelection(tree)!=1) continue;
             //int whichBin = int(siderealHour(tree->GetLeaf("unix_time")->GetValue(0)))%nBin_p;
             if(isTriggerPassed(tree, triggerList_p, is2016H)){
                 if (sampleList_p[n].find("MuonEG") != std::string::npos){

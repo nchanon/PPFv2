@@ -14,7 +14,7 @@
 SME::SME()
 {}
 
-SME::SME(Wilson wilson_p, std::string observable)
+SME::SME(Wilson wilson_p, std::string observable, bool doSingleTop)
     : wilson(wilson_p)
 {
     if(wilson != Wilson::L and wilson != Wilson::R and 
@@ -23,7 +23,7 @@ SME::SME(Wilson wilson_p, std::string observable)
         exit(0);
     }
 
-    std::vector<double> matrix = generateMatrix(wilson, observable);
+    std::vector<double> matrix = generateMatrix(wilson, observable, doSingleTop);
     Axx = matrix[0];
     Azz = matrix[10];
 }
@@ -44,7 +44,7 @@ SME &SME::operator=(SME const& other)
 }
 
 
-SME::SME(Wilson wilson_p, int bin, std::string observable)
+SME::SME(Wilson wilson_p, int bin, std::string observable, bool doSingleTop)
 {
 
     wilson = wilson_p;
@@ -55,7 +55,7 @@ SME::SME(Wilson wilson_p, int bin, std::string observable)
         exit(0);
     }
 
-    std::vector<double> matrix = generateMatrixPerMassBin(wilson, bin, observable);
+    std::vector<double> matrix = generateMatrixPerMassBin(wilson, bin, observable, doSingleTop);
     Axx = matrix[0];
     Azz = matrix[10];
 }
@@ -92,17 +92,19 @@ double SME::a5() const
     return cos(LATITUDE)*cos(AZIMUT)*sin(AZIMUT)*(Azz-Axx);
 }
 
-std::vector<double> SME::generateMatrix(Wilson wilson_p, std::string observable) const
+std::vector<double> SME::generateMatrix(Wilson wilson_p, std::string observable, bool doSingleTop) const
 {
 
     std::string cutName = "13TeVCMSnanoGEN";
     std::string suffix = "_inc_particle";
-    //std::string cutName = "13TeVCMSnew";
-    //std::string suffix = "_inc";
 
-    std::string File_qqbar = "./inputs/pheno/" + observable + "_" + cutName + "Pqqbar" + suffix + ".txt";
-    std::string File_gg = "./inputs/pheno/" + observable + "_" + cutName + "P2g" + suffix + ".txt";
-    std::string File_F = "./inputs/pheno/" + observable + "_" + cutName + "F" + suffix + ".txt";
+    std::string File_qqbar = "./inputs/pheno/signal_" + observable + "_" + cutName + "Pqqbar" + suffix + ".txt";
+    std::string File_gg = "./inputs/pheno/signal_" + observable + "_" + cutName + "P2g" + suffix + ".txt";
+    std::string File_F = "./inputs/pheno/signal_" + observable + "_" + cutName + "F" + suffix + ".txt";
+
+    std::string File_F_singletop = "./inputs/pheno/singletop_" + observable + "_" + cutName + "F" + suffix + ".txt";
+    std::cout << "doSingleTop=" << doSingleTop << std::endl;
+
 
     double nPqq              = readNumberOfEvents(File_qqbar);
     std::vector<double> mPqq = readElementMatrix(File_qqbar);
@@ -111,12 +113,17 @@ std::vector<double> SME::generateMatrix(Wilson wilson_p, std::string observable)
     double nF                = readNumberOfEvents(File_F);
     std::vector<double> mF   = readElementMatrix(File_F);
 
-    //double nPqq              = readNumberOfEvents("./inputs/pheno/13TeVCMSPqqbar.txt");
-    //std::vector<double> mPqq = readElementMatrix("./inputs/pheno/13TeVCMSPqqbar.txt");
-    //double nP2g              = readNumberOfEvents("./inputs/pheno/13TeVCMSP2g.txt");
-    //std::vector<double> mP2g = readElementMatrix("./inputs/pheno/13TeVCMSP2g.txt");
-    //double nF                = readNumberOfEvents("./inputs/pheno/13TeVCMSF.txt");
-    //std::vector<double> mF   = readElementMatrix("./inputs/pheno/13TeVCMSF.txt");
+    double nF_singletop                = readNumberOfEvents(File_F_singletop);
+    std::vector<double> mF_singletop   = readElementMatrix(File_F_singletop);
+
+    if (doSingleTop){
+	for (unsigned int i=0; i<mPqq.size(); i++){
+	    mPqq[i] = 0;
+	    mP2g[i] = 0;
+	    mF[i] = mF_singletop[i];
+	    nF = nF_singletop;
+	}
+    }
 
     std::vector<double> matrix(mF.size());
 
@@ -133,27 +140,38 @@ std::vector<double> SME::generateMatrix(Wilson wilson_p, std::string observable)
     return matrix;
 }
 
-std::vector<double> SME::generateMatrixPerMassBin(Wilson wilson_p, int bin, std::string observable) const
+std::vector<double> SME::generateMatrixPerMassBin(Wilson wilson_p, int bin, std::string observable, bool doSingleTop) const
 {
    
     std::string cutName = "13TeVCMSnanoGEN";
     std::string suffix = "_" + std::to_string(bin) + "_particle"; 
-    //std::string cutName = "13TeVCMSnew";
-    //std::string suffix = "_" + std::to_string(bin);
     
-    std::string File_qqbar = "./inputs/pheno/" + observable + "_" + cutName + "Pqqbar" + suffix + ".txt";
-    std::string File_gg = "./inputs/pheno/" + observable + "_" + cutName + "P2g" + suffix + ".txt";
-    std::string File_F = "./inputs/pheno/" + observable + "_" + cutName + "F" + suffix + ".txt";
-   
-    std::cout  << "File_qqbar "<< File_qqbar<<std::endl;
- 
+    std::string File_qqbar = "./inputs/pheno/signal_" + observable + "_" + cutName + "Pqqbar" + suffix + ".txt";
+    std::string File_gg = "./inputs/pheno/signal_" + observable + "_" + cutName + "P2g" + suffix + ".txt";
+    std::string File_F = "./inputs/pheno/signal_" + observable + "_" + cutName + "F" + suffix + ".txt";
+  
+    std::string File_F_singletop = "./inputs/pheno/singletop_" + observable + "_" + cutName + "F" + suffix + ".txt";
+    std::cout << "doSingleTop=" << doSingleTop << std::endl;
+
     double nPqq              = readNumberOfEvents(File_qqbar);
     std::vector<double> mPqq = readElementMatrix(File_qqbar);
     double nP2g              = readNumberOfEvents(File_gg);
     std::vector<double> mP2g = readElementMatrix(File_gg);
     double nF                = readNumberOfEvents(File_F);
     std::vector<double> mF   = readElementMatrix(File_F);
-    
+  
+    double nF_singletop                = readNumberOfEvents(File_F_singletop);
+    std::vector<double> mF_singletop   = readElementMatrix(File_F_singletop);
+ 
+    if (doSingleTop){
+        for (unsigned int i=0; i<mPqq.size(); i++){
+            mPqq[i] = 0;
+            mP2g[i] = 0;
+            mF[i] = mF_singletop[i];
+            nF = nF_singletop;
+        }
+    }
+ 
     std::vector<double> matrix(mF.size());
     
     for(size_t i = 0; i < matrix.size(); ++i){
@@ -260,7 +278,7 @@ double SME::fXX_hours(double* x, double* par)
 // Public methods
 /////////////////////////////////
 
-void SME::generateModulation(int t0, int nBin)
+void SME::generateModulation(int t0, int nBin, bool doSingleTop)
 {
 
     std::cout << "t0="<< t0 << "nBin="<<nBin<<std::endl;
@@ -275,11 +293,14 @@ void SME::generateModulation(int t0, int nBin)
     else if(wilson == Wilson::D)
         wilsonName = "d";
 
+    std::string prefix = "";
+    if (doSingleTop) prefix = "singletop_";
 
-    TH1F *hXX = new TH1F((wilsonName+"XX").c_str(), (wilsonName+"XX").c_str(), nBin, 0, nBin);
-    TH1F *hXY = new TH1F((wilsonName+"XY").c_str(), (wilsonName+"XY").c_str(), nBin, 0, nBin);
-    TH1F *hXZ = new TH1F((wilsonName+"XZ").c_str(), (wilsonName+"XZ").c_str(), nBin, 0, nBin);
-    TH1F *hYZ = new TH1F((wilsonName+"YZ").c_str(), (wilsonName+"YZ").c_str(), nBin, 0, nBin);
+
+    TH1F *hXX = new TH1F((prefix+wilsonName+"XX").c_str(), (prefix+wilsonName+"XX").c_str(), nBin, 0, nBin);
+    TH1F *hXY = new TH1F((prefix+wilsonName+"XY").c_str(), (prefix+wilsonName+"XY").c_str(), nBin, 0, nBin);
+    TH1F *hXZ = new TH1F((prefix+wilsonName+"XZ").c_str(), (prefix+wilsonName+"XZ").c_str(), nBin, 0, nBin);
+    TH1F *hYZ = new TH1F((prefix+wilsonName+"YZ").c_str(), (prefix+wilsonName+"YZ").c_str(), nBin, 0, nBin);
 /*
     for(int i = 0; i < nBin; ++i){
         hXX->SetBinContent(i+1, SME::fXX((t0+i)%24*3600));
@@ -290,10 +311,10 @@ void SME::generateModulation(int t0, int nBin)
 */
     //TF1* fXX = new TF1(("function_"+wilsonName+"XX").c_str(), fXX_hours,0,24);
     //fXX->SetParameter(0, t0);
-    TH1F *hXX_details = new TH1F((wilsonName+"XX_details").c_str(), (wilsonName+"XX_details").c_str(), nBin*100, 0, nBin);
-    TH1F *hXY_details = new TH1F((wilsonName+"XY_details").c_str(), (wilsonName+"XY_details").c_str(), nBin*100, 0, nBin);
-    TH1F *hXZ_details = new TH1F((wilsonName+"XZ_details").c_str(), (wilsonName+"XZ_details").c_str(), nBin*100, 0, nBin);
-    TH1F *hYZ_details = new TH1F((wilsonName+"YZ_details").c_str(), (wilsonName+"YZ_details").c_str(), nBin*100, 0, nBin);
+    TH1F *hXX_details = new TH1F((prefix+wilsonName+"XX_details").c_str(), (prefix+wilsonName+"XX_details").c_str(), nBin*100, 0, nBin);
+    TH1F *hXY_details = new TH1F((prefix+wilsonName+"XY_details").c_str(), (prefix+wilsonName+"XY_details").c_str(), nBin*100, 0, nBin);
+    TH1F *hXZ_details = new TH1F((prefix+wilsonName+"XZ_details").c_str(), (prefix+wilsonName+"XZ_details").c_str(), nBin*100, 0, nBin);
+    TH1F *hYZ_details = new TH1F((prefix+wilsonName+"YZ_details").c_str(), (prefix+wilsonName+"YZ_details").c_str(), nBin*100, 0, nBin);
 
     for (int i=0; i<nBin*3600; i++){
 	hXX_details->SetBinContent(i+1, SME::fXX(t0+i*3600/100));
@@ -325,7 +346,7 @@ void SME::generateModulation(int t0, int nBin)
 
 }
 
-void SME::generateModulationPerMassBin(int t0, int nBin, int binMass)
+void SME::generateModulationPerMassBin(int t0, int nBin, int binMass, bool doSingleTop)
 {
     std::string wilsonName;
     if(wilson == Wilson::L)
@@ -337,10 +358,13 @@ void SME::generateModulationPerMassBin(int t0, int nBin, int binMass)
     else if(wilson == Wilson::D)
         wilsonName = "d";
 
-    TH1F *hXX = new TH1F((wilsonName+"XX_"+std::to_string(binMass)).c_str(), (wilsonName+"XX_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
-    TH1F *hXY = new TH1F((wilsonName+"XY_"+std::to_string(binMass)).c_str(), (wilsonName+"XY_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
-    TH1F *hXZ = new TH1F((wilsonName+"XZ_"+std::to_string(binMass)).c_str(), (wilsonName+"XZ_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
-    TH1F *hYZ = new TH1F((wilsonName+"YZ_"+std::to_string(binMass)).c_str(), (wilsonName+"YZ_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
+    std::string prefix = "";
+    if (doSingleTop) prefix = "singletop_";
+
+    TH1F *hXX = new TH1F((prefix+wilsonName+"XX_"+std::to_string(binMass)).c_str(), (prefix+wilsonName+"XX_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
+    TH1F *hXY = new TH1F((prefix+wilsonName+"XY_"+std::to_string(binMass)).c_str(), (prefix+wilsonName+"XY_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
+    TH1F *hXZ = new TH1F((prefix+wilsonName+"XZ_"+std::to_string(binMass)).c_str(), (prefix+wilsonName+"XZ_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
+    TH1F *hYZ = new TH1F((prefix+wilsonName+"YZ_"+std::to_string(binMass)).c_str(), (prefix+wilsonName+"YZ_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
 //    for(int i = 0; i < nBin; ++i){
 //        hXX->SetBinContent(i+1, fXX((t0+i)%24*3600));
 //        hXY->SetBinContent(i+1, fXY((t0+i)%24*3600));
@@ -348,10 +372,10 @@ void SME::generateModulationPerMassBin(int t0, int nBin, int binMass)
 //        hYZ->SetBinContent(i+1, fYZ((t0+i)%24*3600));
 //    }
 
-    TH1F *hXX_details = new TH1F((wilsonName+"XX_details"+std::to_string(binMass)).c_str(), (wilsonName+"XX_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
-    TH1F *hXY_details = new TH1F((wilsonName+"XY_details"+std::to_string(binMass)).c_str(), (wilsonName+"XY_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
-    TH1F *hXZ_details = new TH1F((wilsonName+"XZ_details"+std::to_string(binMass)).c_str(), (wilsonName+"XZ_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
-    TH1F *hYZ_details = new TH1F((wilsonName+"YZ_details"+std::to_string(binMass)).c_str(), (wilsonName+"YZ_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
+    TH1F *hXX_details = new TH1F((prefix+wilsonName+"XX_details"+std::to_string(binMass)).c_str(), (prefix+wilsonName+"XX_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
+    TH1F *hXY_details = new TH1F((prefix+wilsonName+"XY_details"+std::to_string(binMass)).c_str(), (prefix+wilsonName+"XY_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
+    TH1F *hXZ_details = new TH1F((prefix+wilsonName+"XZ_details"+std::to_string(binMass)).c_str(), (prefix+wilsonName+"XZ_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
+    TH1F *hYZ_details = new TH1F((prefix+wilsonName+"YZ_details"+std::to_string(binMass)).c_str(), (prefix+wilsonName+"YZ_details"+std::to_string(binMass)).c_str(), nBin*100, 0, nBin);
 
     //std::vector<double> vec_avg_XX;
     //std::vector<double> vec_avg_XY;
