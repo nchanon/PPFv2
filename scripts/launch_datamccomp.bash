@@ -7,7 +7,7 @@ do
     python ./bin/data_mc_comparaison_splitted.py pt_elec ${i} "Electron p_{T} (GeV)"
     python ./bin/data_mc_comparaison_splitted.py eta_muon ${i} "Muon #eta"
     python ./bin/data_mc_comparaison_splitted.py pt_muon ${i} "Muon p_{T} (GeV)"
-    python ./bin/data_mc_comparaison_splitted.py n_bjets ${i} "number of b-jets"
+    python ./bin/data_mc_comparaison_splitted.py n_bjets ${i} "number of b jets"
     python ./bin/data_mc_comparaison_splitted.py n_jets ${i} "number of jets"
     python ./bin/data_mc_comparaison_splitted.py j1_pt ${i} "First jet p_{T} (GeV)"
     python ./bin/data_mc_comparaison_splitted.py j1_eta ${i} "First jet #eta"

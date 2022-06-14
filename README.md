@@ -60,7 +60,7 @@ This PyPlotFramework, is built in 2 part:
 
 This histogram creator will be executed for each observable. This c++ code will ask you a option to run on all type of sample or just specifique one.
 
-The list of option is : [All, mc, data, jec, alt, timed, sme]
+The list of option is : [All, mc, data, jec, alt, timed, sme, inclusive]
 'sme' create a rootfile with f function in './results/"year"/flattree' directory, usefull for combine inputs creation.
 
     > ./bin/histograms_creator "observable" "year" "option"
@@ -89,47 +89,78 @@ Alternative uncertainties need an additional layer (requiring the histograms_cre
 
     >  python bin/color_reco.py m_dilep 2017 timed
 
-If you want to run the inclusive analysis in one shot:
+If you want to run the inclusive analysis:
 
     > ./bin/histograms_creator m_dilep 2017 inclusive
 
     >  python bin/color_reco.py m_dilep 2017 inclusive
 
+You also need to run on data:
+
+    > ./bin/histograms_creator m_dilep 2017 data
+
 
 # Comparaison Data/Monte-Carlo
 
-Once the histograms produced with the "forComp" option, data/mc comparaison can be created for a given observable:
+Once the histograms produced with the "forComp" option (same as inclusive setup), data/mc comparaison can be created for a given observable:
 
     > python ./bin/data_mc_comparaison.py "observable" "year" "title"
 
-example : 
+Actually, one should now use the data/mc comparisons by splitting in MC processes, using:
 
-    > python ./bin/data_mc_comparaison.py m_dilep 2017 "Dilepton mass (GeV)"
+    > python ./bin/data_mc_comparaison_splitted.py "observable" "year" "title"
+
+
+example: 
+
+    > python ./bin/data_mc_comparaison_splitted.py m_dilep 2017 "Dilepton mass (GeV)"
+
+or:
+
+    > python ./bin/data_mc_comparaison_splitted.py n_bjets 2017 "number of b jets"
+
 
 If willing to produce all data/mc comparisons in one shot:
 
     > python scripts/launch_hist_creator.py
     > source scripts/launch_datamccomp.bash
 
+
+# Comparaison signal / backrgounds in the Monte-Carlo
+
+To compare signal and backgrounds (normalized to 1), one can use bin/mc_comparaison.py script.
+
+Example:
+
+    > python bin/mc_comparaison.py n_bjets 2017 "number of b jets"
+
+
 # Checking Systematics
 
 Checking all systematics at a time (weight uncertainties, ALT and JEC):
 
-    > python scripts/control_systematics.py "year"
+    > python scripts/control_systematics.py "year" "timed"
+
+Please check the scripts for command line options, you need to add "timed" or "inclusive"
 
 As an example:
 
-    > python scripts/control_systematics.py 2017
+    > python scripts/control_systematics.py 2017 timed
+
+or:
+
+    > python scripts/control_systematics.py 2017 inclusive
+
 
 By modifying the script, you can choose to plot some systematics and some other not.
 
-It's also possible to check each systematics individually (function called by the contro_systematics.py): 
+It's also possible to check each systematics individually (function called by the control_systematics.py): 
 
-    > python ./bin/systematics_observable.py "observable" "year" "systematic" "title"
+    > python ./bin/systematics_observable.py "observable" "year" "timed or inclusive" "systematic" "title"
 
 example : 
 
-    > python ./bin/systematics_observable.py m_dilep 2017 syst_elec_id "electron id"
+    > python ./bin/systematics_observable.py m_dilep 2017 inclusive syst_elec_id "electron id"
 
 In case you don't sure what systematics are implemented just type :
 
@@ -159,6 +190,11 @@ All will be stored in the ./combine/year/ directory.
 
 example :
 
+    > python ./bin/combine_inclusive.py m_dilep 2017
+    > ./bin/card_creator m_dilep 2017 Inclusive
+
+    or
+
     > python ./bin/combine_unrolled.py m_dilep 2017 
     > ./bin/card_creator m_dilep 2017 Unrolled
 
@@ -184,6 +220,10 @@ example :
 First modify the line 19 of file script/scripts/export_combine.py, to set the path of your combine area, for instance:
  
     # path_out = '/gridgroup/cms/nchanon/CMSSW_10_2_13/src/combine-ttbar/'+directory+'/inputs/'+year+'/'
+
+Export the inputs to inclusive measurement combine area:
+
+    > python scripts/export_combine.py inclusive 2017
 
 Export the inputs to differential measurement combine area:
 
