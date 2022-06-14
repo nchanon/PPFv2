@@ -115,7 +115,7 @@ effective_data_event_2016 = [
 ]
 
 systematic_rate_2016 = [ # AN2019-228 v5, TOP-20-006
-    1.05,
+    1.04,
     1.2, #ttx
     1.3, #singletop
     1.3, #dibosons
@@ -189,7 +189,7 @@ cross_section_2017 = {
     'MC_signal_hadronic'          :377.96006,   
     'MC_signal_semilep'           :366.91429,   
     'MC_singletop_ST_s'           :10.32,    
-    'MC_singletop_ST_s2'          :10.32,    
+    #'MC_singletop_ST_s2'          :10.32,    
     'MC_singletop_ST_tW_antitop'  :35.5,     
     #'MC_singletop_ST_tW_antitop2' :35.5,     
     'MC_singletop_ST_tW_top'      :35.5,     
@@ -220,7 +220,7 @@ cross_sec_2017 = [
     366.91429,   # signal semilep
 
     10.32,    # singletop STs
-    10.32,    # singletop STs2
+    #10.32,    # singletop STs2
     #35.85,     # singletop tW antitop
     35.85,     # singletop tw2 antitop
     #35.85,     # singletop tW  top
@@ -262,7 +262,7 @@ effective_data_event_2017 = [
 ]
 
 systematic_rate_2017 = [ # AN2019-228 v5, TOP-20-006
-    1.05,
+    1.04,
     1.2, #ttx
     1.3, #singletop
     1.3, #dibosons

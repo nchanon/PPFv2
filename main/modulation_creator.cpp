@@ -22,7 +22,13 @@ int main(int argc, char** argv){
          //launch = argv[3];
     }
 
+    int nKinBin = -1;
+    if (obs=="n_bjets") nKinBin = 6;
+    if (obs=="pt_emu" || obs=="m_dilep") nKinBin = 8;
+
     std::cout << "Observable: "<<obs << std::endl;
+
+
 
     //int binage = 86400;
     int binage = 24;
@@ -56,7 +62,7 @@ int main(int argc, char** argv){
             sme[j].generateModulation(t0, binage, false);
         }
 
-	for (int m=0; m<8; m++){
+	for (int m=0; m<nKinBin; m++){
 	  std::vector<SME> smePerMassBin{
               SME(Wilson::L, m, obs, false),
               SME(Wilson::R, m, obs, false),
@@ -79,7 +85,7 @@ int main(int argc, char** argv){
             sme_singletop[j].generateModulation(t0, binage, true);
         }
 
-        for (int m=0; m<8; m++){
+        for (int m=0; m<nKinBin; m++){
           std::vector<SME> smePerMassBin_singletop{
               SME(Wilson::L, m, obs, true),
               SME(Wilson::R, m, obs, true),

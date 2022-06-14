@@ -15,6 +15,10 @@ nbin = 24
 
 doExpTimeNuisance = True
 
+#triggerOption = 0 #Full trigger syst uncertainties including Nvtx partition
+#triggerOption = 1 #Trigger syst uncertainties without Nvtx partition
+triggerOption = 2 #Trigger syst uncertainties treated as uncorrelated in time
+
 ################################################################################
 ## Initialisation stuff
 ################################################################################
@@ -56,7 +60,12 @@ hist_lumi_corr = lumisyst_file.Get('hInstLumi_DataScaleFactor')
 
 #triggersyst_file = TFile('./inputs/timed/AllTimedSyst_'+year+'.root')
 triggersyst_file = TFile('./inputs/timed/TriggerSF_'+year+'.root')
-hist_triggerSF = triggersyst_file.Get('h_SF_emu_sidereel_Full_UncBand')
+triggersystNovtx_file = TFile('./inputs/timed/TriggerSF_'+year+'_noNvtx.root')
+
+if triggerOption==0:
+    hist_triggerSF = triggersyst_file.Get('h_SF_emu_sidereel_Full_UncBand')
+if triggerOption==1:
+    hist_triggerSF = triggersystNovtx_file.Get('h_SF_emu_sidereel_Full_UncBand')
 
 for l in lumisyst_file.GetListOfKeys():
     if not TString(l.GetName()).Contains('DataScaleFactor'):
@@ -78,7 +87,10 @@ for l in lumisyst_file.GetListOfKeys():
     #    time_syst_up.update({systematic_time_list[3]: lumisyst_file.Get(l.GetName())})
 
 # Body
-mc_file = TFile('./results/'+year+'/flattree/'+observable+'.root')
+if triggerOption==0 or triggerOption==1: 
+    mc_file = TFile('./results/'+year+'/flattree/'+observable+'.root')
+if triggerOption==2:
+    mc_file = TFile('./results/'+year+'/flattree/'+observable+'_inclusive.root')
 
 h_nom = []
 
@@ -92,7 +104,7 @@ for l in mc_file.GetListOfKeys():
             if l.GetName()==proc:
                 h_nom.append(mc_file.Get(l.GetName()))
 
-    if TString(l.GetName()).Contains('syst_b_uncorrelated') or TString(l.GetName()).Contains('syst_l_uncorrelated'):
+    if TString(l.GetName()).Contains('syst_b_uncorrelated') or TString(l.GetName()).Contains('syst_l_uncorrelated') or TString(l.GetName()).Contains('syst_em_trig'):
 	curname = histograms[-1].GetName()
         found = curname.find('Up')
 	if (found==-1): 
@@ -126,7 +138,11 @@ for l in mc_file.GetListOfKeys():
 
 
 #alt_file = TFile('./results/'+year+'/flattree/'+observable+'_alt.root')
-alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco.root')
+if triggerOption==0 or triggerOption==1:
+    alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco.root')
+if triggerOption==2:
+    alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco_inclusive.root')
+
 for l in alt_file.GetListOfKeys():
     h = alt_file.Get(l.GetName())
     h.Scale(1./nbin)
@@ -141,7 +157,11 @@ for l in alt_file.GetListOfKeys():
                 histograms[-1].Scale(h.Integral()/area)
 
 
-jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec.root')
+if triggerOption==0 or triggerOption==1:
+    jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec.root')
+if triggerOption==2:
+    jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec_inclusive.root')
+
 for l in jec_file.GetListOfKeys():
     hj = jec_file.Get(l.GetName())
     hname = l.GetName()
@@ -176,12 +196,13 @@ for n in range(nbin):
             else:
                 newprefix = g+'_'+s
             if s == 'emu_trig':
-                hist_up.Scale(hist_triggerSF.GetBinContent(n+1)+hist_triggerSF.GetBinError(n+1))
                 hist_up.SetName(newprefix+'Up')
                 hist_up.SetTitle(newprefix+'Up')
-                hist_down.Scale(hist_triggerSF.GetBinContent(n+1)-hist_triggerSF.GetBinError(n+1))
                 hist_down.SetName(newprefix+'Down')
                 hist_down.SetTitle(newprefix+'Down')
+		if triggerOption==0 or triggerOption==1:
+                    hist_up.Scale(hist_triggerSF.GetBinContent(n+1)+hist_triggerSF.GetBinError(n+1))
+                    hist_down.Scale(hist_triggerSF.GetBinContent(n+1)-hist_triggerSF.GetBinError(n+1))
             else:
                 hist_up.Scale(time_syst_up[s].GetBinContent(n+1))
                 hist_up.SetName(newprefix+'Up')
@@ -189,8 +210,9 @@ for n in range(nbin):
                 hist_down.Scale(time_syst_down[s].GetBinContent(n+1))
                 hist_down.SetName(newprefix+'Down')
                 hist_down.SetTitle(newprefix+'Down')
-                hist_up.Scale(hist_triggerSF.GetBinContent(n+1))
-                hist_down.Scale(hist_triggerSF.GetBinContent(n+1))
+		if triggerOption==0 or triggerOption==1:
+                    hist_up.Scale(hist_triggerSF.GetBinContent(n+1))
+                    hist_down.Scale(hist_triggerSF.GetBinContent(n+1))
             hist_tim.append(hist_up)
             hist_tim.append(hist_down)
     '''
@@ -213,14 +235,15 @@ for n in range(nbin):
     for h in histograms:
 	h_new = h.Clone()
 	if doExpTimeNuisance:
-	    if (TString(h.GetName()).Contains('syst_elec_reco') or TString(h.GetName()).Contains('syst_elec_id') or TString(h.GetName()).Contains('syst_muon_id') or TString(h.GetName()).Contains('syst_muon_iso') or TString(h.GetName()).Contains('syst_pu') or TString(h.GetName()).Contains('syst_b_correlated') or TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_correlated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_prefiring') or TString(h.GetName()).Contains('jec')):
+	    if (TString(h.GetName()).Contains('syst_elec_reco') or TString(h.GetName()).Contains('syst_elec_id') or TString(h.GetName()).Contains('syst_muon_id') or TString(h.GetName()).Contains('syst_muon_iso') or TString(h.GetName()).Contains('syst_pu') or TString(h.GetName()).Contains('syst_b_correlated') or TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_correlated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_prefiring') or TString(h.GetName()).Contains('jec') or TString(h.GetName()).Contains('syst_em_trig')):
                 curname = h.GetName()
                 found = curname.find('Up')
                 if (found==-1):
                     found = curname.find('Down')
                 newname = curname[:found] + '_t' + str(n) + curname[found:]
 	        h_new.SetName(newname)
-	h_new.Scale(hist_triggerSF.GetBinContent(n+1)) #Is it correct?
+	if triggerOption==0 or triggerOption==1:
+	    h_new.Scale(hist_triggerSF.GetBinContent(n+1)) #Is it correct?
         h_new.Write()
 
     for h in hist_tim:

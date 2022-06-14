@@ -42,6 +42,13 @@ int main(int argc, char** argv){
     if (year=="2017") iyear = 1;
 
     bool doExpTimeNuisance = true;
+    //int triggerOption = 0; //Full trigger syst uncertainties including Nvtx partition
+    //int triggerOption = 1; //Trigger syst uncertainties without Nvtx partition
+    int triggerOption = 2; //Trigger syst uncertainties treated as uncorrelated in time
+    
+    bool doAllWilson = false;
+    if (wilson=="sme_all") doAllWilson = true;
+    std::string wilsonList[16] = {"cLXX","cLXY","cLXZ","cLYZ","cRXX","cRXY","cRXZ","cRYZ","cXX","cXY","cXZ","cYZ","dXX","dXY","dXZ","dYZ"};
 
     //Lumi flat uncertainties
     std::string lumi_flat_uncorr[2] = {"1.009", "1.014"};
@@ -129,7 +136,10 @@ int main(int argc, char** argv){
             for(std::string const& syst : systematicList){
                 if(syst == "syst_pt_top")
                     datacard.addProcSystToCard(syst, "shape", ttbarList, "signal",false);
-                else if (syst == "syst_em_trig") continue;
+                else if (syst == "syst_em_trig") {
+		    if (triggerOption==0 || triggerOption==1) continue;
+		    else if (triggerOption==2) datacard.addSystToCard(syst + "_" + year + timebin, "shape", ttbarList);
+		}
 		else if (syst == "syst_b_uncorrelated" || syst == "syst_l_uncorrelated")
 		    datacard.addSystToCard(syst + "_" + year + timebin, "shape", ttbarList);
 		else if (syst == "syst_qcdscale"){
@@ -175,7 +185,11 @@ int main(int argc, char** argv){
             for(std::string const& syst : systematicTimeList){
                 if (syst == "lumi_flat") continue;
                 if (syst != "emu_trig" && syst != "lumi_stability" && syst != "lumi_linearity") datacard.addSystToCard(syst, "shape", ttbarList);
-                else datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
+                else if (syst != "emu_trig") datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
+		else if (syst == "emu_trig") {
+		    if (triggerOption==0 || triggerOption==1) datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
+		    if (triggerOption==2) continue;
+		}
             }
 
             //datacard.addSystToCard_alternative(false);
@@ -307,16 +321,25 @@ int main(int argc, char** argv){
             for (int k=0; k<24; k++) timebin[k] = "_t" + std::to_string(k);
         }
 
-        ttbarList.push_back("");
-        systematicRate.push_back("");
-        for(size_t i = ttbarList.size(); i > 1 ; --i){
-            ttbarList[i-1] = ttbarList[i-2];
-        }
-        for(size_t i = systematicRate.size(); i > 1 ; --i){
-            systematicRate[i-1] = systematicRate[i-2];
-        }
-        ttbarList[0] =  wilson;
-        systematicRate[0] =  "1.05";
+	if (!doAllWilson){
+            ttbarList.push_back("");
+            systematicRate.push_back("");
+
+            for(size_t i = ttbarList.size(); i > 1 ; --i){
+                ttbarList[i-1] = ttbarList[i-2];
+            }
+            for(size_t i = systematicRate.size(); i > 1 ; --i){
+                systematicRate[i-1] = systematicRate[i-2];
+            }
+            ttbarList[0] =  wilson;
+            systematicRate[0] =  "1.05";
+	}
+	else if (doAllWilson){
+	    for (int iw=0; iw<16; iw++){
+		ttbarList.insert(ttbarList.begin(), wilsonList[15-iw]);
+		systematicRate.insert(systematicRate.begin(), "1.05");
+	    }
+	}
 
         double numberOfEvents;
         std::ifstream f("./combine/"+year+"/"+observable+"_noe_data.txt");
@@ -327,7 +350,8 @@ int main(int argc, char** argv){
         std::string name = observable;
         datacard.addGlobalParameter(ttbarList);
         datacard.addSeparator();
-        datacard.addInputsProcess("./inputs/"+year+"/", name+"_"+wilson+".root");
+        if (!doAllWilson) datacard.addInputsProcess("./inputs/"+year+"/", name+"_"+wilson+".root");
+	if (doAllWilson) datacard.addInputsProcess("./inputs/"+year+"/", name+"_sme_all.root");
         datacard.addSeparator();
         datacard.addChanels(observable, numberOfEvents);
         datacard.addSeparator();
@@ -338,7 +362,12 @@ int main(int argc, char** argv){
         for(std::string const& syst : systematicList){
             if(syst == "syst_pt_top")
                 datacard.addProcSystToCard(syst, "shape", ttbarList, "signal",true);
-            else if (syst == "syst_em_trig") continue;
+            else if (syst == "syst_em_trig") {
+		if (triggerOption==0 || triggerOption==1) continue;
+		if (triggerOption==2) {
+		    for (int k=0; k<24; k++) datacard.addSystToCard(syst + "_" + year + timebin[k], "shape", ttbarList);
+		}
+	    }
             else if (syst == "syst_b_uncorrelated" || syst == "syst_l_uncorrelated") {
                 if (doExpTimeNuisance) {
 		    for (int k=0; k<24; k++) datacard.addSystToCard(syst + "_" + year + timebin[k], "shape", ttbarList);
@@ -394,7 +423,11 @@ int main(int argc, char** argv){
         for(std::string const& syst : systematicTimeList){
             if (syst == "lumi_flat") continue;
 	    if (syst != "emu_trig" && syst != "lumi_stability" && syst != "lumi_linearity") datacard.addSystToCard(syst, "shape", ttbarList);
-	    else datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
+	    else if (syst != "emu_trig") datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
+	    else if (syst=="emu_trig") {
+		if (triggerOption==0 || triggerOption==1) datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
+		else if (triggerOption==2) continue;
+	    }
 	}
 
         datacard.addProcSystToCard("sme_decay", "shape", ttbarList, "singletop",false);

@@ -6,6 +6,8 @@
 #include <TFile.h>
 #include <TTree.h>
 #include <TH1F.h>
+#include <TH2F.h>
+
 
 using  namelist = std::vector<std::string>;
 
@@ -52,13 +54,20 @@ class Generator{
 	bool eventSelection(TTree           * tree_p);
         bool eventSelection(TTree           * tree_p,
                                 std::string     jecName);
-       
+      
+        float getGenObservableValue(TTree         * tree_p); 
 	float getObservableValue(TTree         * tree_p);
  
         void write(std::string       const& filename,
                    std::vector<TH1F>      & listObject,
                    std::string       const& option_p
                   );
+
+        void write(std::string       const& filename,
+                   std::vector<TH2F>      & listObject,
+                   std::string       const& option_p
+                  );
+
 
         void write(std::string       const& filename,
                    std::vector<std::vector<TH1F>> & listObject,
@@ -68,6 +77,12 @@ class Generator{
 
         void groupingMC(std::vector<TH1F>      & list,
                         namelist          const& groupList_p,
+                        bool                     clean
+                       );
+
+        void groupingMC(std::vector<TH2F>      & list,
+                        namelist          const& groupList_p,
+                        std::string       const& name,
                         bool                     clean
                        );
 
@@ -97,6 +112,15 @@ class Generator{
                                  bool                     clean
                                 );
 
+        void groupingSystematics(std::vector<TH2F>      & list,
+                                 namelist          const& groupList_p,
+				 std::string       const& name,
+                                 namelist          const& systematicsList_p,
+                                 bool                     isUp,
+                                 bool                     clean
+                                );
+
+
 	void groupingLHEweightSystematics(std::vector<TH1F>      & listLHE,
                                           std::vector<TH1F>      & list,
                                     	  namelist          const& groupList_p,
@@ -104,6 +128,13 @@ class Generator{
                                     	  bool                     clean
                                    	);
         
+        void groupingLHEweightSystematics(std::vector<TH2F>      & listLHE,
+                                          std::vector<TH2F>      & list,
+                                          namelist          const& groupList_p,
+ 	                                  std::string       const& name,
+                                          std::string           syst,
+                                          bool                     clean
+                                        );
 
 
     public:

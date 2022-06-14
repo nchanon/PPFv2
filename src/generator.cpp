@@ -342,6 +342,14 @@ bool Generator::eventSelection(TTree           * tree_p,
 
 }
 
+float Generator::getGenObservableValue(TTree         * tree_p)
+{
+    std::string gen_observable = "Events.gen_"+observable;
+    float val = -999;
+    if (tree_p->GetLeaf("Events.gen_matched")->GetValue(0)==0) val = -1;
+    else if (observable=="m_dilep" || observable=="pt_emu" || observable=="n_bjets") val = tree_p->GetLeaf(gen_observable.c_str())->GetValue(0);
+    return val;
+}
 
 float Generator::getObservableValue(TTree         * tree_p)
 {
@@ -450,6 +458,28 @@ void Generator::write(std::string       const& filename,
 }
 
 void Generator::write(std::string       const& filename,
+                      std::vector<TH2F>      & listObject,
+                      std::string       const& option_p
+                     )
+{
+ 
+    TFile *output = new TFile(filename.c_str(), option_p.c_str());
+    for(size_t i = 0; i < listObject.size(); ++i){
+        int nBinX = listObject[i].GetNbinsX();
+        int nBinY = listObject[i].GetNbinsY();
+	for (int ix=0; ix< nBinX ; ix++){
+            listObject[i].SetBinContent(1+ix, nBinY, listObject[i].GetBinContent(1+ix, nBinY)+listObject[i].GetBinContent(1+ix, nBinY+1));
+	}
+        for (int iy=0; iy< nBinY ; iy++){
+            listObject[i].SetBinContent(nBinX, 1+iy, listObject[i].GetBinContent(nBinX, 1+iy)+listObject[i].GetBinContent(nBinX+1, 1+iy));
+        }
+	listObject[i].SetBinContent(nBinX, nBinY, listObject[i].GetBinContent(nBinX, nBinY)+listObject[i].GetBinContent(nBinX+1, nBinY+1));
+        listObject[i].Write();
+    }
+    output->Close();
+}
+
+void Generator::write(std::string       const& filename,
                       std::vector<std::vector<TH1F>> & listObject,
                       std::string       const& option_p
                      )
@@ -467,7 +497,8 @@ void Generator::write(std::string       const& filename,
 
 
 void Generator::groupingMC(std::vector<TH1F>      & list,
-                           namelist          const& groupList_p,                        bool                     clean
+                           namelist          const& groupList_p,
+                           bool                     clean
                           )
 {
 
@@ -482,6 +513,44 @@ void Generator::groupingMC(std::vector<TH1F>      & list,
             if(TString(list[i].GetName()).Contains(grp))
                 h.Add(&list[i]);
         }
+        list.push_back(h);
+    }
+    if(clean)
+        list.erase(list.begin(), list.end()-groupList_p.size());
+}
+
+void Generator::groupingMC(std::vector<TH2F>      & list,
+                           namelist          const& groupList_p,
+                           std::string       const& name,
+                           bool                     clean
+                          )
+{
+    
+    double nbinX = list[0].GetNbinsX();
+    double minX = list[0].GetXaxis()->GetXmin();
+    double maxX = list[0].GetXaxis()->GetXmax();
+    double nbinY = list[0].GetNbinsY();
+    double minY = list[0].GetYaxis()->GetXmin();
+    double maxY = list[0].GetYaxis()->GetXmax();
+
+    for(std::string group : groupList_p){
+        TH2F h((group+"_"+name).c_str(), (group+"_"+name).c_str(), nbinX, minX, maxX, nbinY, minY, maxY);
+        std::string grp = group.substr(1,group.size()-1);
+        for(size_t i = 0; i < list.size(); ++i){
+            if(TString(list[i].GetName()).Contains(grp))
+                h.Add(&list[i]);
+        }
+	/*
+	for (int ix=0; ix<nbinX; ix++){
+	    float area = h.Integral(1+ix, 1+ix, 1, nbinY);
+	    std::cout << "ix+1="<<ix+1<<" area="<<area<<std::endl;
+	    for (int iy=0; iy<nbinY; iy++){
+		float bincontent = h.GetBinContent(ix+1,iy+1);
+		std::cout << "ix+1="<<ix+1<<" iy+1="<< iy+1<<" old="<<bincontent<<" new="<<bincontent/area <<std::endl;
+		h.SetBinContent(ix+1, iy+1, bincontent/area);	
+	    }
+	}
+	*/
         list.push_back(h);
     }
     if(clean)
@@ -591,6 +660,44 @@ void Generator::groupingSystematics(std::vector<TH1F>      & list,
         list.erase(list.begin(), list.end()-(groupList_p.size()*systematicsList_p.size()));
 }
 
+void Generator::groupingSystematics(std::vector<TH2F>      & list,
+                                    namelist          const& groupList_p,
+                           	    std::string       const& name,
+                                    namelist          const& systematicsList_p,
+                                    bool                     isUp,
+                                    bool                     clean
+                                   )
+{
+    double nbinX = list[0].GetNbinsX();
+    double minX = list[0].GetXaxis()->GetXmin();
+    double maxX = list[0].GetXaxis()->GetXmax();
+    double nbinY = list[0].GetNbinsY();
+    double minY = list[0].GetYaxis()->GetXmin();
+    double maxY = list[0].GetYaxis()->GetXmax();
+
+    std::string updown;
+    if(isUp)
+        updown = "Up";
+    else
+        updown = "Down";
+
+    for(std::string group : groupList_p){
+        for(std::string syst : systematicsList_p){
+            TH2F h((group+"_"+name+"_"+syst+updown).c_str(), (group+"_"+name+"_"+syst+updown).c_str(), nbinX, minX, maxX, nbinY, minY, maxY);
+            //TH1F h((group+"_"+syst+updown).c_str(), (group+"_"+syst+updown).c_str(), nbin, min, max);
+            std::string grp = group.substr(1,group.size()-1);
+            for(size_t i = 0; i < list.size(); ++i){
+                if(TString(list[i].GetName()).Contains(grp) and TString(list[i].GetName()).Contains(syst))
+
+                    h.Add(&list[i]);
+            }
+            list.push_back(h);
+        }
+    }
+    if(clean)
+        list.erase(list.begin(), list.end()-(groupList_p.size()*systematicsList_p.size()));
+}
+
 void Generator::groupingLHEweightSystematics(std::vector<TH1F>      & listLHE,
 					     std::vector<TH1F>      & list,
                                     	     namelist          const& groupList_p,
@@ -639,7 +746,7 @@ void Generator::groupingLHEweightSystematics(std::vector<TH1F>      & listLHE,
 	    //double diff_max = 0;
             double min = h_nom.GetBinContent(1+j);
             double max = h_nom.GetBinContent(1+j);
-	    if (syst=="syst_pdfas") std::cout << "bin"<<j<<" nom val="<<h_nom.GetBinContent(1+j) << std::endl;
+	    //if (syst=="syst_pdfas") std::cout << "bin"<<j<<" nom val="<<h_nom.GetBinContent(1+j) << std::endl;
 	    for (int k=0; k<nvar; k++){
 	        if (syst=="syst_qcdscale"){ //enveloppe
 		    if (h[k].GetBinContent(1+j)<min) min=h[k].GetBinContent(1+j);
@@ -669,6 +776,107 @@ void Generator::groupingLHEweightSystematics(std::vector<TH1F>      & listLHE,
 		//h_up.SetBinContent(1+j,h_nom.GetBinContent(1+j)+sqrt(diff_max));
 		//h_down.SetBinContent(1+j,h_nom.GetBinContent(1+j)-sqrt(diff_min));
 	    }    
+        }
+	//up_integ = h_up.Integral()
+	//down_integ = h_down.Integral()
+	//h_up.Scale(h_nom.Integral()/up_integ)
+	//h_down.Scale(h_nom.Integral()/down_integ)
+        listLHE.push_back(h_up);
+        listLHE.push_back(h_down);
+    }
+
+    if(clean)
+        listLHE.erase(listLHE.begin(), listLHE.end()-(groupList_p.size()*2));
+
+}
+
+void Generator::groupingLHEweightSystematics(std::vector<TH2F>      & listLHE,
+					     std::vector<TH2F>      & list,
+                                    	     namelist          const& groupList_p,
+	                                     std::string       const& name,
+                                    	     std::string           syst,
+                                   	     bool                     clean
+                                   	    )
+{
+    //double nbin = listLHE[0].GetNbinsX();
+    //double binmin = listLHE[0].GetXaxis()->GetXmin();
+    //double binmax = listLHE[0].GetXaxis()->GetXmax();
+    double nbinX = list[0].GetNbinsX();
+    double minX = list[0].GetXaxis()->GetXmin();
+    double maxX = list[0].GetXaxis()->GetXmax();
+    double nbinY = list[0].GetNbinsY();
+    double minY = list[0].GetYaxis()->GetXmin();
+    double maxY = list[0].GetYaxis()->GetXmax();
+
+    int nvar = 0;
+    if (syst=="syst_qcdscale") nvar=6;
+    if (syst=="syst_pdfas") nvar=102;
+
+    for(std::string group : groupList_p){
+        TH2F h_up((group+"_"+name+"_"+syst+"Up").c_str(), (group+"_"+name+"_"+syst+"Up").c_str(), nbinX, minX, maxX, nbinY, minY, maxY);
+        TH2F h_down((group+"_"+name+"_"+syst+"Down").c_str(), (group+"_"+name+"_"+syst+"Down").c_str(), nbinX, minX, maxX, nbinY, minY, maxY);
+	TH2F h_nom;
+        for(size_t i = 0; i < list.size(); ++i){
+            if(list[i].GetName()==group+"_"+name) h_nom = list[i];
+        }
+        std::string grp = group.substr(1,group.size()-1);
+
+	TH2F* h = new TH2F[nvar];
+	for (int k=0; k<nvar; k++) h[k] = TH2F((group+"_"+name+"_"+syst+std::to_string(k)).c_str(), (group+"_"+name+"_"+syst+std::to_string(k)).c_str(), nbinX, minX, maxX, nbinY, minY, maxY);
+        for(size_t i = 0; i < listLHE.size(); ++i){
+	    for (int k=0; k<nvar; k++){
+		std::string suffix = std::string(listLHE[i].GetName());
+		std::size_t found = suffix.find("pdfas");
+		suffix = suffix.substr(found+5, suffix.size()-1);
+		//std::cout << "Group "<<group<<" pdf"<<k <<" suffix="<<suffix<<std::endl; 
+                if(syst=="syst_qcdscale" && TString(listLHE[i].GetName()).Contains(grp) and TString(listLHE[i].GetName()).Contains(syst+std::to_string(k))) 
+		    h[k].Add(&listLHE[i]);
+
+                if(syst=="syst_pdfas" && TString(listLHE[i].GetName()).Contains(grp) and suffix==std::to_string(k)){
+		    //std::cout << "Group "<<group<<" pdf"<<k <<" add "<<listLHE[i].GetName()<<std::endl;
+                    h[k].Add(&listLHE[i]);
+		}
+	    }
+        }
+	for (int j=0; j<=nbinX; j++){ //also for the overflow bin
+	  for (int i=0; i<=nbinY; i++){ 
+	    double diff = 0;
+	    double diff_as = 0;
+	    //double diff_min = 0;
+	    //double diff_max = 0;
+            double min = h_nom.GetBinContent(1+j, 1+i);
+            double max = h_nom.GetBinContent(1+j, 1+i);
+	    //if (syst=="syst_pdfas") std::cout << "bin"<<j<<" nom val="<<h_nom.GetBinContent(1+j) << std::endl;
+	    for (int k=0; k<nvar; k++){
+	        if (syst=="syst_qcdscale"){ //enveloppe
+		    if (h[k].GetBinContent(1+j,1+i)<min) min=h[k].GetBinContent(1+j, 1+i);
+                    if (h[k].GetBinContent(1+j,1+i)>max) max=h[k].GetBinContent(1+j, 1+i);
+		}
+                else if (syst=="syst_pdfas"){ //sum of difference squared
+		    if  (k<100){
+		      //std::cout << "bin"<<j<<" pdf"<<k<<" val="<<h[k].GetBinContent(1+j) << std::endl;
+		      diff += (h[k].GetBinContent(1+j, 1+i)-h_nom.GetBinContent(1+j, 1+i))*(h[k].GetBinContent(1+j,1+i)-h_nom.GetBinContent(1+j,1+i));
+		      //if (h[k].GetBinContent(1+j)<h_nom.GetBinContent(1+j)) diff_min += (h[k].GetBinContent(1+j)-h_nom.GetBinContent(1+j))*(h[k].GetBinContent(1+j)-h_nom.GetBinContent(1+j));
+		      //if (h[k].GetBinContent(1+j)>h_nom.GetBinContent(1+j)) diff_max += (h[k].GetBinContent(1+j)-h_nom.GetBinContent(1+j))*(h[k].GetBinContent(1+j)-h_nom.GetBinContent(1+j));
+		      //std::cout << "bin"<<j<<" pdf"<<k<<" val="<<h[k].GetBinContent(1+j) <<" sqrt(diff)="<<sqrt(diff)<<std::endl;
+		    }
+		    else if (k==100) diff_as += h[k].GetBinContent(1+j,1+i);
+		    else if (k==101) diff_as -= h[k].GetBinContent(1+j,1+i);
+                }
+	    }
+	    if (syst=="syst_qcdscale"){
+	        h_up.SetBinContent(1+j,1+i,max);
+	        h_down.SetBinContent(1+j,1+i,min);
+	    }
+	    else if (syst=="syst_pdfas"){
+		diff_as /= 2.;
+		diff_as = diff_as*diff_as;
+		h_up.SetBinContent(1+j,1+i,h_nom.GetBinContent(1+j,1+i)+sqrt(diff+diff_as));
+		h_down.SetBinContent(1+j,1+i,h_nom.GetBinContent(1+j,1+i)-sqrt(diff+diff_as));
+		//h_up.SetBinContent(1+j,h_nom.GetBinContent(1+j)+sqrt(diff_max));
+		//h_down.SetBinContent(1+j,h_nom.GetBinContent(1+j)-sqrt(diff_min));
+	    }
+	  }    
         }
 	//up_integ = h_up.Integral()
 	//down_integ = h_down.Integral()
@@ -849,6 +1057,13 @@ void Generator::generateMC(namelist            const& sampleList_p,
     std::vector<TH1F> listQCDscale;
     std::vector<TH1F> listPDFas;
 
+    std::vector<TH2F> listResponseMatrix;
+    std::vector<TH2F> listResponseMatrixUp;
+    std::vector<TH2F> listResponseMatrixDown;
+    std::vector<TH2F> listResponseMatrixQCDscale;
+    std::vector<TH2F> listResponseMatrixPDFas;
+
+
     std::string cleaned="";
     if(!clean_p) cleaned = "_unclean";
 
@@ -866,31 +1081,69 @@ void Generator::generateMC(namelist            const& sampleList_p,
             std::cout  <<  systematicsList_p[i] << std::endl;
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
-    
+	
         std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/NtupleProducer/tree.root";
         TFile* file = new TFile(filename.c_str());
         TTree *tree;
         file->GetObject("events", tree);
+
+        TFile* fileGEN;
+        TTree* treeGEN;
+        std::string filename_gen;
+        if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) {
+            //std::size_t found = suffix.find("pdfas");
+            std::string genSample = sampleList_p[n];
+	    genSample = genSample.substr(3, genSample.size()-1);
+            filename_gen = "./inputs/"+year+"/GEN/"+genSample+"_NanoGEN_"+year+"_selection_particle.root";
+	    std::cout <<"Gen events from "<<filename_gen<<std::endl;
+	    fileGEN = new TFile(filename_gen.c_str(),"READ");
+	    treeGEN = (TTree*)fileGEN->Get("Events");
+	    tree->AddFriend(treeGEN);
+        }
+
         TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
         TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
         TH1F* hist_events      = new TH1F((sampleList_p[n] + "_events").c_str(), observable.c_str(), nBin, minBin, maxBin);
+	TH2F* hist_responseMatrix;
+	if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")){
+	    if (observable=="n_bjets") hist_responseMatrix = new TH2F((sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
+	    else hist_responseMatrix = new TH2F((sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin+1, minBin-1, maxBin, nBin, minBin, maxBin);
+	}
+
         std::vector<TH1F*> histUp(systematicsList_p.size()-2);
         std::vector<TH1F*> histDown(systematicsList_p.size()-2);
         //std::vector<TH1F*> histUpTime(systematicsList_p.size());
         //std::vector<TH1F*> histDownTime(systematicsList_p.size());
         std::vector<TH1F*> histVarQCDscale(6);
         std::vector<TH1F*> histVarPDFas(102);
+
+        std::vector<TH2F*> hist_responseMatrixUp(systematicsList_p.size()-2);
+        std::vector<TH2F*> hist_responseMatrixDown(systematicsList_p.size()-2);
+        std::vector<TH2F*> hist_responseMatrixVarQCDscale(6);
+        std::vector<TH2F*> hist_responseMatrixVarPDFas(102);
+
         for(size_t i = 0; i < systematicsList_p.size(); ++i){
 	    //std::cout  <<  systematicsList_p[i] << std::endl;
             if (systematicsList_p[i]!="syst_qcdscale" && systematicsList_p[i]!="syst_pdfas"){
                histUp[i]   = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+"Up").c_str(), (observable+"Up").c_str(), nBin, minBin, maxBin);
                histDown[i] = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+"Down").c_str(), (observable+"Down").c_str(), nBin, minBin, maxBin);
+	       if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")){
+		   hist_responseMatrixUp[i] = new TH2F((sampleList_p[n] + "_responseMatrix_"+systematicsList_p[i]+"Up").c_str(), (observable+"Up").c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
+                   hist_responseMatrixDown[i] = new TH2F((sampleList_p[n] + "_responseMatrix_"+systematicsList_p[i]+"Down").c_str(), (observable+"Down").c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
+	       } 
 	    }
             else if (systematicsList_p[i]=="syst_qcdscale"){
-	       for(size_t k = 0; k < 6; ++k) histVarQCDscale[k] = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+std::to_string(k)).c_str(), (observable+std::to_string(k)).c_str(), nBin, minBin, maxBin);
+	       for(size_t k = 0; k < 6; ++k) {
+		   histVarQCDscale[k] = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+std::to_string(k)).c_str(), (observable+std::to_string(k)).c_str(), nBin, minBin, maxBin);
+		   if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) hist_responseMatrixVarQCDscale[k] = new TH2F((sampleList_p[n]+"_responseMatrix_"+systematicsList_p[i]+std::to_string(k)).c_str(), (observable+std::to_string(k)).c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin); 
+	       }
 	    }
             else if (systematicsList_p[i]=="syst_pdfas"){
-	       for (size_t k = 0; k < 102; ++k) histVarPDFas[k] = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+std::to_string(k)).c_str(), (observable+std::to_string(k)).c_str(), nBin, minBin, maxBin);
+	       for (size_t k = 0; k < 102; ++k) {
+		   histVarPDFas[k] = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+std::to_string(k)).c_str(), (observable+std::to_string(k)).c_str(), nBin, minBin, maxBin);
+                   if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) hist_responseMatrixVarPDFas[k] = new TH2F((sampleList_p[n]+"_responseMatrix_"+systematicsList_p[i]+std::to_string(k)).c_str(), (observable+std::to_string(k)).c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
+
+	       }
 	    }
         }
 	
@@ -906,7 +1159,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
 	double* systVarQCDscale = new double[6];
 	double* systVarPDFas = new double[102];
 	int nEvents = tree->GetEntriesFast();
-	//int nEvents = 1000;
+	//int nEvents = 100000;
 
         for(int i = 0; i < nEvents; ++i){
             tree->GetEntry(i);
@@ -916,6 +1169,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
                 hist_events->Fill(getObservableValue(tree));
 		//hist_events->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
 		hist->Fill(getObservableValue(tree), weight);
+                if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) hist_responseMatrix->Fill(getObservableValue(tree), getGenObservableValue(tree), weight);
                 //hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
                 for(size_t j = 0; j < systematicsList_p.size(); ++j){
 		    if (systematicsList_p[j]!="syst_qcdscale" && systematicsList_p[j]!="syst_pdfas"){
@@ -923,20 +1177,28 @@ void Generator::generateMC(namelist            const& sampleList_p,
                         systDown = generateSystematics(tree, systematicsList_p[j], false);
                         histUp[j]->Fill(getObservableValue(tree), weight*systUp);
                         histDown[j]->Fill(getObservableValue(tree), weight*systDown);
+			if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) {
+			    hist_responseMatrixUp[j]->Fill(getObservableValue(tree), getGenObservableValue(tree), weight*systUp);
+                            hist_responseMatrixDown[j]->Fill(getObservableValue(tree), getGenObservableValue(tree), weight*systDown);
+			}
                         //histUp[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systUp);
                         //histDown[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systDown);
                     }   
 		    else if (systematicsList_p[j]=="syst_qcdscale"){
 			//systVarQCDscale = new double[6];
 			generateLHEweightSystematics(tree, systematicsList_p[j], systVarQCDscale);
-			for (int k=0; k<6; k++) 
+			for (int k=0; k<6; k++) {
 			   histVarQCDscale[k]->Fill(getObservableValue(tree), weight*systVarQCDscale[k]);
+			   if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) hist_responseMatrixVarQCDscale[k]->Fill(getObservableValue(tree), getGenObservableValue(tree), weight*systVarQCDscale[k]);
+			}
 		    }                     
 		    else if (systematicsList_p[j]=="syst_pdfas"){
                         //double* systVar = new double[102];
                         generateLHEweightSystematics(tree, systematicsList_p[j], systVarPDFas);
-                        for (int k=0; k<102; k++)
+                        for (int k=0; k<102; k++) {
                            histVarPDFas[k]->Fill(getObservableValue(tree), weight*systVarPDFas[k]);
+			   if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) hist_responseMatrixVarPDFas[k]->Fill(getObservableValue(tree), getGenObservableValue(tree), weight*systVarPDFas[k]);
+			}
 		    }
                 }
                 //for(size_t j = 0; j < systematicsTimeList_p.size(); ++j){
@@ -950,6 +1212,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
                 std::cout << "Event "<<i<<" / "<<nEvents << std::endl;
         }
         hist->Scale(correction_p[n]);
+	if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) hist_responseMatrix->Scale(correction_p[n]);
 
         bool doRecomputeUncert = false;
 
@@ -964,23 +1227,38 @@ void Generator::generateMC(namelist            const& sampleList_p,
 	}
 
         list.push_back(*hist);
+        if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) listResponseMatrix.push_back(*hist_responseMatrix);
         for(size_t i = 0; i < systematicsList_p.size(); ++i){
 	    if (systematicsList_p[i]!="syst_qcdscale" && systematicsList_p[i]!="syst_pdfas"){
                 histUp[i]->Scale(correction_p[n]);
                 histDown[i]->Scale(correction_p[n]);
                 listUp.push_back(*histUp[i]);
                 listDown.push_back(*histDown[i]);
+		if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) {
+		    hist_responseMatrixUp[i]->Scale(correction_p[n]);
+		    hist_responseMatrixDown[i]->Scale(correction_p[n]);
+		    listResponseMatrixUp.push_back(*hist_responseMatrixUp[i]);
+                    listResponseMatrixDown.push_back(*hist_responseMatrixDown[i]);
+		}
 	    }
 	    else if (systematicsList_p[i]=="syst_qcdscale"){
 		for (int k=0; k<6; k++) {
 		    histVarQCDscale[k]->Scale(correction_p[n]);
 		    listQCDscale.push_back(*histVarQCDscale[k]);
+		    if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) {
+			hist_responseMatrixVarQCDscale[k]->Scale(correction_p[n]);
+			listResponseMatrixQCDscale.push_back(*hist_responseMatrixVarQCDscale[k]);
+		    }
 		}
 	    }
 	    else if (systematicsList_p[i]=="syst_pdfas"){
                 for (int k=0; k<102; k++) { 
 		    histVarPDFas[k]->Scale(correction_p[n]);
 		    listPDFas.push_back(*histVarPDFas[k]);
+                    if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) {
+			hist_responseMatrixVarPDFas[k]->Scale(correction_p[n]);
+			listResponseMatrixPDFas.push_back(*hist_responseMatrixVarPDFas[k]);
+		    }
 		}
 	    }
         }
@@ -993,45 +1271,92 @@ void Generator::generateMC(namelist            const& sampleList_p,
 
 
         delete hist;
+	if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) delete hist_responseMatrix;
         for(size_t i = 0; i < systematicsList_p.size()-2; ++i){
             delete histUp[i];
             delete histDown[i];
+	    if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) {
+	      delete hist_responseMatrixUp[i];
+	      delete hist_responseMatrixDown[i];
+	    }
             //delete histUpTime[i];
             //delete histDownTime[i];
         }
-	for (int k=0; k<6; k++) delete histVarQCDscale[k];
-	for (int k=0; k<102; k++) delete histVarPDFas[k];
+	for (int k=0; k<6; k++) {
+	    delete histVarQCDscale[k];
+            if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) delete hist_responseMatrixVarQCDscale[k];
+	}
+	for (int k=0; k<102; k++) {
+	    delete histVarPDFas[k];
+            if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) delete hist_responseMatrixVarPDFas[k];
+	}
         delete canvas;
         delete tree;
         delete file;
     }
+
  
     groupingMC(list, groupList_p, clean_p);
     groupingSystematics(listUp, groupList_p, systematicsList_p, true, clean_p);    // isUp = true
     groupingSystematics(listDown, groupList_p, systematicsList_p, false, clean_p); // isUp = false
 
+    std::vector<std::string> groupList_responseMatrix;
+    groupList_responseMatrix.push_back("signal");
+    groupList_responseMatrix.push_back("singletop");
+    groupingMC(listResponseMatrix, groupList_responseMatrix, "responseMatrix", clean_p);
+    groupingSystematics(listResponseMatrixUp, groupList_responseMatrix, "responseMatrix", systematicsList_p, true, clean_p); // isUp = true
+    groupingSystematics(listResponseMatrixDown, groupList_responseMatrix, "responseMatrix", systematicsList_p, false, clean_p); // isUp = false
+
     unsigned int it=0;
     while (it < listUp.size()){
-	if (TString(listUp[it].GetName()).Contains("syst_qcdscale") || TString(listUp[it].GetName()).Contains("syst_pdfas")) listUp.erase(listUp.begin()+it);
+	if (TString(listUp[it].GetName()).Contains("syst_qcdscale") || TString(listUp[it].GetName()).Contains("syst_pdfas")) {
+	    listUp.erase(listUp.begin()+it);
+	}
 	else it++;
     }
     it=0;
     while (it < listDown.size()){
-        if (TString(listDown[it].GetName()).Contains("syst_qcdscale") || TString(listDown[it].GetName()).Contains("syst_pdfas")) listDown.erase(listDown.begin()+it);
+        if (TString(listDown[it].GetName()).Contains("syst_qcdscale") || TString(listDown[it].GetName()).Contains("syst_pdfas")) {
+	    listDown.erase(listDown.begin()+it);
+	}
 	else it++;
     }
+    it=0;
+    while (it < listResponseMatrixUp.size()){
+        if (TString(listResponseMatrixUp[it].GetName()).Contains("syst_qcdscale") || TString(listResponseMatrixUp[it].GetName()).Contains("syst_pdfas")) {
+            listResponseMatrixUp.erase(listResponseMatrixUp.begin()+it);
+        }
+        else it++;
+    }
 
+    it=0;
+    while (it < listResponseMatrixDown.size()){
+        if (TString(listResponseMatrixDown[it].GetName()).Contains("syst_qcdscale") || TString(listResponseMatrixDown[it].GetName()).Contains("syst_pdfas")) {
+            listResponseMatrixDown.erase(listResponseMatrixDown.begin()+it);
+        }
+        else it++;
+    }
+    
     groupingLHEweightSystematics(listQCDscale, list, groupList_p, "syst_qcdscale", clean_p);
     groupingLHEweightSystematics(listPDFas, list, groupList_p, "syst_pdfas", clean_p);
     //groupingSystematics(listTimeUp, groupList_p, systematicsTimeList_p, true, clean_p);    // isUp = true
     //groupingSystematics(listTimeDown, groupList_p, systematicsTimeList_p, false, clean_p); // isUp = false
+    groupingLHEweightSystematics(listResponseMatrixQCDscale, listResponseMatrix, groupList_responseMatrix, "responseMatrix", "syst_qcdscale", clean_p);
+    groupingLHEweightSystematics(listResponseMatrixPDFas, listResponseMatrix, groupList_responseMatrix, "responseMatrix", "syst_pdfas", clean_p);
+
     write(filename_p, list, option_p);
     write(filename_p, listUp, "UPDATE");
     write(filename_p, listDown, "UPDATE");
     write(filename_p, listQCDscale, "UPDATE");
     write(filename_p, listPDFas, "UPDATE");
     //write(filenameTime_p, listTimeUp, "RECREATE");
-    //write(filenameTime_p, listTimeDown, "UPDATE");
+    //write(filenameTime_p, listTimeDown, "UPDATE"); 
+    write(filename_p, listResponseMatrix, "UPDATE");
+    write(filename_p, listResponseMatrixUp, "UPDATE");
+    write(filename_p, listResponseMatrixDown, "UPDATE");
+    write(filename_p, listResponseMatrixQCDscale, "UPDATE");
+    write(filename_p, listResponseMatrixPDFas, "UPDATE");
+
 }
 
 
