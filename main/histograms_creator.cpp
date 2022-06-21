@@ -178,9 +178,9 @@ int main(int argc, char** argv){
 // ------------------------------------------------------------- //
 
 
-    if(launch != "All" and launch != "alt"  and launch != "jec" and launch != "timed" and launch != "mc" and launch != "forComp" and launch != "data" and launch != "sme" and launch!="inclusive")
+    if(launch != "All" and launch != "alt"  and launch != "jec" and launch != "timed" and launch != "mc" and launch != "forComp" and launch != "data" and launch != "sme" and launch!="inclusive" and launch!="test")
     {
-        std::cout << "Error with option : (All, mc, data, alt, jec, timed, sme, forComp, inclusive)" << std::endl;
+        std::cout << "Error with option : (All, mc, data, alt, jec, timed, sme, forComp, inclusive, test)" << std::endl;
         return 0;
     }
 
@@ -189,7 +189,7 @@ int main(int argc, char** argv){
     if(launch == "mc"){
         gen.generateMC(sampleList_MC, triggerList, ttbarList, 
                        systematicList, systematicTimeList,
-                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, true);   
+                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, true, false);   
     }
     else if(launch == "data"){
         gen.generateData(sampleList_DATA, triggerList, data, 
@@ -215,12 +215,17 @@ int main(int argc, char** argv){
     else if(launch == "inclusive"){
         gen.generateMC(sampleList_MC, triggerList, ttbarList,
                        systematicList, systematicTimeList,
-                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, false);
+                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, false, false);
         gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, false);
         //gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, jec_mc_rescale, isIndividualSampleClean, false);
 	gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, mc_rescale, isIndividualSampleClean, false);
         gen.generateData(sampleList_DATA, triggerList, data,
                          succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean);
+    }
+    else if(launch == "test"){
+        gen.generateMC(sampleList_MC, triggerList, ttbarList,
+                       systematicList, systematicTimeList,
+                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, false, false);
     }
     else if(launch == "sme"){
 	std::string cmd_sme = "./bin/modulation_creator "+observable;
@@ -233,7 +238,7 @@ int main(int argc, char** argv){
 	//differential    
         gen.generateMC(sampleList_MC, triggerList, ttbarList, 
                        systematicList,systematicTimeList,
-                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, true);
+                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, true, false);
         gen.generateData(sampleList_DATA, triggerList, data, 
                          succedJobs, "RECREATE", isDataCorrected,  isIndividualSampleClean);           
         gen.generateDataTimed(sampleList_DATA, triggerList, data, 
@@ -244,7 +249,7 @@ int main(int argc, char** argv){
 	//inclusive
         gen.generateMC(sampleList_MC, triggerList, ttbarList,
                        systematicList,systematicTimeList,
-                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, false);
+                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, false, false);
         gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, false);
         //gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, jec_mc_rescale, isIndividualSampleClean, false);
         gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, mc_rescale, isIndividualSampleClean, false);
