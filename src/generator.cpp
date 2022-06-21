@@ -163,10 +163,14 @@ double Generator::generateWeight(TTree *tree_p,  bool isTimed)
     return w;
 }
 
-std::string Generator::generateWeightString(bool isTimed)
+std::string Generator::generateWeightString(bool isTimed, int timebin)
 {
 
-  std::string string_weight = "weight_pu";
+  std::string string_weight = "";
+
+  if (timebin==-1) string_weight = "weight_pu";
+  else string_weight = "weight_putime" + std::to_string(timebin);
+
   string_weight += "*weight_generator";
   string_weight += "*weight_top"; //should be only for ttbar
   string_weight += "*weight_prefiring";
@@ -175,6 +179,7 @@ std::string Generator::generateWeightString(bool isTimed)
   string_weight += "*weight_sfm_id";
   string_weight += "*weight_sfm_iso";
   string_weight += "*weight_sfb";
+
   if (!isTimed)
       string_weight += "*weight_sf_em_trig";
 
@@ -275,14 +280,21 @@ double Generator::generateSystematics(TTree            * tree_p,
 }
 
 std::string Generator::generateSystematicsString(std::string const& systematicName,
-                                      	    bool               isUp
+                                      	    bool               isUp,
+					    int 	       timebin
                                      	   )
 {
     std::string string_weight_syst = "";
 
     if(systematicName == "syst_pu"){
-        if(isUp) string_weight_syst = "weight_pu_up/weight_pu";
-	else string_weight_syst = "weight_pu_down/weight_pu";
+	if (timebin==-1){
+            if(isUp) string_weight_syst = "weight_pu_up/weight_pu";
+	    else string_weight_syst = "weight_pu_down/weight_pu";
+	}
+	else {
+            if(isUp) string_weight_syst = "weight_putime"+std::to_string(timebin)+"_up/weight_putime" + std::to_string(timebin);
+            else string_weight_syst = "weight_putime"+std::to_string(timebin)+"_down/weight_putime"+std::to_string(timebin);
+	}
     }
     else if(systematicName == "syst_pt_top"){
         if(isUp) string_weight_syst = "1";
@@ -1062,7 +1074,8 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
                                //std::vector<std::vector<double>> const& correction_p,
                                std::vector<double> const& correction_p,
                                bool                clean_p,
-                               bool                isTimed_p
+                               bool                isTimed_p,
+                               int                 timebin
                     )
 {
     TH1F::SetDefaultSumw2(1);
@@ -1075,7 +1088,10 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
     std::string sinc="";
     if (!isTimed_p) sinc = "_inclusive";
 
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_jec"+sinc+cleaned+".root";
+    std::string stimebin="";
+    if (timebin!=-1) stimebin = "_t"+std::to_string(timebin);
+
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_jec"+sinc+cleaned+stimebin+".root";
     
     for(size_t jl = 0; jl < jecList_p.size(); ++jl)
     {
@@ -1131,7 +1147,7 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
 	    }
             else if (!doLoop){
                 std::string string_eventSelection = eventSelectionString(jecList_p[jl]);
-                std::string string_weight = generateWeightString(isTimed_p);
+                std::string string_weight = generateWeightString(isTimed_p,timebin);
                 std::string string_triggered = isTriggerPassedString(triggerList_p,true);
                 drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
                 if (doResponseMatrix)
@@ -1170,7 +1186,8 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
                     namelist            const& triggerList_p,
                     std::vector<double> const& correction_p,
                     bool                       clean_p,
-                    bool                       isTimed_p
+                    bool                       isTimed_p,
+		    int   	               timebin
                     )
 {
     TH1F::SetDefaultSumw2(1);
@@ -1182,7 +1199,10 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
     std::string sinc="";
     if (!isTimed_p) sinc = "_inclusive";
 
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_alt"+sinc+cleaned+".root";
+    std::string stimebin="";
+    if (timebin!=-1) stimebin = "_t"+std::to_string(timebin);
+
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_alt"+sinc+cleaned+stimebin+".root";
     
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
@@ -1216,7 +1236,7 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
 	}
 	else if (!doLoop){
             std::string string_eventSelection = eventSelectionString();
-            std::string string_weight = generateWeightString(isTimed_p);
+            std::string string_weight = generateWeightString(isTimed_p, timebin);
             std::string string_triggered = isTriggerPassedString(triggerList_p,true);
             drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
 	}
@@ -1253,7 +1273,8 @@ void Generator::generateMC(namelist            const& sampleList_p,
                            std::vector<double> const& correction_p,
                            std::string         const& option_p,
                            bool                       clean_p,
-                           bool                       isTimed_p
+                           bool                       isTimed_p,
+	                   int                        timebin
                           )
 {
     TH1F::SetDefaultSumw2(1);
@@ -1278,7 +1299,10 @@ void Generator::generateMC(namelist            const& sampleList_p,
     std::string sinc=""; 
     if (!isTimed_p) sinc = "_inclusive";
 
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+sinc+cleaned+".root";
+    std::string stimebin="";
+    if (timebin!=-1) stimebin = "_t"+std::to_string(timebin);
+
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+sinc+cleaned+stimebin+".root";
     //std::string filenameTime_p = "./results/"+year+"/flattree/"+observable+"_timed"+cleaned+".root";
 
     //std::vector<double> timeSystWeightUp(systematicsTimeList_p.size(), 0);
@@ -1427,7 +1451,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
 	}
 	else if (!doLoop){
             std::string string_eventSelection = eventSelectionString();
-            std::string string_weight = generateWeightString(isTimed_p);
+            std::string string_weight = generateWeightString(isTimed_p, timebin);
             std::string string_triggered = isTriggerPassedString(triggerList_p,true);
             //Nominal hist
             drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
@@ -1439,8 +1463,8 @@ void Generator::generateMC(namelist            const& sampleList_p,
 	    //Systematics
 	    for(size_t j = 0; j < systematicsList_p.size(); ++j){
                 if (systematicsList_p[j]!="syst_qcdscale" && systematicsList_p[j]!="syst_pdfas"){
-		    std::string string_syst_up = generateSystematicsString(systematicsList_p[j], true);
-                    std::string string_syst_down = generateSystematicsString(systematicsList_p[j], false);
+		    std::string string_syst_up = generateSystematicsString(systematicsList_p[j], true, timebin);
+                    std::string string_syst_down = generateSystematicsString(systematicsList_p[j], false, timebin);
 	            drawHisto1D(tree, observable, string_eventSelection, string_weight+"*"+string_syst_up, string_triggered, histUp[j]);
                     drawHisto1D(tree, observable, string_eventSelection, string_weight+"*"+string_syst_down, string_triggered, histDown[j]);
 		    if (doResponseMatrix){
@@ -1668,7 +1692,7 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
 	}
 	else if (!doLoop){
 	    std::string string_eventSelection = eventSelectionString();
-	    std::string string_weight = generateWeightString(false);
+	    std::string string_weight = generateWeightString(false,-1);
 	    std::string string_triggered = isTriggerPassedString(triggerList_p,true);
 	    drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
 	    //std::string string_cut = "(" + string_eventSelection + ")*" + string_weight + "*" + string_triggered;

@@ -34,14 +34,15 @@ class Generator{
         void drawHisto2D(TTree* tree, std::string obs1, std::string obs2, std::string string_eventSelection, std::string string_weight, std::string string_triggered, TH2F* hist);
 
         double generateWeight(TTree *tree_p, bool isTimed=true);
-        std::string generateWeightString(bool isTimed=true);
+        std::string generateWeightString(bool isTimed=true, int timebin=-1);
 
         double generateSystematics(TTree            * tree_p,
                                    std::string const& systematicName,
                                    bool               isUp
                                   );
 	std::string generateSystematicsString(std::string const& systematicName,
-		                              bool               isUp
+		                              bool               isUp,
+					      int 		 timebin
                                   	     );
 
 	void generateLHEweightSystematics(TTree            * tree_p,
@@ -168,7 +169,8 @@ class Generator{
                            namelist            const& triggerList_p,
                            std::vector<double> const& correction_p,
                            bool                clean_p = true,
-                           bool                isTimed_p = true
+                           bool                isTimed_p = true,
+                           int                 timebin = -1
                           );
 
         void generateJecMC(namelist            const& sampleList_p,
@@ -178,7 +180,8 @@ class Generator{
                            //std::vector<std::vector<double>> const& correction_p,
                            std::vector<double> const& correction_p,
                            bool                clean_p = true,
-                           bool                isTimed_p = true
+                           bool                isTimed_p = true,
+                           int                 timebin = -1
                           );
 
         void generateMC(namelist            const& sampleList_p,
@@ -190,8 +193,8 @@ class Generator{
                         std::vector<double> const& correction_p,
                         std::string         const& rootOption_p,
                         bool                       clean_p = true,
-                        bool                       isTimed_p = true
-
+                        bool                       isTimed_p = true,
+			int			   timebin = -1
                        );
 
         void generateMCforComp(namelist            const& sampleList_p,
