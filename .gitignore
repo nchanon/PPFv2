@@ -4,5 +4,6 @@
 *.txt
 *.png
 *.pdf
+*.out
 inputs/
 .vscode/

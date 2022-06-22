@@ -169,7 +169,9 @@ std::string Generator::generateWeightString(bool isTimed, int timebin)
   std::string string_weight = "";
 
   if (timebin==-1) string_weight = "weight_pu";
-  else string_weight = "weight_putime" + std::to_string(timebin);
+  if (timebin==-2) string_weight = "weight_punew";
+  if (timebin==-3) string_weight = "weight_puinc";
+  else if (timebin>=0) string_weight = "weight_putime" + std::to_string(timebin);
 
   string_weight += "*weight_generator";
   string_weight += "*weight_top"; //should be only for ttbar
@@ -291,7 +293,15 @@ std::string Generator::generateSystematicsString(std::string const& systematicNa
             if(isUp) string_weight_syst = "weight_pu_up/weight_pu";
 	    else string_weight_syst = "weight_pu_down/weight_pu";
 	}
-	else {
+        if (timebin==-2){
+            if(isUp) string_weight_syst = "weight_punew_up/weight_punew";
+            else string_weight_syst = "weight_punew_down/weight_punew";
+        }
+        if (timebin==-3){
+            if(isUp) string_weight_syst = "weight_puinc_up/weight_puinc";
+            else string_weight_syst = "weight_puinc_down/weight_puinc";
+        }
+	else if (timebin>=0) {
             if(isUp) string_weight_syst = "weight_putime"+std::to_string(timebin)+"_up/weight_putime" + std::to_string(timebin);
             else string_weight_syst = "weight_putime"+std::to_string(timebin)+"_down/weight_putime"+std::to_string(timebin);
 	}
@@ -1089,7 +1099,10 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
     if (!isTimed_p) sinc = "_inclusive";
 
     std::string stimebin="";
-    if (timebin!=-1) stimebin = "_t"+std::to_string(timebin);
+    if (timebin==-1) stimebin = "_puold";
+    if (timebin==-2) stimebin = "_punew";
+    if (timebin==-3) stimebin = "_puinc";
+    if (timebin>=0) stimebin = "_put"+std::to_string(timebin);
 
     std::string filename_p = "./results/"+year+"/flattree/"+observable+"_jec"+sinc+cleaned+stimebin+".root";
     
@@ -1200,7 +1213,10 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
     if (!isTimed_p) sinc = "_inclusive";
 
     std::string stimebin="";
-    if (timebin!=-1) stimebin = "_t"+std::to_string(timebin);
+    if (timebin==-1) stimebin = "_puold";
+    if (timebin==-2) stimebin = "_punew";
+    if (timebin==-3) stimebin = "_puinc";
+    if (timebin>=0) stimebin = "_put"+std::to_string(timebin);
 
     std::string filename_p = "./results/"+year+"/flattree/"+observable+"_alt"+sinc+cleaned+stimebin+".root";
     
@@ -1300,7 +1316,10 @@ void Generator::generateMC(namelist            const& sampleList_p,
     if (!isTimed_p) sinc = "_inclusive";
 
     std::string stimebin="";
-    if (timebin!=-1) stimebin = "_t"+std::to_string(timebin);
+    if (timebin==-1) stimebin = "_puold";
+    if (timebin==-2) stimebin = "_punew";
+    if (timebin==-3) stimebin = "_puinc";
+    if (timebin>=0) stimebin = "_put"+std::to_string(timebin);
 
     std::string filename_p = "./results/"+year+"/flattree/"+observable+sinc+cleaned+stimebin+".root";
     //std::string filenameTime_p = "./results/"+year+"/flattree/"+observable+"_timed"+cleaned+".root";
@@ -1648,7 +1667,8 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
                            namelist            const& groupList_p,
                            std::vector<double> const& correction_p,
                            std::string         const& option_p,
-                           bool                       clean_p
+                           bool                       clean_p,
+			   int			      timebin
                           )
 {
     TH1F::SetDefaultSumw2(1);
@@ -1657,7 +1677,13 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
 
     std::string cleaned;
     if(!clean_p) cleaned = "_unclean";
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+cleaned+"_forComp.root";
+
+    std::string stimebin="";
+    if (timebin==-1) stimebin = "_puold";
+    if (timebin==-2) stimebin = "_punew";
+    if (timebin==-3) stimebin = "_puinc";
+
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+cleaned+"_forComp"+stimebin+".root";
 
     //ROOT::EnableImplicitMT();
 
@@ -1692,7 +1718,7 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
 	}
 	else if (!doLoop){
 	    std::string string_eventSelection = eventSelectionString();
-	    std::string string_weight = generateWeightString(false,-1);
+	    std::string string_weight = generateWeightString(false,timebin);
 	    std::string string_triggered = isTriggerPassedString(triggerList_p,true);
 	    drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
 	    //std::string string_cut = "(" + string_eventSelection + ")*" + string_weight + "*" + string_triggered;

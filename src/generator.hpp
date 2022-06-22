@@ -202,7 +202,8 @@ class Generator{
                         namelist            const& groupList_p,
                         std::vector<double> const& correction_p,
                         std::string         const& rootOption_p,
-                        bool                       clean_p = true
+                        bool                       clean_p = true,
+                        int                        timebin = -1
                        );
 
         void generateData(namelist            const& sampleList_p,
