@@ -11,6 +11,9 @@
 #include <TString.h>
 #include <TList.h>
 #include <TLorentzVector.h>
+#include <ROOT/RDataFrame.hxx>
+
+//using namespace ROOT;
 
 using namespace std;
 
@@ -31,7 +34,11 @@ Generator::Generator(std::string      const& observable_p,
                     ) 
     : observable(observable_p), nBin(binning_p[0]), minBin(binning_p[1]), maxBin(binning_p[2]),  year(year_p)
 {
-  /*
+
+    //doLoop = true;
+    doLoop = false;
+
+/*
     std::ifstream infile("./inputs/timed/LumiData_"+year+".csv");
     if(!infile.is_open()){
         std::cout << "Problem with lumi csv file" << std::endl;
@@ -63,7 +70,8 @@ Generator::Generator(std::string      const& observable_p,
         
         std::cout << i << " : " << timestamp[i] << " -> " << instLumi[i] << std::endl;
     }
-  */ 
+*/    
+
 }
 
 /////////////////////////////////
@@ -115,6 +123,25 @@ double Generator::luminosityCorrection(TTree *tree_p, double lumiavg)
     return w;
 }
 
+void Generator::drawHisto1D(TTree* tree, std::string obs, std::string string_eventSelection, std::string string_weight, std::string string_triggered, TH1F* hist){
+
+    std::string string_cut = "(" + string_eventSelection + ")*" + string_weight + "*" + string_triggered;
+    //std::cout << "Cut: " << string_cut<<std::endl;
+    std::string string_obs_redirected = obs + " >> " + hist->GetName();
+    tree->Draw(string_obs_redirected.c_str(), string_cut.c_str());
+
+    return;
+}
+
+void Generator::drawHisto2D(TTree* tree, std::string obs1, std::string obs2, std::string string_eventSelection, std::string string_weight, std::string string_triggered, TH2F* hist){
+
+    std::string string_cut = "(" + string_eventSelection + ")*" + string_weight + "*" + string_triggered;
+    //std::cout << "Cut: " << string_cut<<std::endl;
+    std::string string_obs_redirected = obs1 + ":" + obs2 + " >> " + hist->GetName();
+    tree->Draw(string_obs_redirected.c_str(), string_cut.c_str());
+
+    return;
+}
 
 double Generator::generateWeight(TTree *tree_p,  bool isTimed)
 {
@@ -139,6 +166,31 @@ double Generator::generateWeight(TTree *tree_p,  bool isTimed)
     return w;
 }
 
+std::string Generator::generateWeightString(bool isTimed, int timebin)
+{
+
+  std::string string_weight = "";
+
+  if (timebin==-1) string_weight = "weight_pu";
+  if (timebin==-2) string_weight = "weight_punew";
+  if (timebin==-3) string_weight = "weight_puinc";
+  else if (timebin>=0) string_weight = "weight_putime" + std::to_string(timebin);
+
+  string_weight += "*weight_generator";
+  string_weight += "*weight_top"; //should be only for ttbar
+  string_weight += "*weight_prefiring";
+  string_weight += "*weight_sfe_id";
+  string_weight += "*weight_sfe_reco";
+  string_weight += "*weight_sfm_id";
+  string_weight += "*weight_sfm_iso";
+  string_weight += "*weight_sfb";
+
+  if (!isTimed)
+      string_weight += "*weight_sf_em_trig";
+
+  return string_weight;
+}
+
 double Generator::generateSystematics(TTree            * tree_p,
                                       std::string const& systematicName,
                                       bool               isUp
@@ -159,12 +211,12 @@ double Generator::generateSystematics(TTree            * tree_p,
         else
             weight = 1./tree_p->GetLeaf("weight_top")->GetValue(0);
     }
-    else if(systematicName == "syst_b"){
-        if(isUp)
-            weight = tree_p->GetLeaf("weight_sfb_up")->GetValue(0)/tree_p->GetLeaf("weight_sfb")->GetValue(0);
-        else
-            weight = tree_p->GetLeaf("weight_sfb_down")->GetValue(0)/tree_p->GetLeaf("weight_sfb")->GetValue(0);
-    }
+    //else if(systematicName == "syst_b"){
+    //    if(isUp)
+    //        weight = tree_p->GetLeaf("weight_sfb_up")->GetValue(0)/tree_p->GetLeaf("weight_sfb")->GetValue(0);
+    //    else
+    //        weight = tree_p->GetLeaf("weight_sfb_down")->GetValue(0)/tree_p->GetLeaf("weight_sfb")->GetValue(0);
+    //}
     else if(systematicName == "syst_b_correlated"){
         if(isUp)
             weight = tree_p->GetLeaf("weight_sfb_up_correlated")->GetValue(0)/tree_p->GetLeaf("weight_sfb")->GetValue(0);
@@ -177,18 +229,18 @@ double Generator::generateSystematics(TTree            * tree_p,
         else
             weight = tree_p->GetLeaf("weight_sfb_down_uncorrelated")->GetValue(0)/tree_p->GetLeaf("weight_sfb")->GetValue(0);
     }
-    else if(systematicName == "syst_c"){
-        if(isUp)
-            weight = tree_p->GetLeaf("weight_sfc_up")->GetValue(0)/tree_p->GetLeaf("weight_sfc")->GetValue(0);
-        else
-            weight = tree_p->GetLeaf("weight_sfc_down")->GetValue(0)/tree_p->GetLeaf("weight_sfc")->GetValue(0);
-    }
-    else if(systematicName == "syst_l"){
-        if(isUp)
-            weight = tree_p->GetLeaf("weight_sfl_up")->GetValue(0)/tree_p->GetLeaf("weight_sfl")->GetValue(0);
-        else
-            weight = tree_p->GetLeaf("weight_sfl_down")->GetValue(0)/tree_p->GetLeaf("weight_sfl")->GetValue(0);
-    }
+    //else if(systematicName == "syst_c"){
+    //    if(isUp)
+    //        weight = tree_p->GetLeaf("weight_sfc_up")->GetValue(0)/tree_p->GetLeaf("weight_sfc")->GetValue(0);
+    //    else
+    //        weight = tree_p->GetLeaf("weight_sfc_down")->GetValue(0)/tree_p->GetLeaf("weight_sfc")->GetValue(0);
+    //}
+    //else if(systematicName == "syst_l"){
+    //    if(isUp)
+    //        weight = tree_p->GetLeaf("weight_sfl_up")->GetValue(0)/tree_p->GetLeaf("weight_sfl")->GetValue(0);
+    //    else
+    //        weight = tree_p->GetLeaf("weight_sfl_down")->GetValue(0)/tree_p->GetLeaf("weight_sfl")->GetValue(0);
+    //}
     else if(systematicName == "syst_l_correlated"){
         if(isUp)
             weight = tree_p->GetLeaf("weight_sfl_up_correlated")->GetValue(0)/tree_p->GetLeaf("weight_sfb")->GetValue(0);
@@ -232,6 +284,74 @@ double Generator::generateSystematics(TTree            * tree_p,
     return weight;
 }
 
+std::string Generator::generateSystematicsString(std::string const& systematicName,
+                                      	    bool               isUp,
+					    int 	       timebin
+                                     	   )
+{
+    std::string string_weight_syst = "";
+
+    if(systematicName == "syst_pu"){
+	if (timebin==-1){
+            if(isUp) string_weight_syst = "weight_pu_up/weight_pu";
+	    else string_weight_syst = "weight_pu_down/weight_pu";
+	}
+        if (timebin==-2){
+            if(isUp) string_weight_syst = "weight_punew_up/weight_punew";
+            else string_weight_syst = "weight_punew_down/weight_punew";
+        }
+        if (timebin==-3){
+            if(isUp) string_weight_syst = "weight_puinc_up/weight_puinc";
+            else string_weight_syst = "weight_puinc_down/weight_puinc";
+        }
+	else if (timebin>=0) {
+            if(isUp) string_weight_syst = "weight_putime"+std::to_string(timebin)+"_up/weight_putime" + std::to_string(timebin);
+            else string_weight_syst = "weight_putime"+std::to_string(timebin)+"_down/weight_putime"+std::to_string(timebin);
+	}
+    }
+    else if(systematicName == "syst_pt_top"){
+        if(isUp) string_weight_syst = "1";
+	else string_weight_syst = "1./weight_top";
+    }
+    else if(systematicName == "syst_b_correlated"){
+        if(isUp) string_weight_syst = "weight_sfb_up_correlated/weight_sfb";
+	else string_weight_syst = "weight_sfb_down_correlated/weight_sfb";
+    }
+    else if(systematicName == "syst_b_uncorrelated"){
+        if(isUp) string_weight_syst = "weight_sfb_up_uncorrelated/weight_sfb";
+	else string_weight_syst = "weight_sfb_down_uncorrelated/weight_sfb";
+    }
+    else if(systematicName == "syst_l_correlated"){
+        if(isUp) string_weight_syst = "weight_sfl_up_correlated/weight_sfb";
+	else string_weight_syst = "weight_sfl_down_correlated/weight_sfb";
+    }
+    else if(systematicName == "syst_l_uncorrelated"){
+        if(isUp) string_weight_syst = "weight_sfl_up_uncorrelated/weight_sfb";
+	else string_weight_syst = "weight_sfl_down_uncorrelated/weight_sfb";
+    }
+    else if(systematicName == "syst_prefiring"){
+        if(isUp) string_weight_syst = "weight_prefiring_up/weight_prefiring";
+	else string_weight_syst = "weight_prefiring_down/weight_prefiring";
+    }
+    else if(systematicName == "syst_ps_isr"){
+        if(isUp) string_weight_syst = "weight_ps_variation4";
+	else string_weight_syst = "weight_ps_variation6";
+	string_weight_syst = "((" + string_weight_syst + "==-99 || " + string_weight_syst + "==0)?1:"+string_weight_syst + ")";
+    }
+    else if(systematicName == "syst_ps_fsr"){
+        if(isUp) string_weight_syst = "weight_ps_variation5";
+        else string_weight_syst = "weight_ps_variation7";
+        string_weight_syst = "((" + string_weight_syst + "==-99 || " + string_weight_syst + "==0)?1:"+string_weight_syst + ")";
+    }
+    else {
+        if(isUp) string_weight_syst = "(1+" + systematicName + ")";
+	else string_weight_syst = "(1-" + systematicName + ")";
+    }
+
+    return string_weight_syst;
+}
+
+
 void Generator::generateLHEweightSystematics(TTree            * tree_p,
                                              std::string const& systematicName,
 					     double	      * systList)
@@ -252,6 +372,28 @@ void Generator::generateLHEweightSystematics(TTree            * tree_p,
             systList[k] = tree_p->GetLeaf(leafname.c_str())->GetValue(0);
 	    if (systList[k]==-99 || systList[k]==0) systList[k] = 1;
         }
+    }
+
+    return;
+}
+
+void Generator::generateLHEweightSystematicsStrings(std::string const& systematicName,
+                                                    std::string        * systList)
+{
+    std::string string_weight_syst = ""; 
+
+    if(systematicName == "syst_qcdscale"){
+        for (int k=0; k<6; k++) {
+	    string_weight_syst = "weight_qcdscale_variation" + std::to_string(k);
+            systList[k] = "((" + string_weight_syst + "==-99 || " + string_weight_syst + "==0)?1:"+string_weight_syst + ")";
+	}
+    }
+    else if (systematicName == "syst_pdfas")
+    {
+        for (int k=0; k<102; k++) {
+            string_weight_syst =  "weight_pdfas_variation_" + std::to_string(k);
+	    systList[k] = "((" + string_weight_syst + "==-99 || " + string_weight_syst + "==0)?1:"+string_weight_syst + ")";
+	}
     }
 
     return;
@@ -320,6 +462,29 @@ bool Generator::isTriggerPassed(TTree         * tree_p,
     return(trig >= 1);
 }
 
+std::string Generator::isTriggerPassedString(namelist const&    triggerList_p,
+                                  bool               is2016H
+                                 )
+{
+
+    std::string string_triggered = "1";
+
+    if(!is2016H){
+        for(size_t i = 0; i < triggerList_p.size(); ++i){
+            if(triggerList_p[i] == "trg_muon_electron_mu8ele23DZ_fired" or
+               triggerList_p[i] == "trg_muon_electron_mu23ele12DZ_fired")
+               continue;
+	    string_triggered +=  "*(" + triggerList_p[i] + "==1)";  
+	}
+    }
+    else{
+        for(size_t i = 0; i < triggerList_p.size(); ++i){
+	    string_triggered +=  "*(" + triggerList_p[i] + "==1)";
+	}
+    }
+    return string_triggered;
+}
+
 bool Generator::eventSelection(TTree      	* tree_p) 
 {
  
@@ -343,6 +508,22 @@ bool Generator::eventSelection(TTree           * tree_p,
   if (n_jets>=2 && n_bjets>=1) return 1;
   else return 0;
 
+}
+
+std::string Generator::eventSelectionString()
+{
+    std::string string_selection = "n_jets>=2 && n_bjets>=1";
+    return string_selection;
+
+}
+
+std::string Generator::eventSelectionString(std::string     jecName)
+{
+    std::string nJetCut = "n_jets_"+jecName;
+    std::string nBJetCut = "n_bjets_"+jecName;
+
+    std::string string_selection = nJetCut+">=2 && " + nBJetCut + ">=1";
+    return string_selection;
 }
 
 float Generator::getGenObservableValue(TTree         * tree_p)
@@ -375,12 +556,12 @@ float Generator::getObservableValue(TTree         * tree_p)
         j2.SetPtEtaPhiM(tree_p->GetLeaf("j2_pt")->GetValue(0),tree_p->GetLeaf("j2_eta")->GetValue(0),tree_p->GetLeaf("j2_phi")->GetValue(0),tree_p->GetLeaf("j2_m")->GetValue(0));
         val = (elec+muon+j1+j2).Pt();
     }
-    else if (observable=="pt_emu"){
-        TLorentzVector elec, muon;
-        elec.SetPtEtaPhiM(tree_p->GetLeaf("pt_elec")->GetValue(0), tree_p->GetLeaf("eta_elec")->GetValue(0), tree_p->GetLeaf("phi_elec")->GetValue(0),0);
-        muon.SetPtEtaPhiM(tree_p->GetLeaf("pt_muon")->GetValue(0), tree_p->GetLeaf("eta_muon")->GetValue(0), tree_p->GetLeaf("phi_muon")->GetValue(0),0);
-	val = (elec+muon).Pt();
-    }
+    //else if (observable=="pt_emu"){
+    //    TLorentzVector elec, muon;
+    //    elec.SetPtEtaPhiM(tree_p->GetLeaf("pt_elec")->GetValue(0), tree_p->GetLeaf("eta_elec")->GetValue(0), tree_p->GetLeaf("phi_elec")->GetValue(0),0);
+    //    muon.SetPtEtaPhiM(tree_p->GetLeaf("pt_muon")->GetValue(0), tree_p->GetLeaf("eta_muon")->GetValue(0), tree_p->GetLeaf("phi_muon")->GetValue(0),0);
+    // 	  val = (elec+muon).Pt();
+    //}
     else if (observable=="m_lb"){
 	TLorentzVector elec, muon, b1, b2, j1, j2;
         elec.SetPtEtaPhiM(tree_p->GetLeaf("pt_elec")->GetValue(0), tree_p->GetLeaf("eta_elec")->GetValue(0), tree_p->GetLeaf("phi_elec")->GetValue(0),0);
@@ -395,7 +576,6 @@ float Generator::getObservableValue(TTree         * tree_p)
         //std::cout << "b2 pt="<<b2.Pt()<<std::endl;
         //std::cout << "j1 pt="<<j1.Pt()<<std::endl;
         //std::cout << "j2 pt="<<j2.Pt()<<std::endl;
-
 	TLorentzVector b_top1, lep_top1, b_top2, lep_top2;
 	if (b2_pt==99){
             //deltaR(b,lep)  le plus proche : top1  => autre  jet de plus haut pt et l'autre lep : top2
@@ -907,11 +1087,13 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
                                //std::vector<std::vector<double>> const& correction_p,
                                std::vector<double> const& correction_p,
                                bool                clean_p,
-                               bool                isTimed_p
+                               bool                isTimed_p,
+                               int                 timebin
                     )
 {
     TH1F::SetDefaultSumw2(1);
     std::vector<std::vector<TH1F> > list(jecList_p.size());
+    std::vector<std::vector<TH2F> > listResponseMatrix(jecList_p.size());
 
     std::string cleaned="";
     if(!clean_p) cleaned = "_unclean";
@@ -919,7 +1101,13 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
     std::string sinc="";
     if (!isTimed_p) sinc = "_inclusive";
 
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_jec"+sinc+cleaned+".root";
+    std::string stimebin="";
+    if (timebin==-1) stimebin = "_puold";
+    if (timebin==-2) stimebin = "_punew";
+    if (timebin==-3) stimebin = "_puinc";
+    if (timebin>=0) stimebin = "_put"+std::to_string(timebin);
+
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_jec"+sinc+cleaned+stimebin+".root";
     
     for(size_t jl = 0; jl < jecList_p.size(); ++jl)
     {
@@ -927,10 +1115,12 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
             
             //td::cout << " -> " << jecList_p[jl] << " : " << sampleList_p[n] << "  " << correction_p[jl][n] << std::endl;
             std::cout << " -> " << jecList_p[jl] << " : " << sampleList_p[n] << "  " << correction_p[n] << std::endl;
-
             
             //std::string filename = "./inputs/"+year+"/JEC/"+jecList_p[jl]+'/'+sampleList_p[n]+"/NtupleProducer/tree.root";
 	    std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/NtupleProducer/tree.root";
+
+            bool doResponseMatrix = false;
+            if ((TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) && isTimed_p) doResponseMatrix = true;
 
             TFile* file = new TFile(filename.c_str());
             TTree *tree;
@@ -938,22 +1128,55 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
             TCanvas *canvas = new TCanvas((jecList_p[jl]+sampleList_p[n]).c_str());
             TH1F* hist      = new TH1F((jecList_p[jl]+sampleList_p[n]).c_str(), (jecList_p[jl]+sampleList_p[n]).c_str(), nBin, minBin, maxBin);
 
-	    //int nEvents = 10;
-	    int nEvents = tree->GetEntriesFast();
-            for(int i = 0; i < nEvents; ++i){
-                tree->GetEntry(i);
-		if (eventSelection(tree, jecList_p[jl])!=1) continue;
-                double weight = generateWeight(tree,isTimed_p);
-                if(isTriggerPassed(tree, triggerList_p,true)){
-			hist->Fill(getObservableValue(tree), weight);
-                        //hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
-                }
-                if(i % 100000 == 0)
-                    std::cout << "100 000 events passed" << std::endl;
-            }
+	    TFile* fileGEN;
+	    TTree* treeGEN;
+	    TH2F* hist_responseMatrix;
+	    std::string filename_gen;
+	    if (doResponseMatrix){
+		std::string genSample = sampleList_p[n];
+		genSample = genSample.substr(3, genSample.size()-1);
+		filename_gen = "./inputs/"+year+"/GEN/"+genSample+"_NanoGEN_"+year+"_selection_particle.root";
+		std::cout <<"Gen events from "<<filename_gen<<std::endl;
+		fileGEN = new TFile(filename_gen.c_str(),"READ");
+		treeGEN = (TTree*)fileGEN->Get("Events");
+		tree->AddFriend(treeGEN);
+	    }
+            if (doResponseMatrix){
+                if (observable=="n_bjets") hist_responseMatrix = new TH2F((jecList_p[jl]+sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
+                else hist_responseMatrix = new TH2F((jecList_p[jl]+sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin+1, minBin-1, maxBin, nBin, minBin, maxBin);
+	    }
+
+	    if (doLoop){
+		//int nEvents = 10;
+		int nEvents = tree->GetEntriesFast();
+		for(int i = 0; i < nEvents; ++i){
+		    tree->GetEntry(i);
+		    if (eventSelection(tree, jecList_p[jl])!=1) continue;
+		    double weight = generateWeight(tree,isTimed_p);
+		    if(isTriggerPassed(tree, triggerList_p,true)){
+			    hist->Fill(getObservableValue(tree), weight);
+			    //hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+		    }
+		    if(i % 100000 == 0)
+			std::cout << "100 000 events passed" << std::endl;
+		}
+	    }
+            else if (!doLoop){
+                std::string string_eventSelection = eventSelectionString(jecList_p[jl]);
+                std::string string_weight = generateWeightString(isTimed_p,timebin);
+                std::string string_triggered = isTriggerPassedString(triggerList_p,true);
+                drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
+                if (doResponseMatrix)
+                    drawHisto2D(tree, observable, "Events.gen_"+observable, string_eventSelection, string_weight+"*(Events.gen_matched!=0)", string_triggered, hist_responseMatrix);
+	    }
+
             //hist->Scale(correction_p[jl][n]);
             hist->Scale(correction_p[n]);
             list[jl].push_back(*hist);
+            if (doResponseMatrix){
+                hist_responseMatrix->Scale(correction_p[n]);
+                listResponseMatrix[jl].push_back(*hist_responseMatrix);
+	    }
 
             delete hist;
             delete canvas;
@@ -961,8 +1184,16 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
             delete file;
         }
         groupingMC(list[jl], groupList_p, jecList_p[jl], clean_p);
+
+        std::vector<std::string> groupList_responseMatrix;
+        groupList_responseMatrix.push_back("signal");
+        groupList_responseMatrix.push_back("singletop");
+        groupingMC(listResponseMatrix[jl], groupList_responseMatrix, "responseMatrix_"+jecList_p[jl], clean_p);
+
     }
     write(filename_p, list, "RECREATE");
+    for(size_t jl = 0; jl < jecList_p.size(); ++jl) write(filename_p, listResponseMatrix[jl], "UPDATE");
+
 }
 
 
@@ -971,7 +1202,8 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
                     namelist            const& triggerList_p,
                     std::vector<double> const& correction_p,
                     bool                       clean_p,
-                    bool                       isTimed_p
+                    bool                       isTimed_p,
+		    int   	               timebin
                     )
 {
     TH1F::SetDefaultSumw2(1);
@@ -983,7 +1215,13 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
     std::string sinc="";
     if (!isTimed_p) sinc = "_inclusive";
 
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_alt"+sinc+cleaned+".root";
+    std::string stimebin="";
+    if (timebin==-1) stimebin = "_puold";
+    if (timebin==-2) stimebin = "_punew";
+    if (timebin==-3) stimebin = "_puinc";
+    if (timebin>=0) stimebin = "_put"+std::to_string(timebin);
+
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+"_alt"+sinc+cleaned+stimebin+".root";
     
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
@@ -994,27 +1232,33 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
         TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
         TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
 
-        std::cout << " -> " << sampleList_p[n] << "  " << correction_p[n] << std::endl;
-
-        std::cout << "sdlfksldfsldf" <<filename.c_str() << std::endl;
-        for(int i = 0; i < tree->GetEntriesFast(); ++i){
-            tree->GetEntry(i);
-            if (eventSelection(tree)!=1) continue;
-            double weight = generateWeight(tree,isTimed_p);
-            //if(sampleList_p[n].find("alt") == std::string::npos){
-                if(isTriggerPassed(tree, triggerList_p,true)){
-                    hist->Fill(getObservableValue(tree), weight);
-                    //hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
-                }
-            //}
-            //else{
-            //    hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
-            //}
-            
-            if(i % 100000 == 0)
-                std::cout << "100 000 events passed" << std::endl;
-        }
-
+        std::cout << "ALT -> " << sampleList_p[n] << "  " << correction_p[n] << std::endl;
+	
+	if (doLoop){
+	    for(int i = 0; i < tree->GetEntriesFast(); ++i){
+		tree->GetEntry(i);
+		if (eventSelection(tree)!=1) continue;
+		double weight = generateWeight(tree,isTimed_p);
+		//if(sampleList_p[n].find("alt") == std::string::npos){
+		    if(isTriggerPassed(tree, triggerList_p,true)){
+			hist->Fill(getObservableValue(tree), weight);
+			//hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+		    }
+		//}
+		//else{
+		//    hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+		//}
+		
+		if(i % 100000 == 0)
+		    std::cout << "100 000 events passed" << std::endl;
+	    }
+	}
+	else if (!doLoop){
+            std::string string_eventSelection = eventSelectionString();
+            std::string string_weight = generateWeightString(isTimed_p, timebin);
+            std::string string_triggered = isTriggerPassedString(triggerList_p,true);
+            drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
+	}
         hist->Scale(correction_p[n]);
         list.push_back(*hist);
 
@@ -1049,7 +1293,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
                            std::string         const& option_p,
                            bool                       clean_p,
                            bool                       isTimed_p,
-			   bool                       ifResponseMat     
+	                   int                        timebin
                           )
 {
     TH1F::SetDefaultSumw2(1);
@@ -1072,7 +1316,13 @@ void Generator::generateMC(namelist            const& sampleList_p,
     std::string sinc=""; 
     if (!isTimed_p) sinc = "_inclusive";
 
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+sinc+cleaned+".root";
+    std::string stimebin="";
+    if (timebin==-1) stimebin = "_puold";
+    if (timebin==-2) stimebin = "_punew";
+    if (timebin==-3) stimebin = "_puinc";
+    if (timebin>=0) stimebin = "_put"+std::to_string(timebin);
+
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+sinc+cleaned+stimebin+".root";
     //std::string filenameTime_p = "./results/"+year+"/flattree/"+observable+"_timed"+cleaned+".root";
 
     //std::vector<double> timeSystWeightUp(systematicsTimeList_p.size(), 0);
@@ -1083,46 +1333,37 @@ void Generator::generateMC(namelist            const& sampleList_p,
             std::cout  <<  systematicsList_p[i] << std::endl;
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
+
+        bool doResponseMatrix = false;
+        if ((TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) && isTimed_p) doResponseMatrix = true;
 	
         std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/NtupleProducer/tree.root";
         TFile* file = new TFile(filename.c_str());
         TTree *tree;
         file->GetObject("events", tree);
-	
-	if(ifResponseMat)
-	  {
-	    //cout<<"I am heree? 0"<<endl;
-	    
-	    TFile* fileGEN;
-	    TTree* treeGEN;
-	    std::string filename_gen;
-	    
-	    if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) {
-	      //std::size_t found = suffix.find("pdfas");
-	      std::string genSample = sampleList_p[n];
-	      genSample = genSample.substr(3, genSample.size()-1);
-	      filename_gen = "./inputs/"+year+"/GEN/"+genSample+"_NanoGEN_"+year+"_selection_particle.root";
-	      std::cout <<"Gen events from "<<filename_gen<<std::endl;
-	      fileGEN = new TFile(filename_gen.c_str(),"READ");
-	      treeGEN = (TTree*)fileGEN->Get("Events");
-	      tree->AddFriend(treeGEN);
-	    }
-	    
-	  }
-	//cout<<"I am heree? 1"<<endl;
+
+        TFile* fileGEN;
+        TTree* treeGEN;
+        std::string filename_gen;
+	if (doResponseMatrix){
+            std::string genSample = sampleList_p[n];
+	    genSample = genSample.substr(3, genSample.size()-1);
+            filename_gen = "./inputs/"+year+"/GEN/"+genSample+"_NanoGEN_"+year+"_selection_particle.root";
+	    std::cout <<"Gen events from "<<filename_gen<<std::endl;
+	    fileGEN = new TFile(filename_gen.c_str(),"READ");
+	    treeGEN = (TTree*)fileGEN->Get("Events");
+	    tree->AddFriend(treeGEN);
+        }
+
         TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
         TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
         TH1F* hist_events      = new TH1F((sampleList_p[n] + "_events").c_str(), observable.c_str(), nBin, minBin, maxBin);
 	TH2F* hist_responseMatrix;
-	if(ifResponseMat)
-	  {
-	    if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")){
-	      if (observable=="n_bjets") hist_responseMatrix = new TH2F((sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
-	      else hist_responseMatrix = new TH2F((sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin+1, minBin-1, maxBin, nBin, minBin, maxBin);
-	    }
-	  }
-	
-	//cout<<"I am heree? 2"<<endl;
+	if (doResponseMatrix){
+	    if (observable=="n_bjets") hist_responseMatrix = new TH2F((sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
+	    else hist_responseMatrix = new TH2F((sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin+1, minBin-1, maxBin, nBin, minBin, maxBin);
+	}
+
         std::vector<TH1F*> histUp(systematicsList_p.size()-2);
         std::vector<TH1F*> histDown(systematicsList_p.size()-2);
         //std::vector<TH1F*> histUpTime(systematicsList_p.size());
@@ -1141,30 +1382,24 @@ void Generator::generateMC(namelist            const& sampleList_p,
             if (systematicsList_p[i]!="syst_qcdscale" && systematicsList_p[i]!="syst_pdfas"){
                histUp[i]   = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+"Up").c_str(), (observable+"Up").c_str(), nBin, minBin, maxBin);
                histDown[i] = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+"Down").c_str(), (observable+"Down").c_str(), nBin, minBin, maxBin);
-	       if(ifResponseMat)	    
-		 {
-		   if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")){
-		     hist_responseMatrixUp[i] = new TH2F((sampleList_p[n] + "_responseMatrix_"+systematicsList_p[i]+"Up").c_str(), (observable+"Up").c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
-		     hist_responseMatrixDown[i] = new TH2F((sampleList_p[n] + "_responseMatrix_"+systematicsList_p[i]+"Down").c_str(), (observable+"Down").c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
-		   } 
-		 }
+	       if (doResponseMatrix){
+		   hist_responseMatrixUp[i] = new TH2F((sampleList_p[n] + "_responseMatrix_"+systematicsList_p[i]+"Up").c_str(), (observable+"Up").c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
+                   hist_responseMatrixDown[i] = new TH2F((sampleList_p[n] + "_responseMatrix_"+systematicsList_p[i]+"Down").c_str(), (observable+"Down").c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
+	       } 
 	    }
             else if (systematicsList_p[i]=="syst_qcdscale"){
 	       for(size_t k = 0; k < 6; ++k) {
 		   histVarQCDscale[k] = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+std::to_string(k)).c_str(), (observable+std::to_string(k)).c_str(), nBin, minBin, maxBin);
-		   if(ifResponseMat)	    
-		 {
-		   if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) hist_responseMatrixVarQCDscale[k] = new TH2F((sampleList_p[n]+"_responseMatrix_"+systematicsList_p[i]+std::to_string(k)).c_str(), (observable+std::to_string(k)).c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin); 
-		 }
+		   if (doResponseMatrix)
+			hist_responseMatrixVarQCDscale[k] = new TH2F((sampleList_p[n]+"_responseMatrix_"+systematicsList_p[i]+std::to_string(k)).c_str(), (observable+std::to_string(k)).c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin); 
 	       }
 	    }
             else if (systematicsList_p[i]=="syst_pdfas"){
 	       for (size_t k = 0; k < 102; ++k) {
 		   histVarPDFas[k] = new TH1F((sampleList_p[n]+"_"+systematicsList_p[i]+std::to_string(k)).c_str(), (observable+std::to_string(k)).c_str(), nBin, minBin, maxBin);
-		   if(ifResponseMat)	    
-		 {
-                   if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) hist_responseMatrixVarPDFas[k] = new TH2F((sampleList_p[n]+"_responseMatrix_"+systematicsList_p[i]+std::to_string(k)).c_str(), (observable+std::to_string(k)).c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
-		 }
+		   if (doResponseMatrix)
+			hist_responseMatrixVarPDFas[k] = new TH2F((sampleList_p[n]+"_responseMatrix_"+systematicsList_p[i]+std::to_string(k)).c_str(), (observable+std::to_string(k)).c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
+
 	       }
 	    }
         }
@@ -1180,78 +1415,107 @@ void Generator::generateMC(namelist            const& sampleList_p,
 	double systDown = 0;
 	double* systVarQCDscale = new double[6];
 	double* systVarPDFas = new double[102];
-	//int nEvents = tree->GetEntriesFast();
-	int nEvents = tree->GetEntries();
+        std::string* strings_systVarQCDscale = new std::string[6];
+        std::string* strings_systVarPDFas = new std::string[102];
+
+	int nEvents = tree->GetEntriesFast();
 	//int nEvents = 100000;
 
-        for(int i = 0; i < nEvents; ++i){
-	  /*if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop"))
-	    std::cout << "Event "<<i<<" / "<<nEvents << std::endl;*/
-	  tree->GetEntry(i);
-	  if (eventSelection(tree)!=1) continue;
-            double weight = generateWeight(tree,isTimed_p);
-            if(isTriggerPassed(tree, triggerList_p,true)){
-	      hist_events->Fill(getObservableValue(tree));
-		//hist_events->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
-	      hist->Fill(getObservableValue(tree), weight);
-	      if (ifResponseMat && (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop"))) hist_responseMatrix->Fill(getObservableValue(tree), getGenObservableValue(tree), weight);
-                //hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
-                for(size_t j = 0; j < systematicsList_p.size(); ++j){
-		    if (systematicsList_p[j]!="syst_qcdscale" && systematicsList_p[j]!="syst_pdfas"){
-                        systUp = generateSystematics(tree, systematicsList_p[j], true);
-                        systDown = generateSystematics(tree, systematicsList_p[j], false);
-                        histUp[j]->Fill(getObservableValue(tree), weight*systUp);
-                        histDown[j]->Fill(getObservableValue(tree), weight*systDown);
-			if(ifResponseMat)	    
-			  {
-			    if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) {
-			      hist_responseMatrixUp[j]->Fill(getObservableValue(tree), getGenObservableValue(tree), weight*systUp);
-			      hist_responseMatrixDown[j]->Fill(getObservableValue(tree), getGenObservableValue(tree), weight*systDown);
+        if (doLoop){
+	    for(int i = 0; i < nEvents; ++i){
+		tree->GetEntry(i);
+		if (eventSelection(tree)!=1) continue;
+		double weight = generateWeight(tree,isTimed_p);
+		if(isTriggerPassed(tree, triggerList_p,true)){
+		    hist_events->Fill(getObservableValue(tree));
+		    hist->Fill(getObservableValue(tree), weight);
+		    if (doResponseMatrix) 
+			hist_responseMatrix->Fill(getObservableValue(tree), getGenObservableValue(tree), weight);
+		    for(size_t j = 0; j < systematicsList_p.size(); ++j){
+			if (systematicsList_p[j]!="syst_qcdscale" && systematicsList_p[j]!="syst_pdfas"){
+			    systUp = generateSystematics(tree, systematicsList_p[j], true);
+			    systDown = generateSystematics(tree, systematicsList_p[j], false);
+			    histUp[j]->Fill(getObservableValue(tree), weight*systUp);
+			    histDown[j]->Fill(getObservableValue(tree), weight*systDown);
+			    if (doResponseMatrix){
+				hist_responseMatrixUp[j]->Fill(getObservableValue(tree), getGenObservableValue(tree), weight*systUp);
+				hist_responseMatrixDown[j]->Fill(getObservableValue(tree), getGenObservableValue(tree), weight*systDown);
 			    }
-			  }
-                        //histUp[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systUp);
-                        //histDown[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systDown);
-                    }   
-		    
-		    else if (systematicsList_p[j]=="syst_qcdscale"){
-			//systVarQCDscale = new double[6];
-			generateLHEweightSystematics(tree, systematicsList_p[j], systVarQCDscale);
-			for (int k=0; k<6; k++) {
-			   histVarQCDscale[k]->Fill(getObservableValue(tree), weight*systVarQCDscale[k]);
-			   if(ifResponseMat)	    
-			     {
-			       if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) hist_responseMatrixVarQCDscale[k]->Fill(getObservableValue(tree), getGenObservableValue(tree), weight*systVarQCDscale[k]);
-			     }
-			}
-		    }                     
-		    else if (systematicsList_p[j]=="syst_pdfas"){
-                        //double* systVar = new double[102];
-                        generateLHEweightSystematics(tree, systematicsList_p[j], systVarPDFas);
-                        for (int k=0; k<102; k++) {
-                           histVarPDFas[k]->Fill(getObservableValue(tree), weight*systVarPDFas[k]);
-			   if(ifResponseMat)	    
-			     {
-			       if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) hist_responseMatrixVarPDFas[k]->Fill(getObservableValue(tree), getGenObservableValue(tree), weight*systVarPDFas[k]);
-			     }
+			}   
+			else if (systematicsList_p[j]=="syst_qcdscale"){
+			    generateLHEweightSystematics(tree, systematicsList_p[j], systVarQCDscale);
+			    for (int k=0; k<6; k++) {
+			       histVarQCDscale[k]->Fill(getObservableValue(tree), weight*systVarQCDscale[k]);
+			       if (doResponseMatrix) 
+				  hist_responseMatrixVarQCDscale[k]->Fill(getObservableValue(tree), getGenObservableValue(tree), weight*systVarQCDscale[k]);
+			    }
+			}                     
+			else if (systematicsList_p[j]=="syst_pdfas"){
+			    generateLHEweightSystematics(tree, systematicsList_p[j], systVarPDFas);
+			    for (int k=0; k<102; k++) {
+			       histVarPDFas[k]->Fill(getObservableValue(tree), weight*systVarPDFas[k]);
+			       if (doResponseMatrix) 
+				   hist_responseMatrixVarPDFas[k]->Fill(getObservableValue(tree), getGenObservableValue(tree), weight*systVarPDFas[k]);
+			    }
 			}
 		    }
+		    //for(size_t j = 0; j < systematicsTimeList_p.size(); ++j){
+		    //    double systUp = timeSystWeightUp[j];
+		    //    double systDown = timeSystWeightDown[j];
+		    //    histUpTime[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systUp);
+		    //    histDownTime[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systDown);                        
+		    //}
 		}
-                //for(size_t j = 0; j < systematicsTimeList_p.size(); ++j){
-                //    double systUp = timeSystWeightUp[j];
-                //    double systDown = timeSystWeightDown[j];
-                //    histUpTime[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systUp);
-                //    histDownTime[j]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight*systDown);                        
-                //}
-            }
-            if(i % 100000 == 0)
-	      std::cout << "Event "<<i<<" / "<<nEvents << std::endl;
-        }
-	cout<<"I am heree? 4"<<endl;
+		if(i % 100000 == 0)
+		    std::cout << "Event "<<i<<" / "<<nEvents << std::endl;
+	    }
+	}
+	else if (!doLoop){
+            std::string string_eventSelection = eventSelectionString();
+            std::string string_weight = generateWeightString(isTimed_p, timebin);
+            std::string string_triggered = isTriggerPassedString(triggerList_p,true);
+            //Nominal hist
+            drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
+	    //Hist without weight
+	    drawHisto1D(tree, observable, string_eventSelection, "1", string_triggered, hist_events);
+	    //Nominal response matrix
+	    if (doResponseMatrix)
+		drawHisto2D(tree, observable, "Events.gen_"+observable, string_eventSelection, string_weight+"*(Events.gen_matched!=0)", string_triggered, hist_responseMatrix);
+	    //Systematics
+	    for(size_t j = 0; j < systematicsList_p.size(); ++j){
+                if (systematicsList_p[j]!="syst_qcdscale" && systematicsList_p[j]!="syst_pdfas"){
+		    std::string string_syst_up = generateSystematicsString(systematicsList_p[j], true, timebin);
+                    std::string string_syst_down = generateSystematicsString(systematicsList_p[j], false, timebin);
+	            drawHisto1D(tree, observable, string_eventSelection, string_weight+"*"+string_syst_up, string_triggered, histUp[j]);
+                    drawHisto1D(tree, observable, string_eventSelection, string_weight+"*"+string_syst_down, string_triggered, histDown[j]);
+		    if (doResponseMatrix){
+			drawHisto2D(tree, observable, "Events.gen_"+observable, string_eventSelection, string_weight+"*(Events.gen_matched!=0)*"+string_syst_up, string_triggered, hist_responseMatrixUp[j]);
+                        drawHisto2D(tree, observable, "Events.gen_"+observable, string_eventSelection, string_weight+"*(Events.gen_matched!=0)*"+string_syst_down, string_triggered, hist_responseMatrixDown[j]);
+		    }
+		}
+		else if (systematicsList_p[j]=="syst_qcdscale"){
+		    generateLHEweightSystematicsStrings(systematicsList_p[j], strings_systVarQCDscale);
+		    for (int k=0; k<6; k++) {
+			drawHisto1D(tree, observable, string_eventSelection, string_weight+"*"+strings_systVarQCDscale[k], string_triggered, histVarQCDscale[k]);
+			if (doResponseMatrix)
+			    drawHisto2D(tree, observable, "Events.gen_"+observable, string_eventSelection, string_weight+"*(Events.gen_matched!=0)*"+strings_systVarQCDscale[k], string_triggered, hist_responseMatrixVarQCDscale[k]);
+		    }
+		}
+		else if (systematicsList_p[j]=="syst_pdfas"){
+                    generateLHEweightSystematicsStrings(systematicsList_p[j], strings_systVarPDFas);
+                    for (int k=0; k<102; k++) {
+                        drawHisto1D(tree, observable, string_eventSelection, string_weight+"*"+strings_systVarPDFas[k], string_triggered, histVarPDFas[k]);
+                        if (doResponseMatrix)
+                            drawHisto2D(tree, observable, "Events.gen_"+observable, string_eventSelection, string_weight+"*(Events.gen_matched!=0)*"+strings_systVarPDFas[k], string_triggered, hist_responseMatrixVarPDFas[k]);
+                    }
+		}
+	    }
+	}
         hist->Scale(correction_p[n]);
-	cout<<"I am heree? 5"<<endl;
-	if(ifResponseMat)	    
-	  if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) hist_responseMatrix->Scale(correction_p[n]);
-	//cout<<"I am heree? 6"<<endl;*/    
+	if (doResponseMatrix) 
+	    hist_responseMatrix->Scale(correction_p[n]);
+
+
         bool doRecomputeUncert = false;
 
 	double bin_uncertainty_weight = 0;
@@ -1265,17 +1529,15 @@ void Generator::generateMC(namelist            const& sampleList_p,
 	}
 
         list.push_back(*hist);
-	if(ifResponseMat)	    
-	  if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) listResponseMatrix.push_back(*hist_responseMatrix);
+	if (doResponseMatrix)
+	    listResponseMatrix.push_back(*hist_responseMatrix);
         for(size_t i = 0; i < systematicsList_p.size(); ++i){
 	    if (systematicsList_p[i]!="syst_qcdscale" && systematicsList_p[i]!="syst_pdfas"){
                 histUp[i]->Scale(correction_p[n]);
                 histDown[i]->Scale(correction_p[n]);
                 listUp.push_back(*histUp[i]);
                 listDown.push_back(*histDown[i]);
-		if(ifResponseMat){
-		  
-		  if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) {
+		if (doResponseMatrix){
 		    hist_responseMatrixUp[i]->Scale(correction_p[n]);
 		    hist_responseMatrixDown[i]->Scale(correction_p[n]);
 		    listResponseMatrixUp.push_back(*hist_responseMatrixUp[i]);
@@ -1287,8 +1549,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
 		for (int k=0; k<6; k++) {
 		    histVarQCDscale[k]->Scale(correction_p[n]);
 		    listQCDscale.push_back(*histVarQCDscale[k]);
-		    if(ifResponseMat){
-		      if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) {
+		    if (doResponseMatrix){
 			hist_responseMatrixVarQCDscale[k]->Scale(correction_p[n]);
 			listResponseMatrixQCDscale.push_back(*hist_responseMatrixVarQCDscale[k]);
 		      }
@@ -1299,8 +1560,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
                 for (int k=0; k<102; k++) { 
 		    histVarPDFas[k]->Scale(correction_p[n]);
 		    listPDFas.push_back(*histVarPDFas[k]);
-		    if(ifResponseMat){
-		      if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) {
+   		    if (doResponseMatrix){
 			hist_responseMatrixVarPDFas[k]->Scale(correction_p[n]);
 			listResponseMatrixPDFas.push_back(*hist_responseMatrixVarPDFas[k]);
 		      }
@@ -1317,13 +1577,11 @@ void Generator::generateMC(namelist            const& sampleList_p,
 
 
         delete hist;
-	if(ifResponseMat)
-	  if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) delete hist_responseMatrix;
-	for(size_t i = 0; i < systematicsList_p.size()-2; ++i){
-	  delete histUp[i];
-	  delete histDown[i];
-	  if(ifResponseMat)
-	    if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) {
+	if (doResponseMatrix) delete hist_responseMatrix;
+        for(size_t i = 0; i < systematicsList_p.size()-2; ++i){
+            delete histUp[i];
+            delete histDown[i];
+	    if (doResponseMatrix){
 	      delete hist_responseMatrixUp[i];
 	      delete hist_responseMatrixDown[i];
 	    }
@@ -1332,13 +1590,13 @@ void Generator::generateMC(namelist            const& sampleList_p,
         }
 	for (int k=0; k<6; k++) {
 	    delete histVarQCDscale[k];
-	    if(ifResponseMat)
-	      if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) delete hist_responseMatrixVarQCDscale[k];
+	    if (doResponseMatrix)
+	        delete hist_responseMatrixVarQCDscale[k];
 	}
 	for (int k=0; k<102; k++) {
 	    delete histVarPDFas[k];
-	    if(ifResponseMat)
-	      if (TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) delete hist_responseMatrixVarPDFas[k];
+            if (doResponseMatrix)
+		delete hist_responseMatrixVarPDFas[k];
 	}
         delete canvas;
         delete tree;
@@ -1351,7 +1609,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
     groupingSystematics(listDown, groupList_p, systematicsList_p, false, clean_p); // isUp = false
     
     std::vector<std::string> groupList_responseMatrix;
-    if(ifResponseMat){
+    if(doResponseMatrix){
       groupList_responseMatrix.push_back("signal");
       groupList_responseMatrix.push_back("singletop");
       groupingMC(listResponseMatrix, groupList_responseMatrix, "responseMatrix", clean_p);
@@ -1374,7 +1632,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
 	else it++;
     }
     
-    if(ifResponseMat){
+    if(doResponseMatrix){
       it=0;
       while (it < listResponseMatrixUp.size()){
         if (TString(listResponseMatrixUp[it].GetName()).Contains("syst_qcdscale") || TString(listResponseMatrixUp[it].GetName()).Contains("syst_pdfas")) {
@@ -1397,7 +1655,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
     groupingLHEweightSystematics(listPDFas, list, groupList_p, "syst_pdfas", clean_p);
     //groupingSystematics(listTimeUp, groupList_p, systematicsTimeList_p, true, clean_p);    // isUp = true
     //groupingSystematics(listTimeDown, groupList_p, systematicsTimeList_p, false, clean_p); // isUp = false
-    if(ifResponseMat){
+    if(doResponseMatrix){
       groupingLHEweightSystematics(listResponseMatrixQCDscale, listResponseMatrix, groupList_responseMatrix, "responseMatrix", "syst_qcdscale", clean_p);
       groupingLHEweightSystematics(listResponseMatrixPDFas, listResponseMatrix, groupList_responseMatrix, "responseMatrix", "syst_pdfas", clean_p);
       }
@@ -1408,7 +1666,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
     write(filename_p, listPDFas, "UPDATE");
     //write(filenameTime_p, listTimeUp, "RECREATE");
     //write(filenameTime_p, listTimeDown, "UPDATE"); 
-    if(ifResponseMat){
+    if(doResponseMatrix){
       write(filename_p, listResponseMatrix, "UPDATE");
       write(filename_p, listResponseMatrixUp, "UPDATE");
       write(filename_p, listResponseMatrixDown, "UPDATE");
@@ -1423,15 +1681,25 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
                            namelist            const& groupList_p,
                            std::vector<double> const& correction_p,
                            std::string         const& option_p,
-                           bool                       clean_p
+                           bool                       clean_p,
+			   int			      timebin
                           )
 {
     TH1F::SetDefaultSumw2(1);
     std::vector<TH1F> list;
+    //std::vector<TH1D> list2;
 
     std::string cleaned;
     if(!clean_p) cleaned = "_unclean";
-    std::string filename_p = "./results/"+year+"/flattree/"+observable+cleaned+"_forComp.root";
+
+    std::string stimebin="";
+    if (timebin==-1) stimebin = "_puold";
+    if (timebin==-2) stimebin = "_punew";
+    if (timebin==-3) stimebin = "_puinc";
+
+    std::string filename_p = "./results/"+year+"/flattree/"+observable+cleaned+"_forComp"+stimebin+".root";
+
+    //ROOT::EnableImplicitMT();
 
     for(size_t n = 0; n < sampleList_p.size(); ++n){
     
@@ -1439,32 +1707,70 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
         TFile* file = new TFile(filename.c_str());
         TTree *tree;
         file->GetObject("events", tree);
-        TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
-        TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
+        //TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
+	TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
+        //TH1D* hist      = new TH1D(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
 
         std::cout << " -> " << sampleList_p[n] << "  " << correction_p[n] << std::endl;
 
-        for(int i = 0; i < tree->GetEntriesFast(); ++i){
-            tree->GetEntry(i);
-            if (eventSelection(tree)!=1) continue;
-            double weight = generateWeight(tree, false);
-            if(isTriggerPassed(tree, triggerList_p,true)){
-                hist->Fill(getObservableValue(tree), weight);
-                //hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+	if (doLoop){
+            TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
+            for(int i = 0; i < tree->GetEntriesFast(); ++i){
+                tree->GetEntry(i);
+                if (eventSelection(tree)!=1) continue;
+                double weight = generateWeight(tree, false);
+                if(isTriggerPassed(tree, triggerList_p,true)){
+                    hist->Fill(getObservableValue(tree), weight);
+                    //hist->Fill(tree->GetLeaf(observable.c_str())->GetValue(0), weight);
+                }
+                if(i % 100000 == 0)
+                    std::cout << "100 000 events passed" << std::endl;
             }
-            if(i % 100000 == 0)
-                std::cout << "100 000 events passed" << std::endl;
-        }
+	    //hist->Scale(correction_p[n]);
+            //list.push_back(*hist);
+	    //delete hist;
+	}
+	else if (!doLoop){
+	    std::string string_eventSelection = eventSelectionString();
+	    std::string string_weight = generateWeightString(false,timebin);
+	    std::string string_triggered = isTriggerPassedString(triggerList_p,true);
+	    drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
+	    //std::string string_cut = "(" + string_eventSelection + ")*" + string_weight + "*" + string_triggered;
+	    //std::cout << "Cut: " << string_cut<<std::endl;
+	    //std::string string_obs_redirected = observable + " >> " + sampleList_p[n];
+	    //tree->Draw(string_obs_redirected.c_str(), string_cut.c_str());
+	    /*
+	    ROOT::RDataFrame df(*tree);
+	    std::cout << "A"<<std::endl;
+	    df.Filter(string_eventSelection.c_str()).Filter(string_triggered.c_str()).Count();
+	    std::cout << "B"<<std::endl;
+	    //auto df2 = df.Define("weight_all", string_weight.c_str());
+	    //auto hist = df.Histo1D(observable.c_str(), string_weight.c_str());
+            std::cout << "C"<<std::endl;
+	    auto hist = df.Histo1D(observable.c_str(), "weight_pu");
+	    //auto hist = h->GetValue();
+	    hist->DrawClone();
+	    //auto hist = df.Fill<float>(TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin), {observable.c_str()});
+	    std::cout << "DD"<<std::endl;
+	    //hist->Scale(correction_p[n]);
+            //std::cout << "D"<<std::endl;
+            list2.push_back(*hist);
+	    std::cout << "E"<<std::endl;
+	    list2[n].Scale(correction_p[n]);
+	    //delete hist;
+	    */
+	}
         hist->Scale(correction_p[n]);
         list.push_back(*hist);
 
         delete hist;
-        delete canvas;
+        //delete canvas;
         delete tree;
         delete file;
     }
+    std::cout << "E"<<std::endl;
     groupingMC(list, groupList_p, clean_p);
-
+    std::cout << "F"<<std::endl;
     write(filename_p, list, option_p);
 }
 

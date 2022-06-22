@@ -27,12 +27,13 @@ int main(int argc, char** argv){
     std::string observable; 
     std::string year; 
     std::string launch;
+    int timebin;
     bool isIndividualSampleClean = true; // true is default
     bool isDataCorrected = false; 
 
     std::clock_t t0 = std::clock();
 
-    if(argc != 4){
+    if(argc != 5){
         Log("Wrong number of arguments !!!");
         Log(" missing arguments : observable, year and option");
         return 0;
@@ -41,6 +42,7 @@ int main(int argc, char** argv){
          observable = argv[1];
          year = argv[2];
          launch = argv[3];
+	 timebin = atoi(argv[4]);
     }
     Log(argc, argv);
     Log(observable);
@@ -178,10 +180,14 @@ int main(int argc, char** argv){
 // ------------------------------------------------------------- //
 
 
-    if(launch != "All" and launch != "alt"  and launch != "jec" and launch != "timed" and launch != "mc" and launch != "forComp" and launch != "data" and launch != "sme" and launch!="inclusive" and launch!="test")
+    if(launch != "All" and launch != "alt"  and launch != "jec" and launch != "datatimed" and launch != "mc" and launch != "forComp" and launch != "data" and launch != "sme" and launch!="inclusive" and launch!="differential" and launch!="dataAll")
     {
-        std::cout << "Error with option : (All, mc, data, alt, jec, timed, sme, forComp, inclusive, test)" << std::endl;
+        std::cout << "Error with option : (All, mc, data, alt, jec, datatimed, sme, forComp, inclusive, differential, dataAll)" << std::endl;
         return 0;
+    }
+
+    if(timebin<-3 || timebin>23){
+	std::cout << "Error with pu choice: -3 (inc), -2 (new), -1 (old), 0 to 23 (time bin)" << std::endl;
     }
 
     Generator gen(observable, binning, year);
@@ -189,43 +195,49 @@ int main(int argc, char** argv){
     if(launch == "mc"){
         gen.generateMC(sampleList_MC, triggerList, ttbarList, 
                        systematicList, systematicTimeList,
-                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, true, false);   
+                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, true, timebin);   
     }
     else if(launch == "data"){
         gen.generateData(sampleList_DATA, triggerList, data, 
                          succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean);       
     }
     else if(launch == "alt"){
-        gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, true);
+        gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, true, timebin);
     }
     else if(launch == "jec"){
-        //gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, jec_mc_rescale, isIndividualSampleClean, true);
-        gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, mc_rescale, isIndividualSampleClean, true);
+        gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, mc_rescale, isIndividualSampleClean, true, timebin);
     }
-    else if(launch == "timed"){
+    else if(launch == "datatimed"){
         gen.generateDataTimed(sampleList_DATA, triggerList, data, 
                                succedJobs, 24, isDataCorrected, isIndividualSampleClean);
     }
     else if(launch == "forComp"){
         gen.generateMCforComp(sampleList_MC, triggerList, ttbarList, 
-                       mc_rescale, "RECREATE", isIndividualSampleClean);    
+                       mc_rescale, "RECREATE", isIndividualSampleClean,timebin);    
         gen.generateData(sampleList_DATA, triggerList, data, 
                          succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean);   
     }
     else if(launch == "inclusive"){
         gen.generateMC(sampleList_MC, triggerList, ttbarList,
                        systematicList, systematicTimeList,
-                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, false, false);
-        gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, false);
-        //gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, jec_mc_rescale, isIndividualSampleClean, false);
-	gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, mc_rescale, isIndividualSampleClean, false);
-        gen.generateData(sampleList_DATA, triggerList, data,
-                         succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean);
+                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, false, timebin);
+        gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, false, timebin);
+	gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, mc_rescale, isIndividualSampleClean, false, timebin);
+        //gen.generateData(sampleList_DATA, triggerList, data,
+        //                 succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean);
     }
-    else if(launch == "test"){
+    else if(launch == "differential"){
         gen.generateMC(sampleList_MC, triggerList, ttbarList,
                        systematicList, systematicTimeList,
-                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, false, false);
+                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, true, timebin);
+        gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, true, timebin);
+        gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, mc_rescale, isIndividualSampleClean, true, timebin);
+    }
+    else if(launch == "dataAll"){
+        gen.generateData(sampleList_DATA, triggerList, data,
+                         succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean);
+        gen.generateDataTimed(sampleList_DATA, triggerList, data,
+                               succedJobs, 24, isDataCorrected, isIndividualSampleClean);
     }
     else if(launch == "sme"){
 	std::string cmd_sme = "./bin/modulation_creator "+observable;
@@ -234,25 +246,23 @@ int main(int argc, char** argv){
     else{
 	//forComp
         gen.generateMCforComp(sampleList_MC, triggerList, ttbarList, 
-                       mc_rescale, "RECREATE", isIndividualSampleClean);
+                       mc_rescale, "RECREATE", isIndividualSampleClean,timebin);
+        gen.generateData(sampleList_DATA, triggerList, data,
+                         succedJobs, "RECREATE", isDataCorrected,  isIndividualSampleClean);
 	//differential    
         gen.generateMC(sampleList_MC, triggerList, ttbarList, 
                        systematicList,systematicTimeList,
-                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, true, false);
-        gen.generateData(sampleList_DATA, triggerList, data, 
-                         succedJobs, "RECREATE", isDataCorrected,  isIndividualSampleClean);           
+                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, true, timebin);
         gen.generateDataTimed(sampleList_DATA, triggerList, data, 
                                succedJobs, 24, isIndividualSampleClean);
-        gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, true);
-        //gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, jec_mc_rescale, isIndividualSampleClean, true);
-        gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, mc_rescale, isIndividualSampleClean, true);
+        gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, true, timebin);
+        gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, mc_rescale, isIndividualSampleClean, true, timebin);
 	//inclusive
         gen.generateMC(sampleList_MC, triggerList, ttbarList,
                        systematicList,systematicTimeList,
-                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, false, false);
-        gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, false);
-        //gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, jec_mc_rescale, isIndividualSampleClean, false);
-        gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, mc_rescale, isIndividualSampleClean, false);
+                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, false, timebin);
+        gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, false, timebin);
+        gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, mc_rescale, isIndividualSampleClean, false, timebin);
 	//sme
         std::string cmd_sme = "./bin/modulation_creator "+observable;
         system(cmd_sme.c_str());

@@ -30,16 +30,26 @@ class Generator{
 	double luminositySumOfWeight(TTree *tree_p);
         double luminosityCorrection(TTree *tree_p, double lumiavg);
 
+	void drawHisto1D(TTree* tree, std::string obs, std::string string_eventSelection, std::string string_weight, std::string string_triggered, TH1F* hist);
+        void drawHisto2D(TTree* tree, std::string obs1, std::string obs2, std::string string_eventSelection, std::string string_weight, std::string string_triggered, TH2F* hist);
+
         double generateWeight(TTree *tree_p, bool isTimed=true);
+        std::string generateWeightString(bool isTimed=true, int timebin=-1);
 
         double generateSystematics(TTree            * tree_p,
                                    std::string const& systematicName,
                                    bool               isUp
                                   );
+	std::string generateSystematicsString(std::string const& systematicName,
+		                              bool               isUp,
+					      int 		 timebin
+                                  	     );
 
 	void generateLHEweightSystematics(TTree            * tree_p,
                                           std::string const& systematicName,
                                           double           * systList);
+	void generateLHEweightSystematicsStrings(std::string const& systematicName,
+                                                    std::string        * systList);
 
         void generateTimeSystematics(std::vector<double>      & weightsUp,
                                      std::vector<double>      & weightsDown
@@ -50,11 +60,17 @@ class Generator{
                              namelist const& triggerList_p,
                              bool            is2016H = false
                             );
+	std::string isTriggerPassedString(namelist const& triggerList_p,
+                             bool            is2016H = false
+                            );
+
 
 	bool eventSelection(TTree           * tree_p);
         bool eventSelection(TTree           * tree_p,
                                 std::string     jecName);
-      
+	std::string eventSelectionString();
+	std::string eventSelectionString(std::string     jecName);
+ 
         float getGenObservableValue(TTree         * tree_p); 
 	float getObservableValue(TTree         * tree_p);
  
@@ -139,6 +155,8 @@ class Generator{
 
     public:
 
+	bool doLoop = false;
+
         Generator(std::string     const& observable_p,
                   std::vector<int> const& binning_p,
                   std::string     const& year_p
@@ -151,7 +169,8 @@ class Generator{
                            namelist            const& triggerList_p,
                            std::vector<double> const& correction_p,
                            bool                clean_p = true,
-                           bool                isTimed_p = true
+                           bool                isTimed_p = true,
+                           int                 timebin = -1
                           );
 
         void generateJecMC(namelist            const& sampleList_p,
@@ -161,7 +180,8 @@ class Generator{
                            //std::vector<std::vector<double>> const& correction_p,
                            std::vector<double> const& correction_p,
                            bool                clean_p = true,
-                           bool                isTimed_p = true
+                           bool                isTimed_p = true,
+                           int                 timebin = -1
                           );
 
         void generateMC(namelist            const& sampleList_p,
@@ -174,7 +194,7 @@ class Generator{
                         std::string         const& rootOption_p,
                         bool                       clean_p = true,
                         bool                       isTimed_p = true,
-                        bool                       ifResponseMat = false
+			int			   timebin = -1
 
                        );
 
@@ -183,7 +203,8 @@ class Generator{
                         namelist            const& groupList_p,
                         std::vector<double> const& correction_p,
                         std::string         const& rootOption_p,
-                        bool                       clean_p = true
+                        bool                       clean_p = true,
+                        int                        timebin = -1
                        );
 
         void generateData(namelist            const& sampleList_p,
