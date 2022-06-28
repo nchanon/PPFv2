@@ -195,6 +195,7 @@ class Generator{
                         bool                       clean_p = true,
                         bool                       isTimed_p = true,
 			int			   timebin = -1
+
                        );
 
         void generateMCforComp(namelist            const& sampleList_p,
