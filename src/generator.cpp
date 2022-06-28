@@ -1547,9 +1547,8 @@ void Generator::generateMC(namelist            const& sampleList_p,
 		    hist_responseMatrixDown[i]->Scale(correction_p[n]);
 		    listResponseMatrixUp.push_back(*hist_responseMatrixUp[i]);
                     listResponseMatrixDown.push_back(*hist_responseMatrixDown[i]);
-		  }
 		}
-	
+	    }
 	    else if (systematicsList_p[i]=="syst_qcdscale"){
 		for (int k=0; k<6; k++) {
 		    histVarQCDscale[k]->Scale(correction_p[n]);
@@ -1557,10 +1556,9 @@ void Generator::generateMC(namelist            const& sampleList_p,
 		    if (doResponseMatrix){
 			hist_responseMatrixVarQCDscale[k]->Scale(correction_p[n]);
 			listResponseMatrixQCDscale.push_back(*hist_responseMatrixVarQCDscale[k]);
-		      }
+		    }
 		}
 	    }
-	    
 	    else if (systematicsList_p[i]=="syst_pdfas"){
                 for (int k=0; k<102; k++) { 
 		    histVarPDFas[k]->Scale(correction_p[n]);
