@@ -21,11 +21,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument('observable', help='display your observable')
 parser.add_argument('year', help='year of samples')
 parser.add_argument('timed', help='timed or inclusive', default='timed')
+parser.add_argument('timebin', help='display the time bin')
 
 args = parser.parse_args()
 observable = args.observable
 year = args.year
 timed = args.timed
+timebin = int(args.timebin)
 
 doIntegrated = True
 
@@ -86,7 +88,18 @@ def rename(th1, name):
 if (timed=='timed'): stime=''
 if (timed=='inclusive'): stime='_inclusive'
 
-mc_file = TFile('./results/'+year+'/flattree/'+observable+stime+'.root')
+stimebin="";
+if (timebin==-1):
+     stimebin = "_puold";
+if (timebin==-2):
+     stimebin = "_punew";
+if (timebin==-3):
+     stimebin = "_puinc";
+if (timebin>=0):
+     stimebin = "_put"+str(timebin);
+
+mc_file = TFile('./results/'+year+'/flattree/'+observable+stime+stimebin+'.root')
+
 mc_integral = 0
 hist_mc = []
 
@@ -101,7 +114,8 @@ h_nominal.Draw()
 
 ####
 
-alt_file = TFile('./results/'+year+'/flattree/'+observable+'_alt'+stime+'.root')
+alt_file = TFile('./results/'+year+'/flattree/'+observable+'_alt'+stime+stimebin+'.root')
+
 h_gluon = alt_file.Get('signal_GluonMove')
 h_erd = alt_file.Get('signal_erdOn')
 h_qcd = alt_file.Get('signal_QCD')
@@ -238,7 +252,7 @@ rename(h_mtopDownNew, 'signal_mtopDown')
 ##############
 
 
-output = TFile('./results/'+year+'/flattree/'+observable+'_color_reco'+stime+'.root', "RECREATE")
+output = TFile('./results/'+year+'/flattree/'+observable+'_color_reco'+stime+stimebin+'.root', "RECREATE")
 #h_nominal.Write()
 if doIntegrated:
     h_hdampUpNew.Write()
