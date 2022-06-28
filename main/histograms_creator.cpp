@@ -214,8 +214,8 @@ int main(int argc, char** argv){
     else if(launch == "forComp"){
         gen.generateMCforComp(sampleList_MC, triggerList, ttbarList, 
                        mc_rescale, "RECREATE", isIndividualSampleClean,timebin);    
-        gen.generateData(sampleList_DATA, triggerList, data, 
-                         succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean);   
+        //gen.generateData(sampleList_DATA, triggerList, data, 
+        //                 succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean);   
     }
     else if(launch == "inclusive"){
         gen.generateMC(sampleList_MC, triggerList, ttbarList,

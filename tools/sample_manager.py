@@ -198,10 +198,10 @@ cross_section_2017 = {
     'MC_singletop_ST_t_top'       :136.02,   
     'MC_ttx_TTW'                  :0.2043,   
     'MC_ttx_TTW2'                 :0.2043,   
-    #'MC_ttx_TTW3'                 :0.4062,   
+    'MC_ttx_TTW3'                 :0.4062,   
     'MC_ttx_TTZ'                  :0.2529,   
     'MC_ttx_TTZ2'                 :0.2529,   
-    #'MC_ttx_TTZ3'                 :0.5297,   
+    'MC_ttx_TTZ3'                 :0.5297,   
     'MC_wjets_WJets'              :61526.7,   
     'MC_wjets_WJets2'             :61526.7,   
     'MC_zjets_DY_1050'            :22635.1,  
@@ -230,10 +230,10 @@ cross_sec_2017 = [
 
     0.2043,   # TTX TTW  (Wlnu)       
     0.2043,   # TTX TTW2 (Wlnu) 
-    #0.4062,   # TTX TTW3 (Wqq) 
+    0.4062,   # TTX TTW3 (Wqq) 
     0.2529,   # TTX TTZ  (Zll)        
     0.2529,   # TTX TTZ2 (Zll)   
-    #0.5297,   # TTX TTZ3 (Zqq)       
+    0.5297,   # TTX TTZ3 (Zqq)       
 
     61526.7,   # wjets WJets       
     61526.7,   # wjets Wjets2      

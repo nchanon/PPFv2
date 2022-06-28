@@ -123,8 +123,9 @@ double Generator::luminosityCorrection(TTree *tree_p, double lumiavg)
 void Generator::drawHisto1D(TTree* tree, std::string obs, std::string string_eventSelection, std::string string_weight, std::string string_triggered, TH1F* hist){
 
     std::string string_cut = "(" + string_eventSelection + ")*" + string_weight + "*" + string_triggered;
-    //std::cout << "Cut: " << string_cut<<std::endl;
+    std::cout << "Cut: " << string_cut<<std::endl;
     std::string string_obs_redirected = obs + " >> " + hist->GetName();
+
     tree->Draw(string_obs_redirected.c_str(), string_cut.c_str());
 
     return;
@@ -169,8 +170,8 @@ std::string Generator::generateWeightString(bool isTimed, int timebin)
   std::string string_weight = "";
 
   if (timebin==-1) string_weight = "weight_pu";
-  if (timebin==-2) string_weight = "weight_punew";
-  if (timebin==-3) string_weight = "weight_puinc";
+  else if (timebin==-2) string_weight = "weight_punew";
+  else if (timebin==-3) string_weight = "weight_puinc";
   else if (timebin>=0) string_weight = "weight_putime" + std::to_string(timebin);
 
   string_weight += "*weight_generator";
@@ -464,21 +465,26 @@ std::string Generator::isTriggerPassedString(namelist const&    triggerList_p,
                                  )
 {
 
-    std::string string_triggered = "1";
+    std::string string_triggered = "(1";
 
     if(!is2016H){
         for(size_t i = 0; i < triggerList_p.size(); ++i){
             if(triggerList_p[i] == "trg_muon_electron_mu8ele23DZ_fired" or
                triggerList_p[i] == "trg_muon_electron_mu23ele12DZ_fired")
                continue;
-	    string_triggered +=  "*(" + triggerList_p[i] + "==1)";  
+	    //string_triggered +=  "*(" + triggerList_p[i] + "==1)"; 
+	    string_triggered +=  "||(" + triggerList_p[i] + "!=0)"; 
 	}
     }
     else{
         for(size_t i = 0; i < triggerList_p.size(); ++i){
-	    string_triggered +=  "*(" + triggerList_p[i] + "==1)";
+	    //string_triggered +=  "*(" + triggerList_p[i] + "==1)";
+	    string_triggered +=  "||(" + triggerList_p[i] + "[0]==1)";
 	}
     }
+    
+    string_triggered += ")";
+
     return string_triggered;
 }
 
@@ -1758,6 +1764,7 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
     groupingMC(list, groupList_p, clean_p);
     std::cout << "F"<<std::endl;
     write(filename_p, list, option_p);
+    std::cout << "Wrote "<<filename_p<<std::endl;
 }
 
 void Generator::generateData(namelist            const& sampleList_p,
