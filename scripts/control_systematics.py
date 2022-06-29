@@ -10,10 +10,12 @@ from tools.sample_manager import *
 parser = argparse.ArgumentParser()
 parser.add_argument('year', help='year of samples')
 parser.add_argument('timed', help='timed or inclusive')
+parser.add_argument('timebin', help='display the time bin')
 
 args = parser.parse_args()
 year = args.year
 timed = args.timed
+timebin = args.timebin
 
 observable = [
     #['m_dilep', '\"Dilepton mass (GeV)\"'],
@@ -64,6 +66,6 @@ large_syst_list.append('mtop')
 for y in [year]:
     for o in observable:
         for s in large_syst_list: #['Total']:
-            cmd = 'python ./bin/systematics_observable.py '+o[0]+' '+y+' '+timed+' '+s+' '+o[1]
+            cmd = 'python ./bin/systematics_observable.py '+o[0]+' '+y+' '+timed+' '+s+' '+o[1]+' '+timebin
             print cmd
             os.system(cmd)

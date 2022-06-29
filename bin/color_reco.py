@@ -84,10 +84,6 @@ def rename(th1, name):
 ################################################################################
 ## Code body
 ################################################################################
-
-if (timed=='timed'): stime=''
-if (timed=='inclusive'): stime='_inclusive'
-
 stimebin="";
 if (timebin==-1):
      stimebin = "_puold";
@@ -97,6 +93,10 @@ if (timebin==-3):
      stimebin = "_puinc";
 if (timebin>=0):
      stimebin = "_put"+str(timebin);
+
+if (timed=='timed'): stime=''
+if (timed=='inclusive'): stime='_inclusive'
+
 
 mc_file = TFile('./results/'+year+'/flattree/'+observable+stime+stimebin+'.root')
 
@@ -115,7 +115,6 @@ h_nominal.Draw()
 ####
 
 alt_file = TFile('./results/'+year+'/flattree/'+observable+'_alt'+stime+stimebin+'.root')
-
 h_gluon = alt_file.Get('signal_GluonMove')
 h_erd = alt_file.Get('signal_erdOn')
 h_qcd = alt_file.Get('signal_QCD')
