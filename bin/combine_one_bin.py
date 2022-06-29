@@ -21,8 +21,8 @@ triggerOption = 0 #Full trigger syst uncertainties including Nvtx partition
 
 #puOption = "puinc" #inc pu
 #puOption = "punew" #new pu
-puOption = "puold" #old pu
-#puOption = "putime" #pu per time bin
+#puOption = "puold" #old pu
+puOption = "putime" #pu per time bin
 
 doScaleLumiTime = True
 
@@ -175,7 +175,7 @@ for mc_file in mc_file_time:
 		    area = histograms[-1].Integral()
 		    histograms[-1].Scale(h.Integral()/area)
 	
-    h_nom_time.append(hnom)
+    h_nom_time.append(h_nom)
     histograms_time.append(histograms)
 
 ################################################################################
@@ -198,7 +198,7 @@ else:
 	    alt_file_time.append(TFile('./results/'+year+'/flattree/'+observable+'_color_reco_inclusive_put'+str(n)+'.root'))
 
 
-for n in len(range(alt_file_time)):
+for n in range(len(alt_file_time)):
 
     alt_file = alt_file_time[n]
     for l in alt_file.GetListOfKeys():
@@ -237,7 +237,7 @@ else:
         if triggerOption==2:
 	    jec_file_time.append(TFile('./results/'+year+'/flattree/'+observable+'_jec_inclusive_put'+str(n)+'.root'))
 
-for n in len(range(jec_file_time)):
+for n in range(len(jec_file_time)):
 
     jec_file = jec_file_time[n]
     for l in jec_file.GetListOfKeys():
@@ -334,7 +334,7 @@ for n in range(nbin):
     for h in histograms_time[timebin]:
 	h_new = h.Clone()
 	if doExpTimeNuisance:
-	    if (TString(h.GetName()).Contains('syst_elec_reco') or TString(h.GetName()).Contains('syst_elec_id') or TString(h.GetName()).Contains('syst_muon_id') or TString(h.GetName()).Contains('syst_muon_iso') or TString(h.GetName()).Contains('syst_pu') or TString(h.GetName()).Contains('syst_b_correlated') or TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_correlated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_prefiring') or TString(h.GetName()).Contains('jec') or TString(h.GetName()).Contains('syst_em_trig')):
+	    if (TString(h.GetName()).Contains('syst_elec_reco') or TString(h.GetName()).Contains('syst_elec_id') or TString(h.GetName()).Contains('syst_muon_id') or TString(h.GetName()).Contains('syst_muon_iso') or TString(h.GetName()).Contains('syst_b_correlated') or TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_correlated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_prefiring') or TString(h.GetName()).Contains('jec') or TString(h.GetName()).Contains('syst_em_trig')) or (puOption!="putime" and TString(h.GetName()).Contains('syst_pu')):
                 curname = h.GetName()
                 found = curname.find('Up')
                 if (found==-1):

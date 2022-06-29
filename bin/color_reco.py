@@ -28,6 +28,7 @@ observable = args.observable
 year = args.year
 timed = args.timed
 timebin = int(args.timebin)
+
 doIntegrated = True
 
 TH1.SetDefaultSumw2(1)
@@ -96,7 +97,9 @@ if (timebin>=0):
 if (timed=='timed'): stime=''
 if (timed=='inclusive'): stime='_inclusive'
 
+
 mc_file = TFile('./results/'+year+'/flattree/'+observable+stime+stimebin+'.root')
+
 mc_integral = 0
 hist_mc = []
 
@@ -277,4 +280,4 @@ h_mtopDownNew.Write()
 
 output.Close()
 
-raw_input('quit')
+#raw_input('quit')

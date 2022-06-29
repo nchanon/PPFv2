@@ -180,7 +180,7 @@ int main(int argc, char** argv){
 // ------------------------------------------------------------- //
 
 
-    if(launch != "All" and launch != "alt"  and launch != "jec" and launch != "datatimed" and launch != "mc" and launch != "forComp" and launch != "data" and launch != "sme" and launch!="inclusive" and launch!="differential" and launch!="dataAll")
+    if(launch != "All" and launch != "alt"  and launch != "jec" and launch != "datatimed" and launch != "mc" and launch != "forComp" and launch != "data" and launch != "sme" and launch!="inclusive" and launch!="differential" and launch!="dataAll" and launch!="altInclusive" and launch!="jecInclusive" and launch!="mcInclusive")
     {
         std::cout << "Error with option : (All, mc, data, alt, jec, datatimed, sme, forComp, inclusive, differential, dataAll)" << std::endl;
         return 0;
@@ -216,6 +216,17 @@ int main(int argc, char** argv){
                        mc_rescale, "RECREATE", isIndividualSampleClean,timebin);    
         //gen.generateData(sampleList_DATA, triggerList, data, 
         //                 succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean);   
+    }
+    else if(launch == "altInclusive"){
+        gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, false, timebin);
+    }
+    else if(launch == "jecInclusive"){
+        gen.generateJecMC(sampleList_MC, jecList, ttbarList, triggerList, mc_rescale, isIndividualSampleClean, false, timebin);
+    }
+    else if(launch == "mcInclusive"){
+        gen.generateMC(sampleList_MC, triggerList, ttbarList,
+                       systematicList, systematicTimeList,
+                       number_of_events, mc_rescale, "RECREATE", isIndividualSampleClean, false, timebin);
     }
     else if(launch == "inclusive"){
         gen.generateMC(sampleList_MC, triggerList, ttbarList,

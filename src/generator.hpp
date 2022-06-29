@@ -25,7 +25,7 @@ class Generator{
 
         time_t utcConverter(std::string const& time);
 
-        double siderealHour(double time_p);
+        double siderealTime(double time_p);
 
 	double luminositySumOfWeight(TTree *tree_p);
         double luminosityCorrection(TTree *tree_p, double lumiavg);
