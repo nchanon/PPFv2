@@ -42,9 +42,12 @@ int main(int argc, char** argv){
     if (year=="2017") iyear = 1;
 
     bool doExpTimeNuisance = true;
-    //int triggerOption = 0; //Full trigger syst uncertainties including Nvtx partition
+    int triggerOption = 0; //Full trigger syst uncertainties including Nvtx partition
     //int triggerOption = 1; //Trigger syst uncertainties without Nvtx partition
-    int triggerOption = 2; //Trigger syst uncertainties treated as uncorrelated in time
+    //int triggerOption = 2; //Trigger syst uncertainties treated as uncorrelated in time
+
+    bool doPuTime = true;
+    //bool doPuTime = false;
     
     bool doAllWilson = false;
     if (wilson=="sme_all") doAllWilson = true;
@@ -66,11 +69,16 @@ int main(int argc, char** argv){
     std::string sinc="";
     if (process == "Inclusive") sinc = "_inclusive";
 
-    string f_nom_name = "./results/" + year + "/flattree/" + observable + sinc + ".root";
-    std::cout << "Histogram file: "<<f_nom_name<<std::endl;
+    //std::string stimebin = "_puold";
+    std::string stimebin = "_punew";
+    //std::string stimebin = "_puinc";
+    //if (timebin>=0) stimebin = "_put"+std::to_string(timebin);    
+
+    string f_nom_name = "./results/" + year + "/flattree/" + observable + sinc + stimebin + ".root";
+    //std::cout << "Histogram file: "<<f_nom_name<<std::endl;
 
     TFile* f_nom = new TFile(f_nom_name.c_str(), "READ");
-    string f_colorreco_name = "./results/" + year + "/flattree/" + observable + "_color_reco"+sinc+".root";
+    string f_colorreco_name = "./results/" + year + "/flattree/" + observable + "_color_reco"+sinc+stimebin+".root";
     TFile* f_colorreco = new TFile(f_colorreco_name.c_str(), "READ");
     TH1F* h_nom = (TH1F*) f_nom->Get("signal");
     TH1F* h_hdampUp = (TH1F*) f_colorreco->Get("signal_hdampUp");
@@ -160,6 +168,9 @@ int main(int argc, char** argv){
 		}
                 else if(syst == debug_syst)
                     continue;
+		else if (syst == "syst_pu" && doPuTime){
+		    datacard.addSystToCard(syst, "shape", ttbarList);
+		}
                 else
                     datacard.addSystToCard(syst + timebin, "shape", ttbarList);
             }

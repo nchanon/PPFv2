@@ -17,11 +17,11 @@
 
 using namespace std;
 
-const double OMEGA_GMST = 7.2722e-5;
-const double OMEGA_UTC  = 7.2921e-5;
-const double T0_2016    = 1451606400.;
+const double OMEGA_GMST = 7.2722052e-05; //Omega_sideral, was 7.2722e-5;
+const double OMEGA_UTC  = 7.2921159e-05; //Omega_UNIX, was 7.2921e-5;
+const double T0_2016    = 1451606400.; //OK
 const double T0_2017    = 1483228800.;
-const double PHASE      = 3.2830;
+const double PHASE      = 3.2829000; //was 3.2830;
 
 
 /////////////////////////////////
@@ -94,7 +94,7 @@ time_t Generator::utcConverter(std::string const& time)
 }
 
 
-double Generator::siderealHour(double time_p)
+double Generator::siderealTime(double time_p)
 {
     if(year == "2017")
         return (OMEGA_UTC * (time_p - T0_2016) + PHASE)/OMEGA_GMST;
@@ -130,6 +130,8 @@ void Generator::drawHisto1D(TTree* tree, std::string obs, std::string string_eve
     std::string string_obs_redirected = obs + " >> " + hist->GetName();
 
     tree->Draw(string_obs_redirected.c_str(), string_cut.c_str());
+
+    //std::cout << "hist "<< hist->GetName() << " integral="<<hist->Integral()<<std::endl;
 
     return;
 }
@@ -1131,13 +1133,14 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
             TFile* file = new TFile(filename.c_str());
             TTree *tree;
             file->GetObject("events", tree);
-            TCanvas *canvas = new TCanvas((jecList_p[jl]+sampleList_p[n]).c_str());
+            TCanvas *canvas = new TCanvas(("canvas_"+jecList_p[jl]+sampleList_p[n]).c_str());
             TH1F* hist      = new TH1F((jecList_p[jl]+sampleList_p[n]).c_str(), (jecList_p[jl]+sampleList_p[n]).c_str(), nBin, minBin, maxBin);
 
 	    TFile* fileGEN;
 	    TTree* treeGEN;
 	    TH2F* hist_responseMatrix;
 	    std::string filename_gen;
+	    /*
 	    if (doResponseMatrix){
 		std::string genSample = sampleList_p[n];
 		genSample = genSample.substr(3, genSample.size()-1);
@@ -1145,13 +1148,14 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
 		std::cout <<"Gen events from "<<filename_gen<<std::endl;
 		fileGEN = new TFile(filename_gen.c_str(),"READ");
 		treeGEN = (TTree*)fileGEN->Get("Events");
+		treeGEN->SetTreeIndex(0);
+                tree->SetTreeIndex(0);
 		tree->AddFriend(treeGEN);
-	    }
-            if (doResponseMatrix){
+		//tree->SetTreeIndex(0);
                 if (observable=="n_bjets") hist_responseMatrix = new TH2F((jecList_p[jl]+sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
                 else hist_responseMatrix = new TH2F((jecList_p[jl]+sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin+1, minBin-1, maxBin, nBin, minBin, maxBin);
 	    }
-
+	    */
 	    if (doLoop){
 		//int nEvents = 10;
 		int nEvents = tree->GetEntriesFast();
@@ -1172,13 +1176,27 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
                 std::string string_weight = generateWeightString(isTimed_p,timebin);
                 std::string string_triggered = isTriggerPassedString(triggerList_p,true);
                 drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
-                if (doResponseMatrix)
+                if (doResponseMatrix){
+		    std::string genSample = sampleList_p[n];
+		    genSample = genSample.substr(3, genSample.size()-1);
+		    filename_gen = "./inputs/"+year+"/GEN/"+genSample+"_NanoGEN_"+year+"_selection_particle.root";
+		    std::cout <<"Gen events from "<<filename_gen<<std::endl;
+		    fileGEN = new TFile(filename_gen.c_str(),"READ");
+		    treeGEN = (TTree*)fileGEN->Get("Events");
+		    treeGEN->SetTreeIndex(0);
+		    tree->SetTreeIndex(0);
+		    tree->AddFriend(treeGEN);
+		    //tree->SetTreeIndex(0);
+		    if (observable=="n_bjets") hist_responseMatrix = new TH2F((jecList_p[jl]+sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
+		    else hist_responseMatrix = new TH2F((jecList_p[jl]+sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin+1, minBin-1, maxBin, nBin, minBin, maxBin);
                     drawHisto2D(tree, observable, "Events.gen_"+observable, string_eventSelection, string_weight+"*(Events.gen_matched!=0)", string_triggered, hist_responseMatrix);
+		}
 	    }
-
+            //std::cout << "hist "<< hist->GetName() <<" integral="<<hist->Integral()<<std::endl;
             //hist->Scale(correction_p[jl][n]);
             hist->Scale(correction_p[n]);
             list[jl].push_back(*hist);
+	    //std::cout << "hist integral="<<hist->Integral()<<std::endl;
             if (doResponseMatrix){
                 hist_responseMatrix->Scale(correction_p[n]);
                 listResponseMatrix[jl].push_back(*hist_responseMatrix);
@@ -1190,15 +1208,16 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
             delete file;
         }
         groupingMC(list[jl], groupList_p, jecList_p[jl], clean_p);
-
-        std::vector<std::string> groupList_responseMatrix;
-        groupList_responseMatrix.push_back("signal");
-        groupList_responseMatrix.push_back("singletop");
-        groupingMC(listResponseMatrix[jl], groupList_responseMatrix, "responseMatrix_"+jecList_p[jl], clean_p);
-
+	
+	if(isTimed_p){
+            std::vector<std::string> groupList_responseMatrix;
+            groupList_responseMatrix.push_back("signal");
+            groupList_responseMatrix.push_back("singletop");
+            groupingMC(listResponseMatrix[jl], groupList_responseMatrix, "responseMatrix_"+jecList_p[jl], clean_p);
+	}
     }
     write(filename_p, list, "RECREATE");
-    for(size_t jl = 0; jl < jecList_p.size(); ++jl) write(filename_p, listResponseMatrix[jl], "UPDATE");
+    if(isTimed_p) for(size_t jl = 0; jl < jecList_p.size(); ++jl) write(filename_p, listResponseMatrix[jl], "UPDATE");
 
 }
 
@@ -1920,7 +1939,7 @@ void Generator::generateDataTimed(namelist            const& sampleList_p,
         for(int i = 0; i < tree->GetEntriesFast(); ++i){
             tree->GetEntry(i);
             if (eventSelection(tree)!=1) continue;
-            //int whichBin = int(siderealHour(tree->GetLeaf("unix_time")->GetValue(0)))%nBin_p;
+            //int whichBin = int(siderealTime(tree->GetLeaf("unix_time")->GetValue(0)))%nBin_p;
             if(isTriggerPassed(tree, triggerList_p, is2016H)){
                 if (sampleList_p[n].find("MuonEG") != std::string::npos){
                     //hist[whichBin]->Fill(tree->GetLeaf(observable.c_str())->GetValue(0));
@@ -1953,7 +1972,8 @@ void Generator::generateDataTimed(namelist            const& sampleList_p,
         int nPassingEventsCheck = 0;
         double avg_luminosityWeight = 0;
         for(unsigned int i = 0; i < useForPlot.size(); ++i){
-            int whichBin = int(siderealHour(tree->GetLeaf("unix_time")->GetValue(0)))%nBin_p;
+            //int whichBin = int(siderealTime(tree->GetLeaf("unix_time")->GetValue(0)))%nBin_p;
+            int whichBin = std::fmod(siderealTime(tree->GetLeaf("unix_time")->GetValue(0))/3600., nBin_p);
             tree->GetEntry(useForPlot[i]);
             if (correctedLumi) luminosityWeight = (1./tree->GetLeaf("lumi")->GetValue(0)) / lumiavg_oneoverweight;
             else luminosityWeight = 1;
