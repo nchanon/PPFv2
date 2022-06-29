@@ -1192,14 +1192,16 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
         groupingMC(list[jl], groupList_p, jecList_p[jl], clean_p);
 
         std::vector<std::string> groupList_responseMatrix;
+	if(isTimed_p){
         groupList_responseMatrix.push_back("signal");
         groupList_responseMatrix.push_back("singletop");
         groupingMC(listResponseMatrix[jl], groupList_responseMatrix, "responseMatrix_"+jecList_p[jl], clean_p);
-
+	}
     }
     write(filename_p, list, "RECREATE");
+    if(isTimed_p){
     for(size_t jl = 0; jl < jecList_p.size(); ++jl) write(filename_p, listResponseMatrix[jl], "UPDATE");
-
+    }
 }
 
 

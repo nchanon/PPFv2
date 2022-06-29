@@ -27,6 +27,7 @@ parser.add_argument('year', help='year of samples')
 parser.add_argument('timed', help='timed or inclusive')
 parser.add_argument('systematic', help='display your systematic')
 parser.add_argument('title', help='display your observable title')
+parser.add_argument('timebin', help='display the time bin')
 
 args = parser.parse_args()
 observable = args.observable
@@ -34,7 +35,7 @@ year = args.year
 title = args.title
 systematic = args.systematic
 timed = args.timed
-
+timebin = int(args.timebin)
 stimed = ''
 if (timed=="inclusive"):
     stimed = '_inclusive'
@@ -55,11 +56,19 @@ canvas.UseCurrentStyle()
 
 
 #data_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
-
-rootfile_input = TFile('./results/'+year+'/flattree/'+observable+stimed+'.root')
-rootfile_input_jec = TFile('./results/'+year+'/flattree/'+observable+'_jec'+stimed+'.root')
-rootfile_input_alt = TFile('./results/'+year+'/flattree/'+observable+'_alt'+stimed+'.root')
-rootfile_input_color_reco = TFile('./results/'+year+'/flattree/'+observable+'_color_reco'+stimed+'.root')
+stimebin="";
+if (timebin==-1):
+     stimebin = "_puold";
+if (timebin==-2):
+     stimebin = "_punew";
+if (timebin==-3):
+     stimebin = "_puinc";
+if (timebin>=0):
+     stimebin = "_put"+str(timebin);
+rootfile_input = TFile('./results/'+year+'/flattree/'+observable+stimed+stimebin+'.root')
+rootfile_input_jec = TFile('./results/'+year+'/flattree/'+observable+'_jec'+stimed+stimebin+'.root')
+rootfile_input_alt = TFile('./results/'+year+'/flattree/'+observable+'_alt'+stimed+stimebin+'.root')
+rootfile_input_color_reco = TFile('./results/'+year+'/flattree/'+observable+'_color_reco'+stimed+stimebin+'.root')
 
 rootfile_input_time = []
 if timed=='timed':
