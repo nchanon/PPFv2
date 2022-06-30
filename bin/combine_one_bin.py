@@ -15,17 +15,17 @@ nbin = 24
 
 doExpTimeNuisance = True
 
-triggerOption = 0 #Full trigger syst uncertainties including Nvtx partition
-#triggerOption = 1 #Trigger syst uncertainties without Nvtx partition
+#triggerOption = 0 #Full trigger syst uncertainties including Nvtx partition
+triggerOption = 1 #Trigger syst uncertainties without Nvtx partition
 #triggerOption = 2 #Trigger syst uncertainties treated as uncorrelated in time
 
 #puOption = "puinc" #inc pu
-puOption = "punew" #new pu
+#puOption = "punew" #new pu
 #puOption = "puold" #old pu
-#puOption = "putime" #pu per time bin
+puOption = "putime" #pu per time bin
 
-#doScaleLumiTime = True
-doScaleLumiTime = False
+doScaleLumiTime = True
+#doScaleLumiTime = False
 
 ################################################################################
 ## Initialisation stuff
@@ -351,7 +351,7 @@ for n in range(nbin):
     for h in hist_tim:
         #h.Scale(hist_triggerSF.GetBinContent(n+1)) #Is it correct?
         if doScaleLumiTime:
-            h_new.Scale(hist_lumi_corr.GetBinContent(n+1))
+            h.Scale(hist_lumi_corr.GetBinContent(n+1))
         h.Write()
 
     output.Close()

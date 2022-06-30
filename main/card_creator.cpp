@@ -42,8 +42,8 @@ int main(int argc, char** argv){
     if (year=="2017") iyear = 1;
 
     bool doExpTimeNuisance = true;
-    int triggerOption = 0; //Full trigger syst uncertainties including Nvtx partition
-    //int triggerOption = 1; //Trigger syst uncertainties without Nvtx partition
+    //int triggerOption = 0; //Full trigger syst uncertainties including Nvtx partition
+    int triggerOption = 1; //Trigger syst uncertainties without Nvtx partition
     //int triggerOption = 2; //Trigger syst uncertainties treated as uncorrelated in time
 
     bool doPuTime = true;
@@ -117,10 +117,15 @@ int main(int argc, char** argv){
 
         std::vector<double> numberOfEvents;
         double number = 0;
-        std::ifstream f("./combine/"+year+"/"+observable+"_noe_data_timed.txt");
+        //std::ifstream f("./combine/"+year+"/"+observable+"_noe_data_timed.txt");
+        string f_data_name = "./results/" + year + "/flattree/" + observable + "_data_timed24.root";
+        TFile* f_data = new TFile(f_data_name.c_str(), "READ");
+
         for(int i = 0; i < nBin; ++i){
-            f >> number;
-            numberOfEvents.push_back(number);
+            TH1F* h_data = (TH1F*) f_data->Get(Form("data_obs_bin%i",i));
+            std::cout << "Bin "<<i<<" "<<h_data->Integral()<<std::endl;
+            //f >> number;
+            numberOfEvents.push_back(h_data->Integral());
         }
 
         for(int i = 0; i < nBin; ++i){

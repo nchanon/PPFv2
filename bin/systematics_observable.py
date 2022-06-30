@@ -151,8 +151,13 @@ for l in rootfile_input_syst.GetListOfKeys():
             hist_mc_up.append(rootfile_input_syst.Get(l.GetName()))
 	    hist_mc_down.append(hist_mc[-1].Clone())
 
-if timed=='timed' and (TString(systematic).Contains('emu_trig') or TString(systematic).Contains('lumi_stability') or TString(systematic).Contains('lumi_linearity')):
+obsname = observable
+
+if timed=='timed' and (TString(systematic).Contains('emu_trig') or TString(systematic).Contains('lumi_stability') or TString(systematic).Contains('lumi_linearity') or TString(systematic).Contains('syst_pu')):
     del hist_mc[:]
+    del hist_mc_up[:]
+    del hist_mc_down[:]
+    obsname = "sidereal"
     slist = ttbar_list
     for s in slist:
 	h_time = TH1F(s, s, 24,0,24)
@@ -280,7 +285,7 @@ for h in range(len(hist_mc)):
 outputdir = './results/'+year+'/systematics/'
 
 for index in range(len(hist_mc)):
-    name = observable+'_'+hist_mc[index].GetName()+'_'+systematic
+    name = obsname+stimebin+'_'+hist_mc[index].GetName()+'_'+systematic
     canvas = TCanvas(name, name)
     hist_mc[index].SetAxisRange(-edge[index]*1.7, edge[index]*1.7, "Y")
     #hist_mc[index].Draw('')
