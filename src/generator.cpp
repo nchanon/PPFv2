@@ -1596,7 +1596,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
             //listTimeDown.push_back(*histDownTime[i]);
         //}
 
-
+   /*
         delete hist;
 	if (doResponseMatrix) delete hist_responseMatrix;
         for(size_t i = 0; i < systematicsList_p.size()-2; ++i){
@@ -1622,6 +1622,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
         delete canvas;
         delete tree;
         delete file;
+  */
     }
 
  

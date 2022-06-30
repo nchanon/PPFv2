@@ -19,8 +19,8 @@ do
     #sbatch scripts/slurm_HistCreator_mc_differential.sh ${obs} ${year} -3
     #sbatch scripts/slurm_HistCreator_mc_differential.sh ${obs} ${year} -2
     #sbatch scripts/slurm_HistCreator_mc_differential.sh ${obs} ${year} -1
-    for puchoice in `seq -3 23`
-    #for puchoice in 0
+    #for puchoice in `seq -3 23`
+    for puchoice in -3 12 14 19 1 20
     do
       sbatch scripts/slurm_HistCreator_mc_differential.sh ${obs} ${year} ${puchoice}
     done

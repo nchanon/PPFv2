@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-#SBATCH --ntasks=1
+#SBATCH --ntasks=1 --mem=3000
 
 #export EOS_MGM_URL=root://lyoeos.in2p3.fr
 

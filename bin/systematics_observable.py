@@ -10,6 +10,10 @@ import argparse
 
 from ROOT import TFile, TH1, TCanvas, TH1F, THStack, TString
 from ROOT import TLegend, TApplication, TRatioPlot, TPad, TFrame
+from ROOT import gROOT
+
+gROOT.SetBatch()
+
 
 import tools.tdrstyle as tdr
 tdr.setTDRStyle()

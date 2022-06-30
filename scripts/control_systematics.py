@@ -50,9 +50,9 @@ large_syst_list.append('GluonMove')
 large_syst_list.append('mtop')
 
 #Adding timed uncertainties
-#large_syst_list.append('emu_trig_'+year)
-#large_syst_list.append('lumi_stability_'+year)
-#large_syst_list.append('lumi_linearity_'+year)
+large_syst_list.append('emu_trig_'+year)
+large_syst_list.append('lumi_stability_'+year)
+large_syst_list.append('lumi_linearity_'+year)
 
 #Tests
 #large_syst_list = ['syst_qcdscale', 'syst_pdfas']
@@ -62,6 +62,7 @@ large_syst_list.append('mtop')
 #large_syst_list = ['syst_pt_top']
 #large_syst_list = ['mtop']
 #large_syst_list =  ['erd','QCD','GluonMove']
+
 
 for y in [year]:
     for o in observable:

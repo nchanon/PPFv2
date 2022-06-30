@@ -20,11 +20,12 @@ triggerOption = 0 #Full trigger syst uncertainties including Nvtx partition
 #triggerOption = 2 #Trigger syst uncertainties treated as uncorrelated in time
 
 #puOption = "puinc" #inc pu
-#puOption = "punew" #new pu
+puOption = "punew" #new pu
 #puOption = "puold" #old pu
-puOption = "putime" #pu per time bin
+#puOption = "putime" #pu per time bin
 
-doScaleLumiTime = True
+#doScaleLumiTime = True
+doScaleLumiTime = False
 
 ################################################################################
 ## Initialisation stuff
@@ -287,8 +288,8 @@ for n in range(nbin):
         for s in systematic_time_list:
             hist_up = mc_file_time[timebin].Get(g).Clone()
             hist_down = mc_file_time[timebin].Get(g).Clone()
-	    hist_up.Scale(1./nbin) #Was forgotten. Does it matter in combine?
-            hist_down.Scale(1./nbin) #Was forgotten. Does it matter in combine?
+	    #hist_up.Scale(1./nbin) #Was forgotten. Does it matter in combine?
+            #hist_down.Scale(1./nbin) #Was forgotten. Does it matter in combine?
             if (s == 'emu_trig' or s=='lumi_stability' or s=='lumi_linearity'):
                 newprefix = g+'_'+s+'_'+year
             else:
