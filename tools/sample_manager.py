@@ -306,6 +306,7 @@ cross_sec_2017_alt = [
     89.048226,            # signal dilep       
     89.048226,            # signal dilep       
     89.048226,            # signal dilep       
+    89.048226,            # signal dilep       
 
     377.96006,            # signal hadronic    
     377.96006,            # signal hadronic    

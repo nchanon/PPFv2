@@ -94,7 +94,10 @@ int main(int argc, char** argv){
     alt_hdamp[iyear] = tmp1.substr(0, tmp1.find(".")+4) + "/" + tmp2.substr(0, tmp2.find(".")+4);
     tmp1 = std::to_string(h_CP5Up->GetBinContent(1)/h_nom->GetBinContent(1));
     tmp2 = std::to_string(h_CP5Down->GetBinContent(1)/h_nom->GetBinContent(1));
-    alt_CP5[iyear] = tmp1.substr(0, tmp1.find(".")+4) + "/" + tmp2.substr(0, tmp2.find(".")+4);
+    if (fabs(h_CP5Up->GetBinContent(1)-1)>fabs(h_CP5Down->GetBinContent(1)-1))
+       alt_CP5[iyear] = tmp1.substr(0, tmp1.find(".")+4);
+    else alt_CP5[iyear] = tmp1.substr(0, tmp2.find(".")+4);
+    //alt_CP5[iyear] = tmp1.substr(0, tmp1.find(".")+4) + "/" + tmp2.substr(0, tmp2.find(".")+4);
     tmp1 = std::to_string(h_erdOnUp->GetBinContent(1)/h_nom->GetBinContent(1));
     alt_erdOn[iyear] =  tmp1.substr(0, tmp1.find(".")+4);
     tmp1 = std::to_string(h_GluonMoveUp->GetBinContent(1)/h_nom->GetBinContent(1));
