@@ -6,15 +6,15 @@ import argparse
 ###################
 
 observables = [
- #   'm_dilep',
- #   'pt_elec',
- #   'eta_elec',
+    'm_dilep',
+    'pt_elec',
+    'eta_elec',
     'pt_muon',
     'eta_muon',
     'n_jets',
     'n_bjets',
-#    'pt_lead',
-#    'pt_sublead',
+    'pt_lead',
+    'pt_sublead',
     'b1_pt',
     'j1_pt',
     'j1_eta',
@@ -28,7 +28,7 @@ observables = [
 ]
 
 years = [
-#    '2016',
+    '2016',
     '2017'
 ]
 

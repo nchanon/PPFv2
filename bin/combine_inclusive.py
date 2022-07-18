@@ -20,11 +20,11 @@ from ROOT import TLegend, TApplication, TRatioPlot, TPad
 parser = argparse.ArgumentParser()
 parser.add_argument('observable', help='display your observable')
 parser.add_argument('year', help='year of samples')
-
+parser.add_argument('timebin', help='display the time bin')
 args = parser.parse_args()
 observable = args.observable
 year = args.year
-
+timebin = int(args.timebin)
 TH1.SetDefaultSumw2(1)
 
 ################################################################################
@@ -50,8 +50,17 @@ for l in data_file.GetListOfKeys():
     histograms.append(hist)
 
 h_nom = []
+stimebin="";
+if (timebin==-1):
+     stimebin = "_puold";
+if (timebin==-2):
+     stimebin = "_punew";
+if (timebin==-3):
+     stimebin = "_puinc";
+if (timebin>=0):
+     stimebin = "_put"+str(timebin);
 
-mc_file = TFile('./results/'+year+'/flattree/'+observable+'_inclusive.root')
+mc_file = TFile('./results/'+year+'/flattree/'+observable+'_inclusive'+stimebin+'.root')
 for l in mc_file.GetListOfKeys():
     hist = mc_file.Get(l.GetName())
     #hname = hist.GetName()
@@ -98,7 +107,7 @@ for l in mc_file.GetListOfKeys():
 
 
 
-mc_alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco_inclusive.root')
+mc_alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco_inclusive'+stimebin+'.root')
 for l in mc_alt_file.GetListOfKeys():
     hist = mc_alt_file.Get(l.GetName())
     histograms.append(hist)
@@ -112,7 +121,7 @@ for l in mc_alt_file.GetListOfKeys():
                 histograms[-1].Scale(h.Integral()/area)
 
 
-mc_jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec_inclusive.root')
+mc_jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec_inclusive'+stimebin+'.root')
 for l in mc_jec_file.GetListOfKeys():
     hist = mc_jec_file.Get(l.GetName())
     hname = hist.GetName()
@@ -128,7 +137,7 @@ for l in mc_jec_file.GetListOfKeys():
 
 
 out = './combine/'+year+'/inclusive/inputs/'
-output = TFile(out+observable+'_inclusive.root', "RECREATE")
+output = TFile(out+observable+'_inclusive'+stimebin+'.root', "RECREATE")
 for h in histograms:
     h.Write()
 output.Close()

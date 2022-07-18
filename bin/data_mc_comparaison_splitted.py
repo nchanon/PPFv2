@@ -412,7 +412,7 @@ ratio.GetXaxis().SetLabelOffset(0.01)
 
 resultname = './results/'+year+'/comparaison/'+observable+'_'+year+'_splitted'
 
-rootfile_output = TFile(resultname+'.root', "RECREATE")
+rootfile_output = TFile(resultname+stimebin+'.root', "RECREATE")
 canvas.Write()
 canvas.SaveAs(resultname+'.png')
 canvas.SaveAs(resultname+'.pdf')

@@ -1,7 +1,7 @@
 #!/bin/bash
 
-for i in 2016 2017
-#for i in 2016
+#for i in 2016 2017
+for i in 2016
 do
     python ./bin/data_mc_comparaison_splitted.py m_dilep ${i} "Dilepton mass (GeV)" $1
     python ./bin/data_mc_comparaison_splitted.py eta_elec ${i} "Electron #eta" $1
