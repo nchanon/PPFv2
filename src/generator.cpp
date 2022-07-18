@@ -139,8 +139,8 @@ void Generator::drawHisto1D(TTree* tree, std::string obs, std::string string_eve
 void Generator::drawHisto2D(TTree* tree, std::string obs1, std::string obs2, std::string string_eventSelection, std::string string_weight, std::string string_triggered, TH2F* hist){
 
     std::string string_cut = "(" + string_eventSelection + ")*" + string_weight + "*" + string_triggered;
-    //std::cout << "Cut: " << string_cut<<std::endl;
-    std::string string_obs_redirected = obs1 + ":" + obs2 + " >> " + hist->GetName();
+    std::cout << "Cut: " << string_cut<<std::endl;
+    std::string string_obs_redirected = obs2 + ":" + obs1 + " >> " + hist->GetName();
     tree->Draw(string_obs_redirected.c_str(), string_cut.c_str());
 
     return;
@@ -1189,7 +1189,7 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
 		    //tree->SetTreeIndex(0);
 		    if (observable=="n_bjets") hist_responseMatrix = new TH2F((jecList_p[jl]+sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
 		    else hist_responseMatrix = new TH2F((jecList_p[jl]+sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin+1, minBin-1, maxBin, nBin, minBin, maxBin);
-                    drawHisto2D(tree, observable, "Events.gen_"+observable, string_eventSelection, string_weight+"*(Events.gen_matched!=0)", string_triggered, hist_responseMatrix);
+                    drawHisto2D(tree, observable, "(Events.gen_matched==0)?-1:Events.gen_"+observable, string_eventSelection, string_weight, string_triggered, hist_responseMatrix);
 		}
 	    }
             //std::cout << "hist "<< hist->GetName() <<" integral="<<hist->Integral()<<std::endl;
@@ -1504,7 +1504,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
 	    drawHisto1D(tree, observable, string_eventSelection, "1", string_triggered, hist_events);
 	    //Nominal response matrix
 	    if (doResponseMatrix)
-		drawHisto2D(tree, observable, "Events.gen_"+observable, string_eventSelection, string_weight+"*(Events.gen_matched!=0)", string_triggered, hist_responseMatrix);
+		drawHisto2D(tree, observable, "(Events.gen_matched==0)?-1:Events.gen_"+observable, string_eventSelection, string_weight, string_triggered, hist_responseMatrix);
 	    //Systematics
 	    for(size_t j = 0; j < systematicsList_p.size(); ++j){
                 if (systematicsList_p[j]!="syst_qcdscale" && systematicsList_p[j]!="syst_pdfas"){
@@ -1513,8 +1513,8 @@ void Generator::generateMC(namelist            const& sampleList_p,
 	            drawHisto1D(tree, observable, string_eventSelection, string_weight+"*"+string_syst_up, string_triggered, histUp[j]);
                     drawHisto1D(tree, observable, string_eventSelection, string_weight+"*"+string_syst_down, string_triggered, histDown[j]);
 		    if (doResponseMatrix){
-			drawHisto2D(tree, observable, "Events.gen_"+observable, string_eventSelection, string_weight+"*(Events.gen_matched!=0)*"+string_syst_up, string_triggered, hist_responseMatrixUp[j]);
-                        drawHisto2D(tree, observable, "Events.gen_"+observable, string_eventSelection, string_weight+"*(Events.gen_matched!=0)*"+string_syst_down, string_triggered, hist_responseMatrixDown[j]);
+			drawHisto2D(tree, observable, "(Events.gen_matched==0)?-1:Events.gen_"+observable, string_eventSelection, string_weight+"*"+string_syst_up, string_triggered, hist_responseMatrixUp[j]);
+                        drawHisto2D(tree, observable, "(Events.gen_matched==0)?-1:Events.gen_"+observable, string_eventSelection, string_weight+"*"+string_syst_down, string_triggered, hist_responseMatrixDown[j]);
 		    }
 		}
 		else if (systematicsList_p[j]=="syst_qcdscale"){
@@ -1522,7 +1522,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
 		    for (int k=0; k<6; k++) {
 			drawHisto1D(tree, observable, string_eventSelection, string_weight+"*"+strings_systVarQCDscale[k], string_triggered, histVarQCDscale[k]);
 			if (doResponseMatrix)
-			    drawHisto2D(tree, observable, "Events.gen_"+observable, string_eventSelection, string_weight+"*(Events.gen_matched!=0)*"+strings_systVarQCDscale[k], string_triggered, hist_responseMatrixVarQCDscale[k]);
+			    drawHisto2D(tree, observable, "(Events.gen_matched==0)?-1:Events.gen_"+observable, string_eventSelection, string_weight+"*"+strings_systVarQCDscale[k], string_triggered, hist_responseMatrixVarQCDscale[k]);
 		    }
 		}
 		else if (systematicsList_p[j]=="syst_pdfas"){
@@ -1530,7 +1530,7 @@ void Generator::generateMC(namelist            const& sampleList_p,
                     for (int k=0; k<102; k++) {
                         drawHisto1D(tree, observable, string_eventSelection, string_weight+"*"+strings_systVarPDFas[k], string_triggered, histVarPDFas[k]);
                         if (doResponseMatrix)
-                            drawHisto2D(tree, observable, "Events.gen_"+observable, string_eventSelection, string_weight+"*(Events.gen_matched!=0)*"+strings_systVarPDFas[k], string_triggered, hist_responseMatrixVarPDFas[k]);
+                            drawHisto2D(tree, observable, "(Events.gen_matched==0)?-1:Events.gen_"+observable, string_eventSelection, string_weight+"*"+strings_systVarPDFas[k], string_triggered, hist_responseMatrixVarPDFas[k]);
                     }
 		}
 	    }

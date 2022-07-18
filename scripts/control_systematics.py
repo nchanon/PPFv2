@@ -30,7 +30,7 @@ observable = [
 #]
 
 
-#large_syst_list = []
+large_syst_list = []
 
 #Complete list
 large_syst_list = systematic_list
@@ -48,8 +48,8 @@ large_syst_list.append('erd')
 large_syst_list.append('QCD')
 large_syst_list.append('GluonMove')
 large_syst_list.append('mtop')
-if(timed=="timed"):
 #Adding timed uncertainties
+if(timed=="timed"):
     large_syst_list.append('emu_trig_'+year)
     large_syst_list.append('lumi_stability_'+year)
     large_syst_list.append('lumi_linearity_'+year)

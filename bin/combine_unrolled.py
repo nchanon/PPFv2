@@ -16,9 +16,23 @@ nbintime = 24
 doExpTimeNuisance = True
 
 #triggerOption = 0 #Full trigger syst uncertainties including Nvtx partition
-#triggerOption = 1 #Trigger syst uncertainties without Nvtx partition
-triggerOption = 2 #Trigger syst uncertainties treated as uncorrelated in time
+triggerOption = 1 #Trigger syst uncertainties without Nvtx partition
+#triggerOption = 2 #Trigger syst uncertainties treated as uncorrelated in time
 
+#puOption = "puinc" #inc pu
+#puOption = "punew" #new pu
+#puOption = "puold" #old pu
+puOption = "putime" #pu per time bin
+
+doScaleLumiTime = True
+#doScaleLumiTime = False
+
+cmunu = 0.001
+doSMEkindep = True
+#doSMEkindep = False
+
+doResponseMatrix = True
+#doResponseMatrix = False
 
 ################################################################################
 ## Initialisation stuff
@@ -67,21 +81,17 @@ nbinkin = hist_data_in[0].GetNbinsX()
 
 canvas_data = TCanvas('data_obs', 'data_obs', 1000, 800)
 hist_data = TH1F('data_obs','data_obs', nbinkin*nbintime,  0, nbintime)
-for iobs in range(nbintime):
+for itime in range(nbintime):
     for n in range(nbinkin):
-        hist_data.SetBinContent(n + iobs*nbinkin + 1 , hist_data_in[iobs].GetBinContent(n+1))
-        hist_data.SetBinError(n + iobs*nbinkin + 1 , hist_data_in[iobs].GetBinError(n+1))
+        hist_data.SetBinContent(n + itime*nbinkin + 1 , hist_data_in[itime].GetBinContent(n+1))
+        hist_data.SetBinError(n + itime*nbinkin + 1 , hist_data_in[itime].GetBinError(n+1))
 
 ###########
 # MC part
 ###########
 
-#mc_file = TFile('./results/'+year+'/flattree/'+observable+'.root')
-#mc_integral = 0
-#hist_mc = []
-
 lumisyst_file = TFile('./inputs/timed/LumiUncertainties_'+year+'.root')
-hist_lumi_corr = lumisyst_file.Get('hInstLumi_DataScaleFactor')
+hist_lumi_corr = lumisyst_file.Get('hIntegratedLumi_sidereal_mcweight')
 
 #lumi_file = TFile('./inputs/timed/AllTimedSyst_'+year+'.root')
 triggersyst_file = TFile('./inputs/timed/TriggerSF_'+year+'.root')
@@ -90,45 +100,240 @@ triggersystNovtx_file = TFile('./inputs/timed/TriggerSF_'+year+'_noNvtx.root')
 if triggerOption==0:
     hist_triggerSF = triggersyst_file.Get('h_SF_emu_sidereel_Full_UncBand')
 if triggerOption==1:
-    hist_triggerSF = triggersystNovtx_file.Get('h_SF_emu_sidereel_Full_UncBand')
+    if year=='2016':
+        hist_triggerSF = triggersystNovtx_file.Get('h_SF_emu_sidereel_Full_UncBand')
+    if year=='2017':
+        hist_triggerSF = triggersystNovtx_file.Get('h_SF_emu_sidereal_Full_UncBand')
 
-if triggerOption==0 or triggerOption==1:
-    mc_file = TFile('./results/'+year+'/flattree/'+observable+'.root')
-if triggerOption==2:
-    mc_file = TFile('./results/'+year+'/flattree/'+observable+'_inclusive.root')
+#if triggerOption==0 or triggerOption==1:
+#    mc_file = TFile('./results/'+year+'/flattree/'+observable+'.root')
+#if triggerOption==2:
+#    mc_file = TFile('./results/'+year+'/flattree/'+observable+'_inclusive.root')
 
-mc_integral = 0
-hist_mc = []
+mc_file_time = []
 
-triggerSF = 1
-index = 0
-for l in mc_file.GetListOfKeys():
-    if not TString(l.GetName()).Contains('data_obs'):
-        hist = mc_file.Get(l.GetName())
-        hist_mc.append(TH1F("","", nbinkin*nbintime,  0, nbintime))
-        for iobs in range(nbintime):
-            for j in range(nbinkin):
-		if triggerOption==0 or triggerOption==1:
-		    triggerSF = hist_triggerSF.GetBinContent(iobs+1)
-		if  triggerOption==2:
-		    triggerSF = 1
-                hist_mc[index].SetBinContent(j + iobs*nbinkin + 1 , hist.GetBinContent(j+1)*triggerSF) #i => iobs
-                hist_mc[index].SetBinError(j + iobs*nbinkin + 1 , hist.GetBinError(j+1)*triggerSF) #i ou iobs => j ! how to treat SF uncertainties (for nominal MC?)
-        del hist
-        hist_mc[index].SetName(l.GetName())
-        hist_mc[index].SetTitle(l.GetName())
-        hist_mc[index].Scale(1./nbintime)
-        for g in ttbar_list:
-            if TString(l.GetName()) == g:
-                mc_integral += hist_mc[index].Integral()
-        index += 1
+if puOption=="puold" or puOption=="punew" or puOption=="puinc":
+    if triggerOption==0 or triggerOption==1:
+        mc_file = TFile('./results/'+year+'/flattree/'+observable+'_'+puOption+'.root')
+    if triggerOption==2:
+        mc_file = TFile('./results/'+year+'/flattree/'+observable+'_inclusive_'+puOption+'.root')
+    mc_file_time.append(mc_file)
+else:
+    for n in range(24):
+        if triggerOption==0 or triggerOption==1:
+            mc_file_time.append(TFile('./results/'+year+'/flattree/'+observable+'_put'+str(n)+'.root'))
+        if triggerOption==2:
+            mc_file_time.append(TFile('./results/'+year+'/flattree/'+observable+'_inclusive_put'+str(n)+'.root'))
 
+if puOption=="puold" or puOption=="punew" or puOption=="puinc":
+    nputimebin = 1
+else:
+    nputimebin = nbintime
+
+#Files for response matrices in triggerOption==2: do not use inclusive, or compute it also for inclusive?
+
+histograms_time = []
+h_nom_time = []
+histograms_time_responseMatrix = []
+
+#mc_integral = 0
+#hist_mc = []
+
+for mc_file in mc_file_time:
+
+    print mc_file.GetName()
+
+    #h_nom = [] 
+    #histograms = []
+    mc_integral = 0
+    hist_mc = []
+    hist_responseMatrix = []
+
+    triggerSF = 1
+    index = 0
+    for l in mc_file.GetListOfKeys():
+
+        if TString(l.GetName()).Contains('responseMatrix'):
+	    hist_responseMatrix.append(mc_file.Get(l.GetName()))
+            continue
+
+	if not TString(l.GetName()).Contains('data_obs'):
+	    hist_mc.append(mc_file.Get(l.GetName()))
+	    #hist_mc.append(TH1F("","", nbinkin*nbintime,  0, nbintime))
+	    #for itime in range(nbintime):
+		#for j in range(nbinkin):
+		    #if triggerOption==0 or triggerOption==1:
+			#triggerSF = hist_triggerSF.GetBinContent(itime+1)
+		    #if  triggerOption==2:
+			#triggerSF = 1
+		    #hist_mc[index].SetBinContent(j + itime*nbinkin + 1 , hist.GetBinContent(j+1)*triggerSF) #i => itime
+		    #hist_mc[index].SetBinError(j + itime*nbinkin + 1 , hist.GetBinError(j+1)*triggerSF) #i ou itime => j ! how to treat SF uncertainties (for nominal MC?)
+	    #del hist
+	    hist_mc[index].SetName(l.GetName())
+	    hist_mc[index].SetTitle(l.GetName())
+	    #hist_mc[index].Scale(1./nbintime)
+	    for g in ttbar_list:
+		if TString(l.GetName()) == g:
+		    mc_integral += hist_mc[index].Integral()
+	    index += 1
+
+    histograms_time.append(hist_mc)
+    histograms_time_responseMatrix.append(hist_responseMatrix)
+
+
+##############
+# JEC part 
+##############
+
+#hist_alt_jec = []
+
+#if triggerOption==0 or triggerOption==1:
+#    jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec.root')
+#if triggerOption==2:
+#    jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec_inclusive.root')
+
+jec_file_time = []
+
+if puOption=="puold" or puOption=="punew" or puOption=="puinc":
+    if triggerOption==0 or triggerOption==1:
+        jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec_'+puOption+'.root')
+    if triggerOption==2:
+        jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec_inclusive_'+puOption+'.root')
+    jec_file_time.append(jec_file)
+else:
+    for n in range(24):
+        if triggerOption==0 or triggerOption==1:
+            jec_file_time.append(TFile('./results/'+year+'/flattree/'+observable+'_jec_put'+str(n)+'.root'))
+        if triggerOption==2:
+            jec_file_time.append(TFile('./results/'+year+'/flattree/'+observable+'_jec_inclusive_put'+str(n)+'.root'))
+
+for n in range(len(jec_file_time)):
+
+    jec_file = jec_file_time[n]
+    for l in jec_file.GetListOfKeys():
+
+        if TString(l.GetName()).Contains('responseMatrix'):
+            histograms_time_responseMatrix[n].append(jec_file.Get(l.GetName()))
+            continue
+
+	hh = jec_file.Get(l.GetName())
+	#hh.Scale(1./nbintime)
+	hname = l.GetName()
+	if TString(hname).Contains('Total') or TString(hname).Contains('Absolute') or TString(hname).Contains('FlavorQCD') or TString(hname).Contains('BBEC1') or TString(hname).Contains('RelativeBal') or TString(hname).Contains('RelativeSample'):
+	    if(hname.find('_up')!= -1):
+		newname = hname[:-3]+'_jecUp'
+	    elif(hname.find('_down')!= -1):
+		newname = hname[:-5]+'_jecDown'
+	#if(hname.find('TotalUp')!= -1):
+	#    name = hname[:-7]+'jecUp'
+	#elif(hname.find('TotalDown')!= -1):
+	#    name = hname[:-9]+'jecDown'
+	#h_jec = TH1F("","", nbinkin*nbintime,  0, nbintime)
+	h_jec = hh
+	h_jec.SetTitle(newname)
+	h_jec.SetName(newname)
+	#for i in range(nbintime):
+	#    for j in range(nbinkin):
+	#	if triggerOption==0 or triggerOption==1:
+	#	    triggerSF = hist_triggerSF.GetBinContent(i+1)
+	#	if  triggerOption==2:
+	#	    triggerSF = 1
+	#	h_jec.SetBinContent(j + i*nbinkin + 1, hh.GetBinContent(j+1)*triggerSF)
+	#	h_jec.SetBinError(j + i*nbinkin + 1, hh.GetBinError(j + 1)*triggerSF)
+
+	histograms_time[n].append(h_jec)
+
+##############
+# ALT part 
+##############
+
+#if triggerOption==0 or triggerOption==1:
+#    alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco.root')
+#if triggerOption==2:
+#    alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco_inclusive.root')
+
+alt_file_time = []
+
+if puOption=="puold" or puOption=="punew" or puOption=="puinc":
+    if triggerOption==0 or triggerOption==1:
+        alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco_'+puOption+'.root')
+    if triggerOption==2:
+        alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco_inclusive_'+puOption+'.root')
+    alt_file_time.append(alt_file)
+else:
+    for n in range(24):
+        if triggerOption==0 or triggerOption==1:
+            alt_file_time.append(TFile('./results/'+year+'/flattree/'+observable+'_color_reco_put'+str(n)+'.root'))
+        if triggerOption==2:
+            alt_file_time.append(TFile('./results/'+year+'/flattree/'+observable+'_color_reco_inclusive_put'+str(n)+'.root'))
+
+for n in range(len(alt_file_time)):
+
+    alt_file = alt_file_time[n]
+    for l in alt_file.GetListOfKeys():
+	h_alt = alt_file.Get(l.GetName())
+	#hh.Scale(1./nbintime)
+	#hname = l.GetName()
+	#h_alt = hh
+	#h_alt = TH1F("", "", nbinkin*nbintime,  0, nbintime)
+	#for i in range(nbintime):
+	#    for j in range(nbinkin):
+	#	if triggerOption==0 or triggerOption==1:
+	#	    triggerSF = hist_triggerSF.GetBinContent(i+1)
+	#	if  triggerOption==2:
+	#	    triggerSF = 1
+	#	h_alt.SetBinContent(j + i*nbinkin + 1, hh.GetBinContent(j+1)*triggerSF)
+	#	h_alt.SetBinError(j + i*nbinkin + 1, hh.GetBinError(j + 1)*triggerSF)
+	#h_alt.SetTitle(hname)
+	#h_alt.SetName(hname)
+	#hist_alt_jec.append(h_alt)
+
+        histograms_time[n].append(h_alt)
+
+#hist_mc_all = hist_mc
+#for i in range(len(hist_alt_jec)): hist_mc_all.append(hist_alt_jec[i])
+#print hist_mc
+#print hist_mc_all
+
+#####################
+# Make Unrolled hists
+#####################
+
+print 'Make Unrolled hists'
+
+hist_unrolled = []
+for h in histograms_time[0]:
+    hist_unrolled.append(TH1F(h.GetName(),h.GetName(), nbinkin*nbintime,  0, nbintime))
+
+for h_unrolled in hist_unrolled:
+    for itime in range(nbintime):
+
+        if triggerOption==0 or triggerOption==1:
+            scale = hist_triggerSF.GetBinContent(itime+1)
+        elif triggerOption==2:
+            scale = 1
+
+        if doScaleLumiTime:
+            scale = scale*hist_lumi_corr.GetBinContent(itime+1)
+
+	#scale = scale / nbintime
+
+        if nputimebin==1:
+            iputime = 0
+        else:
+            iputime = itime
+
+        for h in histograms_time[iputime]:
+            if h_unrolled.GetName()==h.GetName():
+                for j in range(nbinkin):
+                    h_unrolled.SetBinContent(j + itime*nbinkin + 1 , h.GetBinContent(j+1)*scale) #i => itime
+                    h_unrolled.SetBinError(j + itime*nbinkin + 1 , h.GetBinError(j+1)*scale) #i ou itime => j ! how to treat SF uncertainties (for nominal MC?)
+
+    h_unrolled.Scale(1./nbintime)
 
 #################
 # Timed syst part
 #################
-
-## timed systematics
 
 lumi_syst_up = {}
 lumi_syst_down = {}
@@ -155,127 +360,85 @@ print systematic_time_list
 print lumi_syst_up
 print lumi_syst_down
 
-
 for l in systematic_time_list:
-    for g in hist_mc:
-        for b in ttbar_list:
-            if g.GetName() == b:
+    for g in hist_unrolled:
+	for b in ttbar_list:
+	    if g.GetName() == b:
 		print(b+' nom='+str(g.Integral()))
-                if (l == 'emu_trig' or l=='lumi_stability' or l=='lumi_linearity'): 
+		if (l == 'emu_trig' or l=='lumi_stability' or l=='lumi_linearity'):
 		    newprefix = b+'_'+l+'_'+year
 		else:
 		    newprefix = b+'_'+l
+		hist_up = g.Clone()
+		hist_down = g.Clone()
+		hist_up.SetName(newprefix+'Up')
+		hist_up.SetTitle(newprefix+'Up')
+		hist_down.SetName(newprefix+'Down')
+		hist_down.SetTitle(newprefix+'Down')
+		for itime in range(nbintime):
+		    for j in range(nbinkin):
+			if l == 'emu_trig':
+			    if triggerOption==0 or triggerOption==1:
+				triggerSF_unc = hist_triggerSF.GetBinError(itime+1)
+			    if  triggerOption==2:
+				triggerSF_unc = 0.
+			    hist_up.SetBinContent(j + itime*nbinkin + 1 ,
+						g.GetBinContent(j + itime*nbinkin + 1)*(1.+triggerSF_unc)) #hist_up => g
+			    hist_up.SetBinError(j + itime*nbinkin + 1 ,
+						g.GetBinError(j + itime*nbinkin + 1)*(1.+triggerSF_unc))
+			    hist_down.SetBinContent(j + itime*nbinkin + 1 ,
+						g.GetBinContent(j + itime*nbinkin + 1)*(1.-triggerSF_unc))
+			    hist_down.SetBinError(j + itime*nbinkin + 1 ,
+						g.GetBinError(j + itime*nbinkin + 1)*(1.-triggerSF_unc))
+			else:
+			    hist_up.SetBinContent(j + itime*nbinkin + 1 ,
+						g.GetBinContent(j + itime*nbinkin + 1)*lumi_syst_up[l].GetBinContent(itime+1))
+			    hist_up.SetBinError(j + itime*nbinkin + 1 ,
+						g.GetBinError(j + itime*nbinkin + 1)*lumi_syst_up[l].GetBinError(itime+1))
+			    hist_down.SetBinContent(j + itime*nbinkin + 1 ,
+						g.GetBinContent(j + itime*nbinkin + 1)*lumi_syst_down[l].GetBinContent(itime+1))
+			    hist_down.SetBinError(j + itime*nbinkin + 1 ,
+						g.GetBinError(j + itime*nbinkin + 1)*lumi_syst_down[l].GetBinError(itime+1))
+		print(l+' '+b+' up='+str(hist_up.Integral())+' down='+str(hist_down.Integral()))
+		hist_unrolled.append(hist_up)
+		hist_unrolled.append(hist_down)
+
+#################
+# MC Stat uncert
+#################
+
+
+for g in hist_unrolled:
+    for b in ttbar_list:
+        if g.GetName() == b:
+	    for iobs in range(nbinkin):
                 hist_up = g.Clone()
                 hist_down = g.Clone()
-                hist_up.SetName(newprefix+'Up')
-                hist_up.SetTitle(newprefix+'Up')
-                hist_down.SetName(newprefix+'Down')
-                hist_down.SetTitle(newprefix+'Down')
-                for iobs in range(nbintime):
-                    for j in range(nbinkin):
-                        if l == 'emu_trig':
-	                    if triggerOption==0 or triggerOption==1:
-			        triggerSF_unc = hist_triggerSF.GetBinError(iobs+1)
-    	                    if  triggerOption==2:
-		    		triggerSF_unc = 0.
-                            hist_up.SetBinContent(j + iobs*nbinkin + 1 , 
-                                                g.GetBinContent(j + iobs*nbinkin + 1)*(1.+triggerSF_unc)) #hist_up => g
-                            hist_up.SetBinError(j + iobs*nbinkin + 1 , 
-                                                g.GetBinError(j + iobs*nbinkin + 1)*(1.+triggerSF_unc))
-                            hist_down.SetBinContent(j + iobs*nbinkin + 1 , 
-                                                g.GetBinContent(j + iobs*nbinkin + 1)*(1.-triggerSF_unc))
-                            hist_down.SetBinError(j + iobs*nbinkin + 1 , 
-                                                g.GetBinError(j + iobs*nbinkin + 1)*(1.-triggerSF_unc))
-                        else:
-                            hist_up.SetBinContent(j + iobs*nbinkin + 1 , 
-                                                g.GetBinContent(j + iobs*nbinkin + 1)*lumi_syst_up[l].GetBinContent(iobs+1))
-                            hist_up.SetBinError(j + iobs*nbinkin + 1 , 
-                                                g.GetBinError(j + iobs*nbinkin + 1)*lumi_syst_up[l].GetBinError(iobs+1))
-                            hist_down.SetBinContent(j + iobs*nbinkin + 1 , 
-                                                g.GetBinContent(j + iobs*nbinkin + 1)*lumi_syst_down[l].GetBinContent(iobs+1))
-                            hist_down.SetBinError(j + iobs*nbinkin + 1 , 
-                                                g.GetBinError(j + iobs*nbinkin + 1)*lumi_syst_down[l].GetBinError(iobs+1))
-		print(l+' '+b+' up='+str(hist_up.Integral())+' down='+str(hist_down.Integral()))
-                hist_mc.append(hist_up)
-                hist_mc.append(hist_down)
-
-
-
-##############
-# JEC,ALT part 
-##############
-
-hist_alt_jec = []
-
-if triggerOption==0 or triggerOption==1:
-    jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec.root')
-if triggerOption==2:
-    jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec_inclusive.root')
-
-for l in jec_file.GetListOfKeys():
-    hh = jec_file.Get(l.GetName())
-    hh.Scale(1./nbintime)
-    hname = l.GetName()
-    if TString(hname).Contains('Total') or TString(hname).Contains('Absolute') or TString(hname).Contains('FlavorQCD') or TString(hname).Contains('BBEC1') or TString(hname).Contains('RelativeBal') or TString(hname).Contains('RelativeSample'):
-        if(hname.find('_up')!= -1):
-            newname = hname[:-3]+'_jecUp'
-        elif(hname.find('_down')!= -1):
-            newname = hname[:-5]+'_jecDown'
-    #if(hname.find('TotalUp')!= -1):
-    #    name = hname[:-7]+'jecUp'
-    #elif(hname.find('TotalDown')!= -1):
-    #    name = hname[:-9]+'jecDown'
-    h_jec = TH1F("","", nbinkin*nbintime,  0, nbintime)
-    h_jec.SetTitle(newname)
-    h_jec.SetName(newname)
-    for i in range(nbintime):
-        for j in range(nbinkin):
-            if triggerOption==0 or triggerOption==1:
-                triggerSF = hist_triggerSF.GetBinContent(i+1)
-            if  triggerOption==2:
-                triggerSF = 1
-            h_jec.SetBinContent(j + i*nbinkin + 1, hh.GetBinContent(j+1)*triggerSF)
-            h_jec.SetBinError(j + i*nbinkin + 1, hh.GetBinError(j + 1))
-    hist_alt_jec.append(h_jec)
-
-if triggerOption==0 or triggerOption==1:
-    alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco.root')
-if triggerOption==2:
-    alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco_inclusive.root')
-
-for l in alt_file.GetListOfKeys():
-    hh = alt_file.Get(l.GetName())
-    hh.Scale(1./nbintime)
-    hname = l.GetName()
-    h_alt = TH1F("", "", nbinkin*nbintime,  0, nbintime)
-    for i in range(nbintime):
-        for j in range(nbinkin):
-            if triggerOption==0 or triggerOption==1:
-                triggerSF = hist_triggerSF.GetBinContent(i+1)
-            if  triggerOption==2:
-                triggerSF = 1
-            h_alt.SetBinContent(j + i*nbinkin + 1, hh.GetBinContent(j+1)*triggerSF)
-            h_alt.SetBinError(j + i*nbinkin + 1, hh.GetBinError(j + 1))
-    h_alt.SetTitle(hname)
-    h_alt.SetName(hname)
-    hist_alt_jec.append(h_alt)
-
-hist_mc_all = hist_mc
-for i in range(len(hist_alt_jec)): hist_mc_all.append(hist_alt_jec[i])
-#print hist_mc
-#print hist_mc_all
-
+	        newname = b+'_MCstat_binobs'+str(iobs)+'_'+b+'_'+year
+		hist_up.SetName(newname+'Up')
+		hist_down.SetName(newname+'Down')
+		for itime in range(nbintime):
+		    binval = g.GetBinContent(iobs + itime*nbinkin + 1)
+		    binerr = g.GetBinError(iobs + itime*nbinkin + 1)
+		    if binval!=0:
+		        print newname+' itime='+str(itime)+' rel_err='+str(binerr/binval)
+		        hist_up.SetBinContent(iobs + itime*nbinkin + 1, binval*(1+binerr/binval))
+                        hist_down.SetBinContent(iobs + itime*nbinkin + 1, binval/(1+binerr/binval))
+		    else:
+			hist_up.SetBinContent(iobs + itime*nbinkin + 1, binerr)
+                        hist_down.SetBinContent(iobs + itime*nbinkin + 1, 0)
+		hist_unrolled.append(hist_up)
+		hist_unrolled.append(hist_down)
 
 ###########
 # SME part
 ###########
 
-cmunu = 0.001
 observable_forSME = observable
+
 #if observable!="m_dilep" and observable!="pt_emu":
 #    observable_forSME = "pt_emu" #Will use inclusive SME histos anyways
 
-doSMEkindep = True
 #if observable!="m_dilep" and observable!="pt_emu":
 #    doSMEkindep = False
 
@@ -284,48 +447,52 @@ hist_sme = []
 sme_file = TFile('./results/'+year+'/flattree/'+observable_forSME+'_sme.root')
 
 wilsonList = ["cLXX","cLXY","cLXZ","cLYZ","cRXX","cRXY","cRXZ","cRYZ","cXX","cXY","cXZ","cYZ","dXX","dXY","dXZ","dYZ"]
-
-responseMatrix_file = TFile('./results/'+year+'/flattree/'+observable+'.root')
-
-hist_responseMatrix = []
-
-#Normalize all response matrices
-for h in responseMatrix_file.GetListOfKeys():
-    if TString(h.GetName()).Contains('responseMatrix'):
-	hist_responseMatrix.append(responseMatrix_file.Get(h.GetName()))
-        for ix in range(nbinX):
-            area = hist_responseMatrix[-1].Integral(1+ix, 1+ix, 1, nbinY)
-            for iy in range(nbinY):
-                bincontent = hist_responseMatrix[-1].GetBinContent(ix+1,iy+1)
-                hist_responseMatrix[-1].SetBinContent(ix+1, iy+1, bincontent/area)
-
+wilsonListSingleTop = ["cLXX","cLXY","cLXZ","cLYZ"]
 
 if wilson_!="sme_all":
     wilsonList = [wilson_]
 
+#Normalize all response matrices
+nbingenkin = nbinkin+2
+
+histograms_time_responseMatrix_norm = []
+for putimebin in range(nputimebin):
+    h_responseMatrix_norm = []
+    for h2D in histograms_time_responseMatrix[putimebin]:
+	if TString(h2D.GetName()).Contains('responseMatrix'):
+	    #hist_responseMatrix.append(responseMatrix_file.Get(h.GetName()))
+	    for ix in range(nbinkin):
+		area = h2D.Integral(1+ix, 1+ix, 1, nbingenkin)
+		for iy in range(nbingenkin):
+		    bincontent = h2D.GetBinContent(ix+1,iy+1)
+		    h2D.SetBinContent(ix+1, iy+1, bincontent/area)
+		    #print h2D.GetName()+' ix='+str(ix)+' iy='+str(iy)+' content='+str(h2D.GetBinContent(ix+1,iy+1))
+	h_responseMatrix_norm.append(h2D)
+    histograms_time_responseMatrix_norm.append(h_responseMatrix_norm)
+
+        #nbingenkin = nbinkin+2
+        #Response matrix: nbingenkin=0: OOA. nbingenkin=1: 0 b-jets.
+        #Modulations SME: nbingenkin=0: 0 b-jets. ...nbingenkin=5: OOA 
+        #Reco bins: nbinkin=0: 1 b-jet...
+
 for wilson in wilsonList:
 
 	sme_sig = sme_file.Get(wilson)
-	sme_singletop = sme_file.Get('singletop_'+wilson)
-	if TString(wilson).Contains('cR'):
-	    sme_singletop = sme_file.Get('singletop_cL'+wilson[2:])
-
-	nbingenkin = nbinkin+2
-	#Response matrix: nbingenkin=0: OOA. nbingenkin=1: 0 b-jets.
-	#Modulations SME: nbingenkin=0: 0 b-jets. ...nbingenkin=5: OOA 
-	#Reco bins: nbinkin=0: 1 b-jet...
+	#sme_singletop = sme_file.Get('singletop_'+wilson)
+	#if TString(wilson).Contains('cR'):
+	#    sme_singletop = sme_file.Get('singletop_cL'+wilson[2:])
 
 	sme_sig_kinbin = []
-	sme_singletop_kinbin = []
+#	sme_singletop_kinbin = []
 	for k in range(nbingenkin):
-		print(wilson+"_"+str(k))
-		sme_sig_kinbin.append(sme_file.Get(wilson+"_"+str(k)))
-		if TString(wilson).Contains('cR'):
-		    sme_singletop_kinbin.append(sme_file.Get('singletop_cL'+wilson[2:]+"_"+str(k)))
-		else:
-		    sme_singletop_kinbin.append(sme_file.Get('singletop_'+wilson+"_"+str(k)))
+	    print(wilson+"_"+str(k))
+	    sme_sig_kinbin.append(sme_file.Get(wilson+"_"+str(k)))
+#	    if TString(wilson).Contains('cR'):
+#		sme_singletop_kinbin.append(sme_file.Get('singletop_cL'+wilson[2:]+"_"+str(k)))
+#	    else:
+#		sme_singletop_kinbin.append(sme_file.Get('singletop_'+wilson+"_"+str(k)))
 
-	for g in hist_mc_all:
+	for g in hist_unrolled:
 	    if g.GetName().find('signal') != -1:
 		hist_sme.append(g.Clone())
 		name = wilson+hist_sme[-1].GetName()[6:]
@@ -334,20 +501,76 @@ for wilson in wilsonList:
 		for i in range(nbintime):
 		  for j in range(nbinkin):
 		    if doSMEkindep:
-			hist_sme[-1].SetBinContent(j + i*nbinkin + 1,
-						g.GetBinContent(j + i*nbinkin + 1 )*(1+cmunu*sme_sig_kinbin[j+1].GetBinContent(i+1)))
-			hist_sme[-1].SetBinError(j + i*nbinkin + 1,
-						g.GetBinError(j + i*nbinkin + 1 )*(1+cmunu*sme_sig_kinbin[j+1].GetBinContent(i+1)))
+		        if doResponseMatrix:
+			    bincontent_i_j = 0
+			    for jgen in range(nbingenkin):
+				jreco = j
+				propGen = 1
+                                if jgen==0:
+                                    jgenMat = nbingenkin-1
+                                elif jgen==nbingenkin-1:
+                                    jgenMat = 0
+                                else:
+                                    jgenMat = jgen
+			        if nputimebin==1:
+        			    iputime = 0
+	        		else:
+            			    iputime = i
+				for h2D in histograms_time_responseMatrix_norm[iputime]:
+				    #print h2D.GetName()+'  '+g.GetName()[:6]+'_responseMatrix'+g.GetName()[6:]
+				    if h2D.GetName()==g.GetName()[:6]+'_responseMatrix'+g.GetName()[6:]:
+					#print 'itime='+str(i)+' g='+g.GetName()+' responseMatrix='+h2D.GetName()
+					propGen = h2D.GetBinContent(1+jreco, 1+jgenMat)
+				if propGen==1:
+				    for h2D in histograms_time_responseMatrix_norm[iputime]:
+					if h2D.GetName()=='signal_responseMatrix':
+	                                    #print 'itime='+str(i)+' g='+g.GetName()+' responseMatrix='+h2D.GetName()
+					    propGen = h2D.GetBinContent(1+jreco, 1+jgenMat)
+				#print  'itime='+str(i)+' jreco='+str(j)+' jgen='+str(jgen)+' g='+g.GetName()+'  propGen='+str(propGen)
+				bincontent_i_j += cmunu*sme_sig_kinbin[jgen].GetBinContent(i+1)*propGen
+			    #bincontent_i_j = (1 + bincontent_i_j) * g.GetBinContent(j + i*nbinkin + 1) 
+			    #binerror_i_j = (1 + bincontent_i_j) * g.GetBinError(j + i*nbinkin + 1)
+			    hist_sme[-1].SetBinContent(j + i*nbinkin + 1, g.GetBinContent(j + i*nbinkin + 1)*(1+bincontent_i_j))
+                                                #g.GetBinContent(j + i*nbinkin + 1)*(1+cmunu*sme_sig_kinbin[jgen].GetBinContent(i+1)*propGen))
+ 			    hist_sme[-1].SetBinError(j + i*nbinkin + 1, g.GetBinError(j + i*nbinkin + 1)*(1+bincontent_i_j))
+                                                #g.GetBinError(j + i*nbinkin + 1)*(1+cmunu*sme_sig_kinbin[jgen].GetBinContent(i+1)*propGen))
+			else: #No response matrix
+			    jgen = j+1 #Modulations SME: j=0: 0 b-jets, j=1: 1 b-jets... (nbingenkin=5: OOA  not used)
+			    hist_sme[-1].SetBinContent(j + i*nbinkin + 1,
+						g.GetBinContent(j + i*nbinkin + 1)*(1+cmunu*sme_sig_kinbin[jgen].GetBinContent(i+1)))
+			    hist_sme[-1].SetBinError(j + i*nbinkin + 1,
+						g.GetBinError(j + i*nbinkin + 1)*(1+cmunu*sme_sig_kinbin[jgen].GetBinContent(i+1)))
 		    else:
 			hist_sme[-1].SetBinContent(j + i*nbinkin + 1,
-						g.GetBinContent(j + i*nbinkin + 1 )*(1+cmunu*sme_sig.GetBinContent(i+1)))
+						g.GetBinContent(j + i*nbinkin + 1)*(1+cmunu*sme_sig.GetBinContent(i+1)))
 			hist_sme[-1].SetBinError(j + i*nbinkin + 1,
-						g.GetBinError(j + i*nbinkin + 1 )*(1+cmunu*sme_sig.GetBinError(i+1)))
+						g.GetBinError(j + i*nbinkin + 1)*(1+cmunu*sme_sig.GetBinError(i+1)))
 
-		print(hist_sme[-1].GetName()+' g_Integral='+str(g.Integral())+' hist_sme_integral='+str(hist_sme[-1].Integral()))
+		print(hist_sme[-1].GetName()+' g_Integral='+str(g.Integral())+' hist_sme_integral='+str(hist_sme[-1].Integral()))+' ratio='+str(hist_sme[-1].Integral()/g.Integral()) 
 
-	    if g.GetName()=='singletop' and len(wilsonList)==1: #How to treat single top sme decay uncertainty when multiple wilson in the datacard?
-		name = g.GetName() + '_sme_decay'
+
+for wilson in wilsonListSingleTop:
+
+	if wilson[2:]=='XX' or wilson[2:]=='XY':
+	    cmunu_singletop = cmunu*3
+	elif wilson[2:]=='XZ' or wilson[2:]=='YZ':
+	    cmunu_singletop = cmunu*10
+
+        sme_singletop = sme_file.Get('singletop_'+wilson)
+        if TString(wilson).Contains('cR'):
+            sme_singletop = sme_file.Get('singletop_cL'+wilson[2:])
+
+        sme_singletop_kinbin = []
+        for k in range(nbingenkin):
+            print(wilson+"_"+str(k))
+            if TString(wilson).Contains('cR'):
+                sme_singletop_kinbin.append(sme_file.Get('singletop_cL'+wilson[2:]+"_"+str(k)))
+            else:
+                sme_singletop_kinbin.append(sme_file.Get('singletop_'+wilson+"_"+str(k)))
+
+        for g in hist_unrolled:
+	    if g.GetName()=='singletop': #How to treat single top sme decay uncertainty when multiple wilson in the datacard?
+		name = g.GetName() + '_sme_decay_'+wilson[2:]
 		h_singletop_sme_up = g.Clone()
 		h_singletop_sme_up.SetName(name+'Up')
 		h_singletop_sme_down = g.Clone()
@@ -355,20 +578,53 @@ for wilson in wilsonList:
 		for i in range(nbintime):
 		  for j in range(nbinkin):
 		    if doSMEkindep:
-			h_singletop_sme_up.SetBinContent(j + i*nbinkin + 1,
-						g.GetBinContent(j + i*nbinkin + 1 )*(1+cmunu*sme_singletop_kinbin[j+1].GetBinContent(i+1)))
-			h_singletop_sme_down.SetBinContent(j + i*nbinkin + 1,
-						g.GetBinContent(j + i*nbinkin + 1 )*(1-cmunu*sme_singletop_kinbin[j+1].GetBinContent(i+1)))
+                        if doResponseMatrix:
+                            bincontent_i_j = 0
+                            for jgen in range(nbingenkin):
+                                jreco = j
+                                propGen = 1
+                                if jgen==0:
+                                    jgenMat = nbingenkin-1
+                                elif jgen==nbingenkin-1:
+                                    jgenMat = 0
+                                else:
+                                    jgenMat = jgen
+                                if nputimebin==1:
+                                    iputime = 0
+                                else:
+                                    iputime = i
+                                for h2D in histograms_time_responseMatrix[iputime]:
+                                    #print h2D.GetName()+'  '+g.GetName()[:6]+'_responseMatrix'+g.GetName()[6:]
+                                    if h2D.GetName()==g.GetName()[:6]+'_responseMatrix'+g.GetName()[6:]:
+                                        #print 'itime='+str(i)+' g='+g.GetName()+' responseMatrix='+h2D.GetName()
+                                        propGen = h2D.GetBinContent(1+jreco, 1+jgenMat)
+                                if propGen==1:
+                                    for h2D in histograms_time_responseMatrix[iputime]:
+                                        if h2D.GetName()=='singletop_responseMatrix':
+                                            #print 'itime='+str(i)+' g='+g.GetName()+' responseMatrix='+h2D.GetName()
+                                            propGen = h2D.GetBinContent(1+jreco, 1+jgenMat)
+                                bincontent_i_j += cmunu_singletop*sme_singletop_kinbin[jgen].GetBinContent(i+1)*propGen
+                            h_singletop_sme_up.SetBinContent(j + i*nbinkin + 1, g.GetBinContent(j + i*nbinkin + 1)*(1+bincontent_i_j))
+                            h_singletop_sme_down.SetBinContent(j + i*nbinkin + 1, g.GetBinContent(j + i*nbinkin + 1)*(1-bincontent_i_j))
+                                #h_singletop_sme_up.SetBinContent(j + i*nbinkin + 1,
+                                #                g.GetBinContent(j + i*nbinkin + 1)*(1+cmunu*sme_singletop_kinbin[jgen].GetBinContent(i+1)*propGen))
+                                #h_singletop_sme_down.SetBinContent(j + i*nbinkin + 1,
+                                #                g.GetBinContent(j + i*nbinkin + 1)*(1-cmunu*sme_singletop_kinbin[jgen].GetBinContent(i+1)*propGen))
+			else:
+			    h_singletop_sme_up.SetBinContent(j + i*nbinkin + 1,
+						g.GetBinContent(j + i*nbinkin + 1 )*(1+cmunu_singletop*sme_singletop_kinbin[jgen+1].GetBinContent(i+1)))
+			    h_singletop_sme_down.SetBinContent(j + i*nbinkin + 1,
+						g.GetBinContent(j + i*nbinkin + 1 )*(1-cmunu_singletop*sme_singletop_kinbin[jgen+1].GetBinContent(i+1)))
 		    else:
 			h_singletop_sme_up.SetBinContent(j + i*nbinkin + 1,
-						g.GetBinContent(j + i*nbinkin + 1 )*(1+cmunu*sme_singletop.GetBinContent(i+1)))
+						g.GetBinContent(j + i*nbinkin + 1 )*(1+cmunu_singletop*sme_singletop.GetBinContent(i+1)))
 			h_singletop_sme_down.SetBinContent(j + i*nbinkin + 1,
-						g.GetBinContent(j + i*nbinkin + 1 )*(1-cmunu*sme_singletop.GetBinContent(i+1)))
+						g.GetBinContent(j + i*nbinkin + 1 )*(1-cmunu_singletop*sme_singletop.GetBinContent(i+1)))
 		hist_sme.append(h_singletop_sme_up)
 		hist_sme.append(h_singletop_sme_down)
 
 
-for i in range(len(hist_sme)): hist_mc_all.append(hist_sme[i])
+for i in range(len(hist_sme)): hist_unrolled.append(hist_sme[i])
 
 
 #################################################
@@ -382,7 +638,7 @@ ttbar_list_ext = ttbar_list
 for wilson in wilsonList:
     ttbar_list_ext.append(wilson)
 
-for h in hist_mc_all:
+for h in hist_unrolled:
 
     for proc in ttbar_list_ext:
         if h.GetName()==proc:
@@ -396,7 +652,7 @@ for h in hist_mc_all:
         newname = curname[:found] + '_' + year + curname[found:]
         h.SetName(newname)
 
-    if TString(h.GetName()).Contains('syst_qcdscale') or TString(h.GetName()).Contains('syst_ps_isr'):
+    if TString(h.GetName()).Contains('syst_qcdscale') or TString(h.GetName()).Contains('syst_ps_isr') or TString(h.GetName()).Contains('syst_ps_fsr'):
         curname = h.GetName()
         found = curname.find('Up')
         if (found==-1):
@@ -410,7 +666,6 @@ for h in hist_mc_all:
 		    newname = curname[:found] + '_signal' + curname[found:]
                 h.SetName(newname)
 
-
     if TString(h.GetName()).Contains('syst_qcdscale') or TString(h.GetName()).Contains('syst_ps_isr') or TString(h.GetName()).Contains('syst_ps_fsr') or TString(h.GetName()).Contains('syst_pdfas') or TString(h.GetName()).Contains('syst_pt_top') or TString(h.GetName()).Contains('mtop'):
         curname = h.GetName()
         for h_proc in h_nom:
@@ -420,7 +675,7 @@ for h in hist_mc_all:
                 h.Scale(h_proc.Integral()/area)
 
     if doExpTimeNuisance:
-        if (TString(h.GetName()).Contains('syst_elec_reco') or TString(h.GetName()).Contains('syst_elec_id') or TString(h.GetName()).Contains('syst_muon_id') or TString(h.GetName()).Contains('syst_muon_iso') or TString(h.GetName()).Contains('syst_pu') or TString(h.GetName()).Contains('syst_b_correlated') or TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_correlated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_prefiring') or TString(h.GetName()).Contains('jec') or TString(h.GetName()).Contains('syst_em_trig')):
+        if (TString(h.GetName()).Contains('syst_elec_reco') or TString(h.GetName()).Contains('syst_elec_id') or TString(h.GetName()).Contains('syst_muon_id') or TString(h.GetName()).Contains('syst_muon_iso') or TString(h.GetName()).Contains('syst_pu') or TString(h.GetName()).Contains('syst_b_correlated') or TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_correlated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_prefiring') or TString(h.GetName()).Contains('jec') or TString(h.GetName()).Contains('syst_em_trig') or (puOption!="putime" and TString(h.GetName()).Contains('syst_pu'))):
             curname = h.GetName()
             found = curname.find('Up')
             if (found==-1):
@@ -445,9 +700,7 @@ out = './combine/'+year+'/unrolled/inputs/'
 output = TFile(out+observable+'.root', "RECREATE")
 hist_data.Write()
 
-#for l in hist_sme:
-#    l.Write()
-for l in hist_mc_all:
+for l in hist_unrolled:
     l.Write()
 for l in hist_mc_timeuncorr:
     l.Write()

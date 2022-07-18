@@ -30,7 +30,8 @@ wilson_list = [
     'dXX',
     'dXY',
     'dXZ',
-    'dYZ'
+    'dYZ',
+    'sme_all'
 ]
 
 
@@ -39,8 +40,8 @@ wilson_list = [
 ################################################################################
 
 for l in wilson_list:
-    print  "  1) rootfile creation for combine"
-    os.system('python ./bin/combine_unrolled.py '+observable+' '+year+' '+l)
+    #print  "  1) rootfile creation for combine"
+    #os.system('python ./bin/combine_unrolled.py '+observable+' '+year+' '+l)
     print  "  2) datacard creation for combine"
     os.system('./bin/card_creator '+observable+' '+year+' SME '+l)
 

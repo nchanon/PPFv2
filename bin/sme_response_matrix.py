@@ -28,14 +28,28 @@ parser.add_argument('observable', help='display your observable')
 parser.add_argument('year', help='year of samples')
 #parser.add_argument('wilson', help='wilson coefficent (cLXX, cRXX, ...)', default='cLXX')
 parser.add_argument('singletop', help='signal or singletop', default='signal')
+parser.add_argument('timebin', help='display the time bin')
+
 
 args = parser.parse_args()
 observable = args.observable
 year = args.year
 #wilson = args.wilson
 singletop = args.singletop
+timebin = int(args.timebin)
 
-f = TFile("results/"+year+"/flattree/"+observable+".root")
+stimebin="";
+if (timebin==-1):
+     stimebin = "_puold";
+if (timebin==-2):
+     stimebin = "_punew";
+if (timebin==-3):
+     stimebin = "_puinc";
+if (timebin>=0):
+     stimebin = "_put"+str(timebin);
+
+
+f = TFile("results/"+year+"/flattree/"+observable+stimebin+".root")
 h = f.Get(singletop+"_responseMatrix")
 
 nbinX = h.GetNbinsX()

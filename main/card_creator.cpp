@@ -106,6 +106,7 @@ int main(int argc, char** argv){
     alt_QCDinspired[iyear] = tmp1.substr(0, tmp1.find(".")+4);
 
 
+    int nBinObs = h_nom->GetNbinsX();
 
     //std::cout << alt_hdamp[iyear] << std::endl; 
 
@@ -172,15 +173,22 @@ int main(int argc, char** argv){
                      datacard.addProcSystToCard(syst + "_singletop", "shape", ttbarList, "singletop",false);
 		}
 		else if (syst == "syst_ps_fsr"){
-		     datacard.addProcSystToCard(syst, "shape", ttbarList, "signal", false, "1", "singletop");
+		     //datacard.addProcSystToCard(syst, "shape", ttbarList, "signal", false, "1", "singletop");
+		     datacard.addProcSystToCard(syst + "_signal", "shape", ttbarList, "signal",false);
+		     datacard.addProcSystToCard(syst + "_singletop", "shape", ttbarList, "singletop",false);
 		}
                 else if(syst == debug_syst)
                     continue;
 		else if (syst == "syst_pu" && doPuTime){
 		    datacard.addSystToCard(syst, "shape", ttbarList);
 		}
-                else
-                    datacard.addSystToCard(syst + timebin, "shape", ttbarList);
+                else {
+		    if (doExpTimeNuisance) {
+                        if (syst!="syst_muon_iso") datacard.addSystToCard(syst + timebin, "shape", ttbarList);
+			else if (syst=="syst_muon_iso") datacard.addSystToCard(syst, "shape", ttbarList);
+		    }
+                    else datacard.addSystToCard(syst, "shape", ttbarList);
+                }
             }
             datacard.addSystToCard("lumi_flat_uncor_"+year, "lnN", ttbarList, lumi_flat_uncorr[iyear]);
             datacard.addSystToCard("lumi_flat_cor", "lnN", ttbarList, lumi_flat_corr[iyear]);
@@ -200,6 +208,8 @@ int main(int argc, char** argv){
             datacard.addSystToCard("RelativeBal_jec"+ timebin, "shape", ttbarList);
             datacard.addSystToCard("RelativeSample_"+year+"_jec"+ timebin, "shape", ttbarList);
 
+            datacard.addSystToCard("muonSF_phasespace", "lnN", ttbarList, "1.005");
+	    datacard.addSystToCard("elecSF_phasespace", "lnN", ttbarList, "1.01");
 
             for(std::string const& syst : systematicTimeList){
                 if (syst == "lumi_flat") continue;
@@ -211,9 +221,18 @@ int main(int argc, char** argv){
 		}
             }
 
+	    std::string systMC = "MCstat_binobs";
+	    for (int k=0; k<nBinObs; k++){
+		datacard.addProcSystToCard(systMC + std::to_string(k) + "_signal_" + year, "shape", ttbarList, "signal",false);
+		datacard.addProcSystToCard(systMC + std::to_string(k) + "_singletop_" + year, "shape", ttbarList, "singletop",false);
+                datacard.addProcSystToCard(systMC + std::to_string(k) + "_dibosons_" + year, "shape", ttbarList, "dibosons",false);
+		datacard.addProcSystToCard(systMC + std::to_string(k) + "_ttx_" + year, "shape", ttbarList, "ttx",false);
+		datacard.addProcSystToCard(systMC + std::to_string(k) + "_vjets_" + year, "shape", ttbarList, "vjets",false);
+	    }
+
             //datacard.addSystToCard_alternative(false);
             datacard.addSeparator();
-            datacard.addLine("* autoMCStats 0");
+            //datacard.addLine("* autoMCStats 0");
 
             datacard.saveCard("./combine/"+year+"/one_bin/inputs/"+name+"_datacard.txt");
             if(i == 7){
@@ -266,11 +285,16 @@ int main(int argc, char** argv){
                 datacard.addProcSystToCard(syst + "_singletop", "shape", ttbarList, "singletop",false);
             }
             else if (syst == "syst_ps_fsr"){
-                datacard.addProcSystToCard(syst, "shape", ttbarList, "signal", false, "1", "singletop");
+                //datacard.addProcSystToCard(syst, "shape", ttbarList, "signal", false, "1", "singletop");
+                datacard.addProcSystToCard(syst + "_signal", "shape", ttbarList, "signal",false);
+		datacard.addProcSystToCard(syst + "_singletop", "shape", ttbarList, "singletop",false);
             }
             else
                 datacard.addSystToCard(syst, "shape", ttbarList);
         }
+
+        datacard.addSystToCard("muonSF_phasespace", "lnN", ttbarList, "1.005");
+        datacard.addSystToCard("elecSF_phasespace", "lnN", ttbarList, "1.01");
 
         datacard.addSystToCard("lumi_uncor_"+year, "lnN", ttbarList, lumi_flat_uncorr_inc[iyear]);
         datacard.addSystToCard("lumi_cor", "lnN", ttbarList, lumi_flat_corr_inc[iyear]);
@@ -300,10 +324,14 @@ int main(int argc, char** argv){
     }
     else if(process == "Unrolled"){
 
-        double numberOfEvents;
-        std::ifstream f("./combine/"+year+"/"+observable+"_noe_data.txt");
-        f >> numberOfEvents;
-        std::cout << "Number of events in data : " << numberOfEvents << std::endl;
+        //double numberOfEvents;
+        //std::ifstream f("./combine/"+year+"/"+observable+"_noe_data.txt");
+        //f >> numberOfEvents;
+        //std::cout << "Number of events in data : " << numberOfEvents << std::endl;
+        string f_data_name = "./results/" + year + "/flattree/" + observable + "_data.root";
+        TFile* f_data = new TFile(f_data_name.c_str(), "READ");
+        TH1F* h_data = (TH1F*) f_data->Get("data_obs");
+        double numberOfEvents = h_data->Integral();
 
         Card datacard;        
         std::string name = observable;
@@ -351,18 +379,22 @@ int main(int argc, char** argv){
                 systematicRate[i-1] = systematicRate[i-2];
             }
             ttbarList[0] =  wilson;
-            systematicRate[0] =  "1.05";
+            systematicRate[0] =  "1.04";
 	}
 	else if (doAllWilson){
 	    for (int iw=0; iw<16; iw++){
 		ttbarList.insert(ttbarList.begin(), wilsonList[15-iw]);
-		systematicRate.insert(systematicRate.begin(), "1.05");
+		systematicRate.insert(systematicRate.begin(), "1.04");
 	    }
 	}
 
-        double numberOfEvents;
-        std::ifstream f("./combine/"+year+"/"+observable+"_noe_data.txt");
-        f >> numberOfEvents;
+        //double numberOfEvents;
+        //std::ifstream f("./combine/"+year+"/"+observable+"_noe_data.txt");
+        //f >> numberOfEvents;
+        string f_data_name = "./results/" + year + "/flattree/" + observable + "_data.root";
+        TFile* f_data = new TFile(f_data_name.c_str(), "READ");
+        TH1F* h_data = (TH1F*) f_data->Get("data_obs");
+        double numberOfEvents = h_data->Integral();       
         std::cout << "Number of events in data : " << numberOfEvents << std::endl;
 
         Card datacard;        
@@ -407,13 +439,21 @@ int main(int argc, char** argv){
                 datacard.addProcSystToCard(syst + "_singletop", "shape", ttbarList, "singletop",false);
             }
             else if (syst == "syst_ps_fsr"){
-                datacard.addProcSystToCard(syst, "shape", ttbarList, "signal", false, "1", "singletop");
+                //datacard.addProcSystToCard(syst, "shape", ttbarList, "signal", true, "1", "singletop");
+                datacard.addProcSystToCard(syst + "_signal", "shape", ttbarList, "signal",true);
+                datacard.addProcSystToCard(syst + "_singletop", "shape", ttbarList, "singletop",false);
+            }
+            else if (syst == "syst_pu" && doPuTime){
+                datacard.addSystToCard(syst, "shape", ttbarList);
             }
             else {
-		if (doExpTimeNuisance) {
-		    for (int k=0; k<24; k++) datacard.addSystToCard(syst + timebin[k], "shape", ttbarList);
+		if (doExpTimeNuisance) { 
+		    if (syst!="syst_muon_iso") for (int k=0; k<24; k++) datacard.addSystToCard(syst + timebin[k], "shape", ttbarList);
+                    else if (syst=="syst_muon_iso") {
+			datacard.addSystToCard(syst, "shape", ttbarList);
+		    }
 		}
-                else datacard.addSystToCard(syst, "shape", ttbarList);
+		else datacard.addSystToCard(syst, "shape", ttbarList);
 	    }
         }
         //datacard.addSystToCard("lumi", "lnN", ttbarList, "1.023");
@@ -425,6 +465,10 @@ int main(int argc, char** argv){
         datacard.addProcSystToCard("GluonMove", "lnN", ttbarList, "signal", true, alt_GluonMove[iyear]);
         datacard.addProcSystToCard("QCDinspired", "lnN", ttbarList, "signal", true, alt_QCDinspired[iyear]);
         datacard.addProcSystToCard("mtop", "shape", ttbarList, "signal",true);
+
+        datacard.addSystToCard("muonSF_phasespace", "lnN", ttbarList, "1.005");
+        datacard.addSystToCard("elecSF_phasespace", "lnN", ttbarList, "1.01");
+
 	if (doExpTimeNuisance) {
             for (int k=0; k<24; k++) {
 		//datacard.addSystToCard("jec" + timebin[k], "shape", ttbarList);
@@ -449,11 +493,23 @@ int main(int argc, char** argv){
 	    }
 	}
 
-        datacard.addProcSystToCard("sme_decay", "shape", ttbarList, "singletop",false);
+        datacard.addProcSystToCard("sme_decay_XX", "shape", ttbarList, "singletop",false);
+        datacard.addProcSystToCard("sme_decay_XY", "shape", ttbarList, "singletop",false);
+        datacard.addProcSystToCard("sme_decay_XZ", "shape", ttbarList, "singletop",false);
+        datacard.addProcSystToCard("sme_decay_YZ", "shape", ttbarList, "singletop",false);
+
+        std::string systMC = "MCstat_binobs";
+	for (int k=0; k<nBinObs; k++){
+            datacard.addProcSystToCard(systMC + std::to_string(k) + "_signal_" + year, "shape", ttbarList, "signal",true);
+            datacard.addProcSystToCard(systMC + std::to_string(k) + "_singletop_" + year, "shape", ttbarList, "singletop",false);
+            datacard.addProcSystToCard(systMC + std::to_string(k) + "_dibosons_" + year, "shape", ttbarList, "dibosons",false);
+            datacard.addProcSystToCard(systMC + std::to_string(k) + "_ttx_" + year, "shape", ttbarList, "ttx",false);
+            datacard.addProcSystToCard(systMC + std::to_string(k) + "_vjets_" + year, "shape", ttbarList, "vjets",false);	    
+	}
 
         //datacard.addSystToCard_alternative(true);
         datacard.addSeparator();
-        datacard.addLine("* autoMCStats 0");
+        //datacard.addLine("* autoMCStats 0");
 
         datacard.saveCard("./combine/"+year+"/sme/inputs/"+name+"_"+wilson+"_datacard.txt");
     }
