@@ -22,11 +22,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument('observable', help='display your observable')
 parser.add_argument('year', help='year of samples')
 parser.add_argument('title', help='display your observable title')
+parser.add_argument('timebin', help='display the time bin')
 
 args = parser.parse_args()
 observable = args.observable
 year = args.year
 title = args.title
+timebin = int(args.timebin)
 
 def integral_complete(histo, max_bin): 
      return histo.Integral()
@@ -48,7 +50,16 @@ syst_down_integral = 0
 #canvas.UseCurrentStyle()
 
 datafile_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
-rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'_forComp.root')
+stimebin="";
+if (timebin==-1):
+     stimebin = "_puold";
+if (timebin==-2):
+     stimebin = "_punew";
+if (timebin==-3):
+     stimebin = "_puinc";
+if (timebin>=0):
+     stimebin = "_put"+str(timebin);
+rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'_forComp'+stimebin+'.root')
 
 ################################################################################
 ## Create Histo 

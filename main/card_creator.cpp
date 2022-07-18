@@ -237,7 +237,7 @@ int main(int argc, char** argv){
 
         datacard.addGlobalParameter(ttbarList);
         datacard.addSeparator();
-        datacard.addInputsProcess("./inputs/"+year+"/", name+"_inclusive.root");
+        datacard.addInputsProcess("./inputs/"+year+"/", name+"_inclusive"+stimebin+".root");
         datacard.addSeparator();
         datacard.addChanels(observable, numberOfEvents);
         datacard.addSeparator();
@@ -294,7 +294,7 @@ int main(int argc, char** argv){
         datacard.addSeparator();
         datacard.addLine("* autoMCStats 0");
 
-        datacard.saveCard("./combine/"+year+"/inclusive/inputs/"+name+"_datacard.txt");
+        datacard.saveCard("./combine/"+year+"/inclusive/inputs/"+name+"_datacard"+stimebin+".txt");
 	datacard.printCard();
 
     }
