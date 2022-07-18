@@ -76,7 +76,7 @@ for l in mc_file.GetListOfKeys():
         newname = curname[:found] + '_' + year + curname[found:]
         histograms[-1].SetName(newname)
 
-    if TString(l.GetName()).Contains('syst_qcdscale') or TString(l.GetName()).Contains('syst_ps_isr'):
+    if TString(l.GetName()).Contains('syst_qcdscale') or TString(l.GetName()).Contains('syst_ps_isr') or TString(l.GetName()).Contains('syst_ps_fsr'):
         curname = histograms[-1].GetName()
         found = curname.find('Up')
         if (found==-1):

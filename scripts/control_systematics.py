@@ -30,24 +30,24 @@ observable = [
 #]
 
 
-#large_syst_list = []
+large_syst_list = []
 
 #Complete list
-large_syst_list = systematic_list
-large_syst_list.append('Total')
-large_syst_list.append('Absolute')
-large_syst_list.append('Absolute_'+year)
-large_syst_list.append('FlavorQCD')
-large_syst_list.append('BBEC1')
-large_syst_list.append('BBEC1_'+year)
-large_syst_list.append('RelativeBal')
-large_syst_list.append('RelativeSample_'+year)
-large_syst_list.append('CP5')
-large_syst_list.append('hdamp')
-large_syst_list.append('erd')
-large_syst_list.append('QCD')
-large_syst_list.append('GluonMove')
-large_syst_list.append('mtop')
+#large_syst_list = systematic_list
+#large_syst_list.append('Total')
+#large_syst_list.append('Absolute')
+#large_syst_list.append('Absolute_'+year)
+#large_syst_list.append('FlavorQCD')
+#large_syst_list.append('BBEC1')
+#large_syst_list.append('BBEC1_'+year)
+#large_syst_list.append('RelativeBal')
+#large_syst_list.append('RelativeSample_'+year)
+#large_syst_list.append('CP5')
+#large_syst_list.append('hdamp')
+#large_syst_list.append('erd')
+#large_syst_list.append('QCD')
+#large_syst_list.append('GluonMove')
+#large_syst_list.append('mtop')
 
 #Adding timed uncertainties
 large_syst_list.append('emu_trig_'+year)

@@ -77,7 +77,10 @@ triggersystNovtx_file = TFile('./inputs/timed/TriggerSF_'+year+'_noNvtx.root')
 if triggerOption==0:
     hist_triggerSF = triggersyst_file.Get('h_SF_emu_sidereel_Full_UncBand')
 if triggerOption==1:
-    hist_triggerSF = triggersystNovtx_file.Get('h_SF_emu_sidereel_Full_UncBand')
+    if (year=='2016'):
+	hist_triggerSF = triggersystNovtx_file.Get('h_SF_emu_sidereel_Full_UncBand')
+    if (year=='2017'):
+	hist_triggerSF = triggersystNovtx_file.Get('h_SF_emu_sidereal_Full_UncBand')
 
 for l in lumisyst_file.GetListOfKeys():
     if not TString(l.GetName()).Contains('DataScaleFactor'):
@@ -151,7 +154,7 @@ for mc_file in mc_file_time:
 	    newname = curname[:found] + '_' + year + curname[found:]
 	    histograms[-1].SetName(newname)
 
-	if TString(l.GetName()).Contains('syst_qcdscale') or TString(l.GetName()).Contains('syst_ps_isr'):
+	if TString(l.GetName()).Contains('syst_qcdscale') or TString(l.GetName()).Contains('syst_ps_isr') or TString(l.GetName()).Contains('syst_ps_fsr'):
 	    curname = histograms[-1].GetName()
 	    found = curname.find('Up')
 	    if (found==-1):
@@ -178,6 +181,8 @@ for mc_file in mc_file_time:
 	
     h_nom_time.append(h_nom)
     histograms_time.append(histograms)
+
+
 
 ################################################################################
 ## ALT histo
@@ -263,6 +268,37 @@ for n in range(len(jec_file_time)):
 
 #print histograms[27].GetName(), histograms[27].GetTitle(), len(histograms)
 
+################################################################################
+## MC stat
+################################################################################
+
+for n in range(nbin):
+
+    if puOption=="puold" or puOption=="punew" or puOption=="puinc":
+        timebin = 0
+    else:
+        timebin = n
+
+    for h_nom in h_nom_time[timebin]:
+        for iobs in range(h_nom.GetNbinsX()):
+            hist_up = h_nom.Clone()
+            hist_down = h_nom.Clone()
+            newname = h_nom.GetName()+'_MCstat_binobs'+str(iobs)+'_'+h_nom.GetName()+'_'+year
+            hist_up.SetName(newname+'Up')
+            hist_down.SetName(newname+'Down')
+            binval = h_nom.GetBinContent(iobs + 1)
+            binerr = h_nom.GetBinError(iobs + 1)
+	    if binval!=0:
+                print newname+' itime='+str(n)+' rel_err='+str(binerr/binval)
+                hist_up.SetBinContent(iobs + 1, binval*(1+binerr/binval))
+                hist_down.SetBinContent(iobs + 1, binval/(1+binerr/binval))
+            else:
+                print newname+' itime='+str(n)+' val=0, abs_err='+str(binerr)
+                hist_up.SetBinContent(iobs + 1, binerr)
+                hist_down.SetBinContent(iobs + 1, 0)
+	    histograms_time[timebin].append(hist_up)
+            histograms_time[timebin].append(hist_down)
+
 
 ################################################################################
 ## Produce histo with time uncertainties + store output
@@ -335,7 +371,8 @@ for n in range(nbin):
     for h in histograms_time[timebin]:
 	h_new = h.Clone()
 	if doExpTimeNuisance:
-	    if (TString(h.GetName()).Contains('syst_elec_reco') or TString(h.GetName()).Contains('syst_elec_id') or TString(h.GetName()).Contains('syst_muon_id') or TString(h.GetName()).Contains('syst_muon_iso') or TString(h.GetName()).Contains('syst_b_correlated') or TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_correlated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_prefiring') or TString(h.GetName()).Contains('jec') or TString(h.GetName()).Contains('syst_em_trig')) or (puOption!="putime" and TString(h.GetName()).Contains('syst_pu')):
+	    #or TString(h.GetName()).Contains('syst_muon_iso')
+	    if (TString(h.GetName()).Contains('syst_elec_reco') or TString(h.GetName()).Contains('syst_elec_id') or TString(h.GetName()).Contains('syst_muon_id') or TString(h.GetName()).Contains('syst_b_correlated') or TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_correlated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_prefiring') or TString(h.GetName()).Contains('jec') or TString(h.GetName()).Contains('syst_em_trig')) or (puOption!="putime" and TString(h.GetName()).Contains('syst_pu')):
                 curname = h.GetName()
                 found = curname.find('Up')
                 if (found==-1):
