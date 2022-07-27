@@ -77,7 +77,7 @@ for l in mc_file.GetListOfKeys():
             h_nom.append(mc_file.Get(l.GetName()))
 
 
-    if TString(l.GetName()).Contains('syst_em_trig') or TString(l.GetName()).Contains('syst_b_uncorrelated') or TString(l.GetName()).Contains('syst_l_uncorrelated'):
+    if TString(l.GetName()).Contains('syst_em_trig') or TString(l.GetName()).Contains('syst_b_uncorrelated') or TString(l.GetName()).Contains('syst_l_uncorrelated') or TString(l.GetName()).Contains('stat'):
         curname = histograms[-1].GetName()
         found = curname.find('Up')
         if (found==-1):
@@ -126,11 +126,11 @@ for l in mc_jec_file.GetListOfKeys():
     hist = mc_jec_file.Get(l.GetName())
     hname = hist.GetName()
     newname = hname
-    if TString(hname).Contains('Total') or TString(hname).Contains('Absolute') or TString(hname).Contains('FlavorQCD') or TString(hname).Contains('BBEC1') or TString(hname).Contains('RelativeBal') or TString(hname).Contains('RelativeSample'):
-        if(hname.find('_up')!= -1):
-            newname = hname[:-3]+'_jecUp'
-        elif(hname.find('_down')!= -1):
-            newname = hname[:-5]+'_jecDown'
+    #if TString(hname).Contains('Total') or TString(hname).Contains('Absolute') or TString(hname).Contains('FlavorQCD') or TString(hname).Contains('BBEC1') or TString(hname).Contains('RelativeBal') or TString(hname).Contains('RelativeSample'):
+    if(hname.find('_up')!= -1):
+        newname = hname[:-3]+'_jecUp'
+    elif(hname.find('_down')!= -1):
+        newname = hname[:-5]+'_jecDown'
     hist.SetName(newname)
     hist.SetTitle(newname)
     histograms.append(hist)

@@ -120,9 +120,16 @@ for l in rootfile_input.GetListOfKeys():
             hist_mc.append(rootfile_input.Get(l.GetName()))
             mc_integral_i.append([rootfile_input.Get(l.GetName()).Integral(), l.GetName()])
 
-if (systematic == 'Total' or systematic == 'Absolute' or systematic == 'Absolute_'+year or systematic == 'FlavorQCD' or systematic == 'BBEC1' or systematic == 'BBEC1_'+year or systematic=='RelativeBal' or systematic=='RelativeSample_'+year): #Total JEC
-    rootfile_input_syst = rootfile_input_jec
-    slist = ttbar_list
+i=0
+for jec_syst in jec_list[year]:
+    if i%2==0 and systematic==jec_syst[:-3]:
+        rootfile_input_syst = rootfile_input_jec
+        slist = ttbar_list
+    i=i+1
+
+#if (systematic == 'Total' or systematic == 'Absolute' or systematic == 'Absolute_'+year or systematic == 'FlavorQCD' or systematic == 'BBEC1' or systematic == 'BBEC1_'+year or systematic=='RelativeBal' or systematic=='RelativeSample_'+year): #Total JEC
+#    rootfile_input_syst = rootfile_input_jec
+#    slist = ttbar_list
 
 if (systematic == 'CP5' or systematic == 'hdamp' or systematic == 'mtop' or systematic == 'erd' or systematic == 'QCD' or systematic == 'GluonMove'):
     rootfile_input_syst = rootfile_input_alt

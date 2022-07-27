@@ -19,7 +19,9 @@ namelist systematicList {
     "syst_elec_reco",
     "syst_elec_id",
     "syst_muon_id",
+    "stat_muon_id",
     "syst_muon_iso",
+    "stat_muon_iso",
     "syst_pu",
     "syst_b_correlated",
     "syst_b_uncorrelated",
@@ -77,6 +79,62 @@ namelist triggerList_2016 {
 namelist jecList_2016 {
     "Total_up",
     "Total_down",
+    "AbsoluteMPFBias_up",
+    "AbsoluteMPFBias_down",
+    "AbsoluteScale_up",
+    "AbsoluteScale_down",
+    "AbsoluteStat_2016_up",
+    "AbsoluteStat_2016_down",
+    "FlavorPureGluon_up",
+    "FlavorPureGluon_down",
+    "FlavorPureQuark_up",
+    "FlavorPureQuark_down",
+    "FlavorPureCharm_up",
+    "FlavorPureCharm_down",
+    "FlavorPureBottom_up",
+    "FlavorPureBottom_down",
+    "Fragmentation_up",
+    "Fragmentation_down",
+    "PileUpDataMC_up",
+    "PileUpDataMC_down",
+    "PileUpPtBB_up",
+    "PileUpPtBB_down",
+    "PileUpPtEC1_up",
+    "PileUpPtEC1_down",
+    "PileUpPtEC2_up",
+    "PileUpPtEC2_down",
+    "PileUpPtHF_up",
+    "PileUpPtHF_down",
+    "PileUpPtRef_up",
+    "PileUpPtRef_down",
+    "RelativeFSR_up",
+    "RelativeFSR_down",
+    "RelativeJEREC1_2016_up",
+    "RelativeJEREC1_2016_down",
+    "RelativeJEREC2_2016_up",
+    "RelativeJEREC2_2016_down",
+    "RelativeJERHF_up",
+    "RelativeJERHF_down",
+    "RelativePtBB_up",
+    "RelativePtBB_down",
+    "RelativePtEC1_2016_up",
+    "RelativePtEC1_2016_down",
+    "RelativePtEC2_2016_up",
+    "RelativePtEC2_2016_down",
+    "RelativePtHF_up",
+    "RelativePtHF_down",
+    "RelativeStatEC_2016_up",
+    "RelativeStatEC_2016_down",
+    "RelativeStatFSR_2016_up",
+    "RelativeStatFSR_2016_down",
+    "RelativeStatHF_2016_up",
+    "RelativeStatHF_2016_down",
+    "SinglePionECAL_up",
+    "SinglePionECAL_down",
+    "SinglePionHCAL_up",
+    "SinglePionHCAL_down",
+    "TimePtEta_2016_up",
+    "TimePtEta_2016_down",
     "Absolute_up",
     "Absolute_down",
     "Absolute_2016_up",
@@ -185,7 +243,7 @@ std::vector<double> number_of_events_2016 {
     139138448,
     139138448,
     139138448,
-    120777245
+    88333066
 };
 
 std::vector<double> mc_rescale_2016 {
@@ -215,7 +273,7 @@ std::vector<double> mc_rescale_2016 {
     0.000193651424375,
     0.000193651424375,
     0.000193651424375,
-    0.000117804520985
+    0.000161076108579
 };
 
 std::vector<double> alt_mc_rescale_2016 {
@@ -281,7 +339,7 @@ std::vector<std::vector<double> > jec_mc_rescale_2016 {
         0.000193651424375,
         0.000193651424375,
         0.000193651424375,
-        0.000117804520985
+        0.000161076108579
     },
     {
         0.533846696909,
@@ -310,7 +368,7 @@ std::vector<std::vector<double> > jec_mc_rescale_2016 {
         0.000193651424375,
         0.000193651424375,
         0.000193651424375,
-        0.000117804520985
+        0.000161076108579
     }
 };
 

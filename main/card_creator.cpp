@@ -53,6 +53,9 @@ int main(int argc, char** argv){
     if (wilson=="sme_all") doAllWilson = true;
     std::string wilsonList[16] = {"cLXX","cLXY","cLXZ","cLYZ","cRXX","cRXY","cRXZ","cRYZ","cXX","cXY","cXZ","cYZ","dXX","dXY","dXZ","dYZ"};
 
+    bool doReducedJec = false;
+    //bool doReducedJec = true;
+
     //Lumi flat uncertainties
     std::string lumi_flat_uncorr[2] = {"1.009", "1.014"};
     std::string lumi_flat_corr[2] = {"1.006", "1.009"};
@@ -200,13 +203,15 @@ int main(int argc, char** argv){
 	    datacard.addProcSystToCard("mtop", "shape", ttbarList, "signal",false);
 
   	    //datacard.addSystToCard("jec" + timebin, "shape", ttbarList);
-            datacard.addSystToCard("Absolute_jec"+ timebin, "shape", ttbarList);
-            datacard.addSystToCard("Absolute_"+year+"_jec"+ timebin, "shape", ttbarList);
-            datacard.addSystToCard("FlavorQCD_jec"+ timebin, "shape", ttbarList);
-            datacard.addSystToCard("BBEC1_jec"+ timebin, "shape", ttbarList);
-            datacard.addSystToCard("BBEC1_"+year+"_jec"+ timebin, "shape", ttbarList);
-            datacard.addSystToCard("RelativeBal_jec"+ timebin, "shape", ttbarList);
-            datacard.addSystToCard("RelativeSample_"+year+"_jec"+ timebin, "shape", ttbarList);
+  	    if (doReducedJec){
+		datacard.addSystToCard("Absolute_jec"+ timebin, "shape", ttbarList);
+		datacard.addSystToCard("Absolute_"+year+"_jec"+ timebin, "shape", ttbarList);
+		datacard.addSystToCard("FlavorQCD_jec"+ timebin, "shape", ttbarList);
+		datacard.addSystToCard("BBEC1_jec"+ timebin, "shape", ttbarList);
+		datacard.addSystToCard("BBEC1_"+year+"_jec"+ timebin, "shape", ttbarList);
+		datacard.addSystToCard("RelativeBal_jec"+ timebin, "shape", ttbarList);
+		datacard.addSystToCard("RelativeSample_"+year+"_jec"+ timebin, "shape", ttbarList);
+	    }
 
             datacard.addSystToCard("muonSF_phasespace", "lnN", ttbarList, "1.005");
 	    datacard.addSystToCard("elecSF_phasespace", "lnN", ttbarList, "1.01");
@@ -267,7 +272,7 @@ int main(int argc, char** argv){
         for(std::string const& syst : systematicList){
             if(syst == "syst_pt_top")
                 datacard.addProcSystToCard(syst, "shape", ttbarList, "signal",false);
-            else if (syst == "syst_em_trig")
+            else if (syst == "syst_em_trig" || syst=="stat_muon_iso" || syst=="stat_muon_id")
                 datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
             else if (syst == "syst_b_uncorrelated" || syst == "syst_l_uncorrelated")
                 datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
@@ -305,14 +310,21 @@ int main(int argc, char** argv){
         datacard.addProcSystToCard("QCDinspired", "lnN", ttbarList, "signal", false, alt_QCDinspired[iyear]);
         datacard.addProcSystToCard("mtop", "shape", ttbarList, "signal",false);
 
-        datacard.addSystToCard("Absolute_jec", "shape", ttbarList);
-        datacard.addSystToCard("Absolute_"+year+"_jec", "shape", ttbarList);
-        datacard.addSystToCard("FlavorQCD_jec", "shape", ttbarList);
-        datacard.addSystToCard("BBEC1_jec", "shape", ttbarList);
-        datacard.addSystToCard("BBEC1_"+year+"_jec", "shape", ttbarList);
-        datacard.addSystToCard("RelativeBal_jec", "shape", ttbarList);
-        datacard.addSystToCard("RelativeSample_"+year+"_jec", "shape", ttbarList);
-
+	if (doReducedJec){
+	    datacard.addSystToCard("Absolute_jec", "shape", ttbarList);
+	    datacard.addSystToCard("Absolute_"+year+"_jec", "shape", ttbarList);
+	    datacard.addSystToCard("FlavorQCD_jec", "shape", ttbarList);
+	    datacard.addSystToCard("BBEC1_jec", "shape", ttbarList);
+	    datacard.addSystToCard("BBEC1_"+year+"_jec", "shape", ttbarList);
+	    datacard.addSystToCard("RelativeBal_jec", "shape", ttbarList);
+	    datacard.addSystToCard("RelativeSample_"+year+"_jec", "shape", ttbarList);
+	}
+	else {
+	    std::string listJecFull[16] = {"AbsoluteMPFBias","AbsoluteScale","FlavorPureGluon","FlavorPureQuark","FlavorPureCharm","FlavorPureBottom","Fragmentation", "PileUpDataMC","PileUpPtBB","PileUpPtEC1","PileUpPtRef","RelativeFSR","RelativePtBB","SinglePionECAL","SinglePionHCAL","RelativeBal"};
+	    std::string listJecFull_year[7] = {"AbsoluteStat","RelativeJEREC1","RelativePtEC1","RelativeStatEC","RelativeStatFSR","TimePtEta","RelativeSample"};
+	    for (int ijec=0; ijec<16; ijec++) datacard.addSystToCard(listJecFull[ijec]+"_jec", "shape", ttbarList);
+	    for (int ijec=0; ijec<7; ijec++) datacard.addSystToCard(listJecFull_year[ijec]+"_"+year+"_jec", "shape", ttbarList);
+	}
 
         //datacard.addSystToCard_alternative(false);
         datacard.addSeparator();
@@ -472,13 +484,15 @@ int main(int argc, char** argv){
 	if (doExpTimeNuisance) {
             for (int k=0; k<24; k++) {
 		//datacard.addSystToCard("jec" + timebin[k], "shape", ttbarList);
-                datacard.addSystToCard("Absolute_jec"+ timebin[k], "shape", ttbarList);
-                datacard.addSystToCard("Absolute_"+year+"_jec"+ timebin[k], "shape", ttbarList);
-                datacard.addSystToCard("FlavorQCD_jec"+ timebin[k], "shape", ttbarList);
-                datacard.addSystToCard("BBEC1_jec"+ timebin[k], "shape", ttbarList);
-                datacard.addSystToCard("BBEC1_"+year+"_jec"+ timebin[k], "shape", ttbarList);
-                datacard.addSystToCard("RelativeBal_jec"+ timebin[k], "shape", ttbarList);
-                datacard.addSystToCard("RelativeSample_"+year+"_jec"+ timebin[k], "shape", ttbarList);
+		if (doReducedJec){
+		    datacard.addSystToCard("Absolute_jec"+ timebin[k], "shape", ttbarList);
+		    datacard.addSystToCard("Absolute_"+year+"_jec"+ timebin[k], "shape", ttbarList);
+		    datacard.addSystToCard("FlavorQCD_jec"+ timebin[k], "shape", ttbarList);
+		    datacard.addSystToCard("BBEC1_jec"+ timebin[k], "shape", ttbarList);
+		    datacard.addSystToCard("BBEC1_"+year+"_jec"+ timebin[k], "shape", ttbarList);
+		    datacard.addSystToCard("RelativeBal_jec"+ timebin[k], "shape", ttbarList);
+		    datacard.addSystToCard("RelativeSample_"+year+"_jec"+ timebin[k], "shape", ttbarList);
+		}
 	    }
 	}
         //else datacard.addSystToCard("jec", "shape", ttbarList);
