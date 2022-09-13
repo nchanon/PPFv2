@@ -1202,10 +1202,10 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
                 listResponseMatrix[jl].push_back(*hist_responseMatrix);
 	    }
 
-            delete hist;
-            delete canvas;
-            delete tree;
-            delete file;
+            //delete hist;
+            //delete canvas;
+            //delete tree;
+            //delete file;
         }
         groupingMC(list[jl], groupList_p, jecList_p[jl], clean_p);
 	if(isTimed_p){
@@ -1287,10 +1287,10 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
         hist->Scale(correction_p[n]);
         list.push_back(*hist);
 
-        delete hist;
-        delete canvas;
-        delete tree;
-        delete file;
+        //delete hist;
+        //delete canvas;
+        //delete tree;
+        //delete file;
     }
     groupingMC(list, groupList_p, clean_p);
 
