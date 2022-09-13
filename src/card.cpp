@@ -147,13 +147,13 @@ void Card::addProcSystToCard(std::string const& systName_p,
           if(groupList_p[i] == process_p || groupList_p[i] == process2_p)
               datacard += completeBlock(value_p, block_grp);
           else 
-              datacard += completeBlock("0", block_grp);
+              datacard += completeBlock("-", block_grp);
 	}
 	else if (isSME){
           if(groupList_p[i] == process_p  || groupList_p[i] == process2_p || i==0 || (groupList_p.size()>15 && i<16))
               datacard += completeBlock(value_p, block_grp);
           else 
-              datacard += completeBlock("0", block_grp);
+              datacard += completeBlock("-", block_grp);
 	}
     }
     datacard += '\n';
@@ -174,7 +174,7 @@ void Card::addSystToCard(std::string const& systName_p,
 	if (exludeProcess=="" || (exludeProcess!="" && groupList_p[i]!=exludeProcess))
             datacard += completeBlock(value_p, block_grp);
 	else if (groupList_p[i]==exludeProcess)
-	    datacard += completeBlock("0", block_grp);
+	    datacard += completeBlock("-", block_grp);
     }
 
     datacard += '\n';
@@ -199,7 +199,7 @@ void Card::addRateToCard(namelist    const& groupList_p,
 	    else if (j<16 && groupList_p[i]=="signal" && isSME && groupList_p.size()>16)
                 line += completeBlock(systematicsRate_p[j], block_grp);
             else
-                line += completeBlock("0", block_grp);
+                line += completeBlock("-", block_grp);
         }  
         datacard += line + '\n';
     }

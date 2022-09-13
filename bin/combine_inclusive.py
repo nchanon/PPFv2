@@ -13,6 +13,9 @@ from ROOT import TLegend, TApplication, TRatioPlot, TPad
 
 #nbin = 24
 
+doShapeOnly = True
+#doShapeOnly = False
+
 ################################################################################
 ## Initialisation stuff
 ################################################################################
@@ -25,24 +28,23 @@ args = parser.parse_args()
 observable = args.observable
 year = args.year
 timebin = int(args.timebin)
+
 TH1.SetDefaultSumw2(1)
 
 ################################################################################
-## function
+## Functions
 ################################################################################
 
+def applyNominalNorm(histo, hnom):
+    area = histo.Integral()
+    histo.Scale(hnom.Integral()/area)
 
 
 ################################################################################
 ## Code body
 ################################################################################
 
-# time dependant
-#lumi_syst_up = []
-#lumi_syst_down = []
-
 histograms = []
-
 
 data_file = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
 for l in data_file.GetListOfKeys():
@@ -63,19 +65,18 @@ if (timebin>=0):
 mc_file = TFile('./results/'+year+'/flattree/'+observable+'_inclusive'+stimebin+'.root')
 for l in mc_file.GetListOfKeys():
     hist = mc_file.Get(l.GetName())
-    #hname = hist.GetName()
-    #newname = hname
-    #if (hname.find("syst_em_trigUp")!=-1):
-    #	newname = hname[:-2] + '_'+year+'Up'
-    #if (hname.find("syst_em_trigDown")!=-1):
-    #    newname = hname[:-4] + '_'+year+'Down'
-    #hist.SetName(newname)
-    #hist.SetTitle(newname) 
     histograms.append(hist)
+
     for proc in ttbar_list:
         if l.GetName()==proc:
             h_nom.append(mc_file.Get(l.GetName()))
 
+    if doShapeOnly:
+        curname = histograms[-1].GetName()
+        for h in h_nom:
+            proc = h.GetName()
+            if TString(curname).Contains(proc):
+		applyNominalNorm(histograms[-1], h)
 
     if TString(l.GetName()).Contains('syst_em_trig') or TString(l.GetName()).Contains('syst_b_uncorrelated') or TString(l.GetName()).Contains('syst_l_uncorrelated') or TString(l.GetName()).Contains('stat'):
         curname = histograms[-1].GetName()
@@ -101,9 +102,10 @@ for l in mc_file.GetListOfKeys():
         for h in h_nom:
             proc = h.GetName()
             if TString(curname).Contains(proc):
-                area = histograms[-1].Integral()
-                histograms[-1].Scale(h.Integral()/area)
-
+                #area = histograms[-1].Integral()
+                #histograms[-1].Scale(h.Integral()/area)
+		if (doShapeOnly==False): 
+		    applyNominalNorm(histograms[-1], h)
 
 
 
@@ -117,16 +119,17 @@ for l in mc_alt_file.GetListOfKeys():
         for h in h_nom:
             proc = h.GetName()
             if TString(curname).Contains(proc):
-                area = histograms[-1].Integral()
-                histograms[-1].Scale(h.Integral()/area)
+                #area = histograms[-1].Integral()
+                #histograms[-1].Scale(h.Integral()/area)
+                applyNominalNorm(histograms[-1], h)
 
 
 mc_jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec_inclusive'+stimebin+'.root')
 for l in mc_jec_file.GetListOfKeys():
     hist = mc_jec_file.Get(l.GetName())
+
     hname = hist.GetName()
     newname = hname
-    #if TString(hname).Contains('Total') or TString(hname).Contains('Absolute') or TString(hname).Contains('FlavorQCD') or TString(hname).Contains('BBEC1') or TString(hname).Contains('RelativeBal') or TString(hname).Contains('RelativeSample'):
     if(hname.find('_up')!= -1):
         newname = hname[:-3]+'_jecUp'
     elif(hname.find('_down')!= -1):
@@ -134,6 +137,21 @@ for l in mc_jec_file.GetListOfKeys():
     hist.SetName(newname)
     hist.SetTitle(newname)
     histograms.append(hist)
+
+    if TString(hname).Contains("AbsoluteStat") or TString(hname).Contains("RelativeJEREC1") or TString(hname).Contains("RelativeJEREC2") or TString(hname).Contains("RelativePtEC1") or TString(hname).Contains("RelativePtEC2") or TString(hname).Contains("RelativeSample") or TString(hname).Contains("RelativeStatEC") or TString(hname).Contains("RelativeStatFSR") or TString(hname).Contains("RelativeStatHF") or TString(hname).Contains("TimePtEta"): #Careful for RelativeSample
+        found = curname.find('_jecUp')
+        if (found==-1):
+            found = curname.find('_jecDown')
+        newname = curname[:found] + '_' + year + curname[found:]
+	histograms[-1].SetName(newname)
+        histograms[-1].SetTitle(newname)
+
+    if doShapeOnly:
+        curname = histograms[-1].GetName()
+        for h in h_nom:
+            proc = h.GetName()
+            if TString(curname).Contains(proc):
+                applyNominalNorm(histograms[-1], h)
 
 
 out = './combine/'+year+'/inclusive/inputs/'
