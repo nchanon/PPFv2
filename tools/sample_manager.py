@@ -428,8 +428,8 @@ jec_reduced_list_2017 = [
     'BBEC1_2017_down',
     'RelativeBal_up',
     'RelativeBal_down',
-    'RelativeSample_2017_up',
-    'RelativeSample_2017_down'
+    'RelativeSample_up',
+    'RelativeSample_down'
 ]
 
 jec_fullandreduced_list_2016 = [

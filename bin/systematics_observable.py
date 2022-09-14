@@ -303,6 +303,6 @@ for index in range(len(hist_mc)):
     hist_mc_down[index].Draw('HIST SAME')
     legend[index].Draw('SAME')
     #canvas.SaveAs(outputdir+stimed+'_'+name+'_'+year+'.png')
-    canvas.SaveAs(outputdir+stimed+'_'+name+'_'+year+'.pdf')
+    canvas.SaveAs(outputdir+name+'_'+year+stimed+'.pdf')
 
 #raw_input('exit')

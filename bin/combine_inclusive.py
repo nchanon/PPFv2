@@ -13,8 +13,8 @@ from ROOT import TLegend, TApplication, TRatioPlot, TPad
 
 #nbin = 24
 
-doShapeOnly = True
-#doShapeOnly = False
+#doShapeOnly = True
+doShapeOnly = False
 
 ################################################################################
 ## Initialisation stuff
@@ -126,7 +126,7 @@ for l in mc_alt_file.GetListOfKeys():
 
 mc_jec_file = TFile('./results/'+year+'/flattree/'+observable+'_jec_inclusive'+stimebin+'.root')
 for l in mc_jec_file.GetListOfKeys():
-    hist = mc_jec_file.Get(l.GetName())
+    hist = mc_jec_file.Get(l.GetName()).Clone()
 
     hname = hist.GetName()
     newname = hname
@@ -134,24 +134,28 @@ for l in mc_jec_file.GetListOfKeys():
         newname = hname[:-3]+'_jecUp'
     elif(hname.find('_down')!= -1):
         newname = hname[:-5]+'_jecDown'
-    hist.SetName(newname)
-    hist.SetTitle(newname)
-    histograms.append(hist)
 
-    if TString(hname).Contains("AbsoluteStat") or TString(hname).Contains("RelativeJEREC1") or TString(hname).Contains("RelativeJEREC2") or TString(hname).Contains("RelativePtEC1") or TString(hname).Contains("RelativePtEC2") or TString(hname).Contains("RelativeSample") or TString(hname).Contains("RelativeStatEC") or TString(hname).Contains("RelativeStatFSR") or TString(hname).Contains("RelativeStatHF") or TString(hname).Contains("TimePtEta"): #Careful for RelativeSample
-        found = curname.find('_jecUp')
+    if TString(newname).Contains("AbsoluteStat") or TString(newname).Contains("RelativeJEREC1") or TString(newname).Contains("RelativeJEREC2") or TString(newname).Contains("RelativePtEC1") or TString(newname).Contains("RelativePtEC2") or TString(newname).Contains("RelativeStatEC") or TString(newname).Contains("RelativeStatFSR") or TString(newname).Contains("RelativeStatHF") or TString(newname).Contains("TimePtEta"): #Careful for RelativeSample
+        found = newname.find('_jecUp')
         if (found==-1):
-            found = curname.find('_jecDown')
-        newname = curname[:found] + '_' + year + curname[found:]
-	histograms[-1].SetName(newname)
-        histograms[-1].SetTitle(newname)
+            found = newname.find('_jecDown')
+        newname_year = newname[:found] + '_' + year + newname[found:]
+	#hist.SetName(newname)
+        #hist.SetTitle(newname)
+    else:
+	newname_year = newname
+
+    hist.SetName(newname_year)
+    hist.SetTitle(newname_year)
 
     if doShapeOnly:
         curname = histograms[-1].GetName()
         for h in h_nom:
             proc = h.GetName()
             if TString(curname).Contains(proc):
-                applyNominalNorm(histograms[-1], h)
+                applyNominalNorm(hist, h)
+
+    histograms.append(hist)
 
 
 out = './combine/'+year+'/inclusive/inputs/'
