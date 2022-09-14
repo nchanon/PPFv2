@@ -1206,6 +1206,7 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
             //delete canvas;
             //delete tree;
             //delete file;
+            file->Close();
         }
         groupingMC(list[jl], groupList_p, jecList_p[jl], clean_p);
 	if(isTimed_p){
@@ -1291,6 +1292,7 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
         //delete canvas;
         //delete tree;
         //delete file;
+        file->Close();
     }
     groupingMC(list, groupList_p, clean_p);
 
