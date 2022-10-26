@@ -34,6 +34,7 @@ doSMEkindep = True
 doResponseMatrix = True
 #doResponseMatrix = False
 
+#doShapeOnly = False
 doShapeOnly = True
 
 ################################################################################
@@ -161,7 +162,7 @@ for mc_file in mc_file_time:
         for proc in ttbar_list:
             if l.GetName()==proc:
                 h_nom.append(mc_file.Get(l.GetName()))
-		mc_integral += h_nom.Integral()	
+		mc_integral += h_nom[-1].Integral()	
 
         if TString(l.GetName()).Contains('responseMatrix'):
 	    hist_responseMatrix.append(mc_file.Get(l.GetName()))
@@ -252,14 +253,14 @@ for n in range(len(jec_file_time)):
 
 	histograms_time[n].append(h_jec)
 
-        if TString(hname).Contains("AbsoluteStat") or TString(hname).Contains("RelativeJEREC1") or TString(hname).Contains("RelativeJEREC2") or TString(hname).Contains("RelativePtEC1") or TString(hname).Contains("RelativePtEC2") or TString(hname).Contains("RelativeSample") or TString(hname).Contains("RelativeStatEC") or TString(hname).Contains("RelativeStatFSR") or TString(hname).Contains("RelativeStatHF") or TString(hname).Contains("TimePtEta"): #Careful for RelativeSample
+        if TString(hname).Contains("AbsoluteStat") or TString(hname).Contains("RelativeJEREC1") or TString(hname).Contains("RelativeJEREC2") or TString(hname).Contains("RelativePtEC1") or TString(hname).Contains("RelativePtEC2") or TString(hname).Contains("RelativeStatEC") or TString(hname).Contains("RelativeStatFSR") or TString(hname).Contains("RelativeStatHF") or TString(hname).Contains("TimePtEta"): #Careful for RelativeSample
             curname = histograms_time[n][-1].GetName()
             found = curname.find('_jecUp')
             if (found==-1):
                 found = curname.find('_jecDown')
             newname = curname[:found] + '_' + year + curname[found:]
-            histograms[n][-1].SetName(newname)
-            histograms[n][-1].SetTitle(newname)
+            histograms_time[n][-1].SetName(newname)
+            histograms_time[n][-1].SetTitle(newname)
 
         if doShapeOnly==True:
             for h_proc in h_nom_time[n]:
@@ -296,7 +297,7 @@ for n in range(len(alt_file_time)):
 
     alt_file = alt_file_time[n]
     for l in alt_file.GetListOfKeys():
-	h_alt = alt_file.Get(l.GetName())
+	#h_alt = alt_file.Get(l.GetName())
 	#hh.Scale(1./nbintime)
 	#hname = l.GetName()
 	#h_alt = hh
@@ -312,7 +313,7 @@ for n in range(len(alt_file_time)):
 	#h_alt.SetTitle(hname)
 	#h_alt.SetName(hname)
 	#hist_alt_jec.append(h_alt)
-        histograms_time[n].append(h_alt)
+        histograms_time[n].append(alt_file.Get(l.GetName()))
 
 	if TString(l.GetName()).Contains('mtop'):
             for h_proc in h_nom_time[n]:
@@ -467,6 +468,8 @@ for g in hist_unrolled:
                         hist_down.SetBinContent(iobs + itime*nbinkin + 1, 0)
 		hist_unrolled.append(hist_up)
 		hist_unrolled.append(hist_down)
+
+#exit()
 
 ###########
 # SME part
@@ -674,7 +677,7 @@ for h in hist_unrolled:
             h_nom.append(h.Clone())
 
     #Uncorrelated between year
-    if TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_em_trig') or TString(h.GetName()).Contains('stat'):
+    if TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_em_trig') or TString(h.GetName()).Contains('stat_muon'):
         curname = h.GetName()
         found = curname.find('Up')
         if (found==-1):
@@ -709,7 +712,7 @@ for h in hist_unrolled:
 
     if doExpTimeNuisance:
 	#TString(h.GetName()).Contains('syst_muon_iso')
-        if (TString(h.GetName()).Contains('syst_elec_reco') or TString(h.GetName()).Contains('syst_elec_id') or TString(h.GetName()).Contains('syst_muon_id') or TString(h.GetName()).Contains('stat_muon_id') or TString(h.GetName()).Contains('stat_muon_iso') or TString(h.GetName()).Contains('syst_pu') or TString(h.GetName()).Contains('syst_b_correlated') or TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_correlated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_prefiring') or TString(h.GetName()).Contains('jec') or TString(h.GetName()).Contains('syst_em_trig') or (puOption!="putime" and TString(h.GetName()).Contains('syst_pu')) or TString(h.GetName()).Contains('emu_trig_stat')):
+        if (TString(h.GetName()).Contains('syst_elec_reco') or TString(h.GetName()).Contains('syst_elec_id') or TString(h.GetName()).Contains('syst_muon_id') or TString(h.GetName()).Contains('stat_muon_id') or TString(h.GetName()).Contains('stat_muon_iso') or TString(h.GetName()).Contains('syst_pu') or TString(h.GetName()).Contains('syst_b_correlated') or TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_correlated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_prefiring') or (TString(h.GetName()).Contains('jec') and TString(h.GetName()).Contains('FlavorPureBottom')==False and TString(h.GetName()).Contains('FlavorPureGluon')==False) or TString(h.GetName()).Contains('syst_em_trig') or (puOption!="putime" and TString(h.GetName()).Contains('syst_pu')) or TString(h.GetName()).Contains('emu_trig_stat')):
             curname = h.GetName()
             found = curname.find('Up')
             if (found==-1):

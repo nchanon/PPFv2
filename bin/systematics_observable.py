@@ -69,6 +69,7 @@ if (timebin==-3):
      stimebin = "_puinc";
 if (timebin>=0):
      stimebin = "_put"+str(timebin);
+
 rootfile_input = TFile('./results/'+year+'/flattree/'+observable+stimed+stimebin+'.root')
 rootfile_input_jec = TFile('./results/'+year+'/flattree/'+observable+'_jec'+stimed+stimebin+'.root')
 rootfile_input_alt = TFile('./results/'+year+'/flattree/'+observable+'_alt'+stimed+stimebin+'.root')
@@ -158,30 +159,38 @@ for l in rootfile_input_syst.GetListOfKeys():
             hist_mc_up.append(rootfile_input_syst.Get(l.GetName()))
 	    hist_mc_down.append(hist_mc[-1].Clone())
 
-obsname = observable
+obsname = observable + "_"
 
-if timed=='timed' and (TString(systematic).Contains('emu_trig') or TString(systematic).Contains('lumi_stability') or TString(systematic).Contains('lumi_linearity') or TString(systematic).Contains('syst_pu')):
+if timed=='timed' and (TString(systematic).Contains('emu_trig_stat') or TString(systematic).Contains('emu_trig_syst') or TString(systematic).Contains('lumi_stability') or TString(systematic).Contains('lumi_linearity') or TString(systematic).Contains('syst_pu')):
     del hist_mc[:]
     del hist_mc_up[:]
     del hist_mc_down[:]
-    obsname = "sidereal"
-    slist = ttbar_list
-    for s in slist:
-	h_time = TH1F(s, s, 24,0,24)
-        h_time_up = TH1F(s + '_' + systematic + 'Up',s + '_' + systematic + 'Up',24,0,24)
-        h_time_down = TH1F(s + '_' + systematic + 'Down',s + '_' + systematic + 'Down',24,0,24)
+    h_sel = []
+    obsname = ""
+    #slist = ttbar_list
+    for s in ttbar_list: #slist:
+	h_time = TH1F('sidereal_'+s, s, 24,0,24)
+        h_time_up = TH1F('sidereal_'+s + '_' + systematic + 'Up',s + '_' + systematic + 'Up',24,0,24)
+        h_time_down = TH1F('sidereal_'+s + '_' + systematic + 'Down',s + '_' + systematic + 'Down',24,0,24)
         for i in range(24):
 	    for l in rootfile_input_time[i].GetListOfKeys():
+                #h = rootfile_input_time[i].Get(l.GetName())
 		if l.GetName()==s:
-		    print(str(i)+' Nom')
+                    h_sel.append(rootfile_input_time[i].Get(l.GetName()))
+		    print l.GetName()
+		    print(str(i)+' Nom integral='+str(h_sel[-1].Integral()))#str(rootfile_input_time[i].Get(l.GetName()).Integral()))
 		    h_time.SetBinContent(i+1, rootfile_input_time[i].Get(l.GetName()).Integral())
-		if(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and (TString(l.GetName()).Contains('Up'))):
-		    print(str(i)+' Up')
+		if(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and TString(l.GetName()).Contains('Up') and TString(l.GetName()).Contains(year)):
+                    h_sel.append(rootfile_input_time[i].Get(l.GetName()))
+                    print l.GetName()
+		    print(str(i)+' Up integral='+str(h_sel[-1].Integral()))#rootfile_input_time[i].Get(l.GetName()).Integral()))
 		    h_time_up.SetBinContent(i+1, rootfile_input_time[i].Get(l.GetName()).Integral())
                     #name = s + '_' + systematic + 'Up'
 		    #hist_mc_up.append(rootfile_input_time[i].Get(l.GetName()))
-                if(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and (TString(l.GetName()).Contains('Down'))):
-                    print(str(i)+' Down')
+                if(TString(l.GetName()).Contains(s) and TString(l.GetName()).Contains(systematic) and TString(l.GetName()).Contains('Down') and TString(l.GetName()).Contains(year)):
+                    h_sel.append( rootfile_input_time[i].Get(l.GetName()))
+                    print l.GetName()
+                    print(str(i)+' Down integral='+str(h_sel[-1].Integral()))#rootfile_input_time[i].Get(l.GetName()).Integral()))
 		    h_time_down.SetBinContent(i+1, rootfile_input_time[i].Get(l.GetName()).Integral())
                     #name = s + '_' + systematic + 'Down'
                     #hist_mc_down.append(rootfile_input_time[i].Get(l.GetName()))
@@ -292,7 +301,7 @@ for h in range(len(hist_mc)):
 outputdir = './results/'+year+'/systematics/'
 
 for index in range(len(hist_mc)):
-    name = obsname+stimebin+'_'+hist_mc[index].GetName()+'_'+systematic
+    name = obsname+hist_mc[index].GetName()+stimebin+'_'+systematic
     canvas = TCanvas(name, name)
     hist_mc[index].SetAxisRange(-edge[index]*1.7, edge[index]*1.7, "Y")
     #hist_mc[index].Draw('')

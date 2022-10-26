@@ -53,9 +53,29 @@ int main(int argc, char** argv){
     if (wilson=="sme_all") doAllWilson = true;
     std::string wilsonList[16] = {"cLXX","cLXY","cLXZ","cLYZ","cRXX","cRXY","cRXZ","cRYZ","cXX","cXY","cXZ","cYZ","dXX","dXY","dXZ","dYZ"};
 
-    int jecOption = 0; //reduced jec
+    //int jecOption = -1; //no jec
+    //int jecOption = 0; //reduced jec
     //int jecOption = 1; //full jec
-    //int jecOption = 2; //reduced jec with pureflavour
+    int jecOption = 2; //reduced jec with pureflavour
+
+    std::cout << "doExpTimeNuisance="<<doExpTimeNuisance<<" triggerOption="<<triggerOption<<" jecOption="<<jecOption<<std::endl;
+
+    std::vector<std::string> listNotUsed;
+    //listNotUsed.push_back("stat_muon_iso");
+    //listNotUsed.push_back("stat_muon_id");
+    //listNotUsed.push_back("emu_trig_stat");
+    //listNotUsed.push_back("syst_muon_id");
+    listNotUsed.push_back("syst_muon_iso");
+    //listNotUsed.push_back("lumi_stability");
+    //listNotUsed.push_back("lumi_linearity");
+    //listNotUsed.push_back("emu_trig_syst");
+    //listNotUsed.push_back("syst_elec_reco");
+    //listNotUsed.push_back("syst_elec_id");
+    //listNotUsed.push_back("syst_b_correlated");
+    //listNotUsed.push_back("syst_b_uncorrelated");
+    //listNotUsed.push_back("syst_l_correlated");
+    //listNotUsed.push_back("syst_l_uncorrelated");
+
 
     //bool doShapeOnly = true;
     //bool doShapeOnly = false;
@@ -158,6 +178,12 @@ int main(int argc, char** argv){
             datacard.addSeparator();
             datacard.addRateToCard(ttbarList, systematicRate,false);
             for(std::string const& syst : systematicList){
+		bool nextSyst = false;	
+		for (unsigned int j=0; j<listNotUsed.size(); j++){
+		    if (syst==listNotUsed[j]) nextSyst=true;;
+		}
+		if (nextSyst==true) continue;
+
                 if(syst == "syst_pt_top")
                     datacard.addProcSystToCard(syst, "shape", ttbarList, "signal",false);
                 else if (syst == "syst_em_trig") {
@@ -219,11 +245,13 @@ int main(int argc, char** argv){
 		datacard.addSystToCard("RelativeBal_jec"+ timebin, "shape", ttbarList);
 		datacard.addSystToCard("RelativeSample_"+year+"_jec"+ timebin, "shape", ttbarList);
 		if (jecOption==0) datacard.addSystToCard("FlavorQCD_jec"+ timebin, "shape", ttbarList);
-		else if (jecOption==2){ 
-		    datacard.addSystToCard("FlavorPureGluon_jec"+ timebin, "shape", ttbarList);
-                    datacard.addSystToCard("FlavorPureQuark_jec"+ timebin, "shape", ttbarList);
-                    datacard.addSystToCard("FlavorPureCharm_jec"+ timebin, "shape", ttbarList);
-                    datacard.addSystToCard("FlavorPureBottom_jec"+ timebin, "shape", ttbarList);
+		else if (jecOption==2){
+		    datacard.addSystToCard("FlavorPureGluon_jec", "shape", ttbarList);
+		    datacard.addSystToCard("FlavorPureBottom_jec", "shape", ttbarList); 
+		    //datacard.addSystToCard("FlavorPureGluon_jec"+ timebin, "shape", ttbarList);
+                    //datacard.addSystToCard("FlavorPureQuark_jec"+ timebin, "shape", ttbarList);
+                    //datacard.addSystToCard("FlavorPureCharm_jec"+ timebin, "shape", ttbarList);
+                    //datacard.addSystToCard("FlavorPureBottom_jec"+ timebin, "shape", ttbarList);
 		}
 	    }
 
@@ -231,6 +259,12 @@ int main(int argc, char** argv){
 	    datacard.addSystToCard("elecSF_phasespace", "lnN", ttbarList, "1.01");
 
             for(std::string const& syst : systematicTimeList){
+		bool nextSyst = false;
+                for (unsigned int j=0; j<listNotUsed.size(); j++){
+                    if (syst==listNotUsed[j]) nextSyst=true;;
+                }
+		if (nextSyst==true) continue;
+
                 if (syst == "lumi_flat") continue;
                 //if (syst != "emu_trig" && syst != "lumi_stability" && syst != "lumi_linearity") datacard.addSystToCard(syst, "shape", ttbarList);
                 if (syst == "lumi_stability" || syst=="lumi_linearity") datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
@@ -244,14 +278,16 @@ int main(int argc, char** argv){
 		}
             }
 
+	    
 	    std::string systMC = "MCstat_binobs";
 	    for (int k=0; k<nBinObs; k++){
 		datacard.addProcSystToCard(systMC + std::to_string(k) + "_signal_" + year, "shape", ttbarList, "signal",false);
 		datacard.addProcSystToCard(systMC + std::to_string(k) + "_singletop_" + year, "shape", ttbarList, "singletop",false);
                 datacard.addProcSystToCard(systMC + std::to_string(k) + "_dibosons_" + year, "shape", ttbarList, "dibosons",false);
 		datacard.addProcSystToCard(systMC + std::to_string(k) + "_ttx_" + year, "shape", ttbarList, "ttx",false);
-		datacard.addProcSystToCard(systMC + std::to_string(k) + "_vjets_" + year, "shape", ttbarList, "vjets",false);
+		if (k!=nBinObs-1) datacard.addProcSystToCard(systMC + std::to_string(k) + "_vjets_" + year, "shape", ttbarList, "vjets",false);
 	    }
+	    
 
             //datacard.addSystToCard_alternative(false);
             datacard.addSeparator();
@@ -279,14 +315,19 @@ int main(int argc, char** argv){
 
         datacard.addGlobalParameter(ttbarList);
         datacard.addSeparator();
+	std::cout << "Open input file"<<std::endl;
         datacard.addInputsProcess("./inputs/"+year+"/", name+"_inclusive"+stimebin+".root");
         datacard.addSeparator();
+	std::cout << observable << " " << numberOfEvents <<std::endl;
         datacard.addChanels(observable, numberOfEvents);
         datacard.addSeparator();
 
         datacard.addProcToCard(observable, ttbarList);
         datacard.addSeparator();
+
+	std::cout << "Bkgd norm" << std::endl;
         datacard.addRateToCard(ttbarList, systematicRate,false);
+	std::cout << "Weights nuisances (exp)" <<std::endl;
         for(std::string const& syst : systematicList){
             if(syst == "syst_pt_top")
                 datacard.addProcSystToCard(syst, "shape", ttbarList, "signal",false);
@@ -316,6 +357,7 @@ int main(int argc, char** argv){
                 datacard.addSystToCard(syst, "shape", ttbarList);
         }
 
+	std::cout << "Rate nuisaces"<<std::endl;
         datacard.addSystToCard("muonSF_phasespace", "lnN", ttbarList, "1.005");
         datacard.addSystToCard("elecSF_phasespace", "lnN", ttbarList, "1.01");
 
@@ -328,6 +370,7 @@ int main(int argc, char** argv){
         datacard.addProcSystToCard("QCDinspired", "lnN", ttbarList, "signal", false, alt_QCDinspired[iyear]);
         datacard.addProcSystToCard("mtop", "shape", ttbarList, "signal",false);
 
+	std::cout << "Jec nuisances"<<std::endl;
 	if (jecOption==0 || jecOption==2){
 	    datacard.addSystToCard("Absolute_jec", "shape", ttbarList);
 	    datacard.addSystToCard("Absolute_"+year+"_jec", "shape", ttbarList);
@@ -438,8 +481,9 @@ int main(int argc, char** argv){
         std::string name = observable;
         datacard.addGlobalParameter(ttbarList);
         datacard.addSeparator();
-        if (!doAllWilson) datacard.addInputsProcess("./inputs/"+year+"/", name+"_"+wilson+".root");
-	if (doAllWilson) datacard.addInputsProcess("./inputs/"+year+"/", name+"_sme_all.root");
+        //if (!doAllWilson) datacard.addInputsProcess("./inputs/"+year+"/", name+"_"+wilson+".root");
+	//if (doAllWilson) datacard.addInputsProcess("./inputs/"+year+"/", name+"_sme_all.root");
+	datacard.addInputsProcess("./inputs/"+year+"/", name+"_sme_all.root");
         datacard.addSeparator();
         datacard.addChanels(observable, numberOfEvents);
         datacard.addSeparator();
@@ -448,6 +492,12 @@ int main(int argc, char** argv){
         datacard.addSeparator();
         datacard.addRateToCard(ttbarList, systematicRate,true);
         for(std::string const& syst : systematicList){
+            bool nextSyst = false;
+            for (unsigned int j=0; j<listNotUsed.size(); j++){
+                if (syst==listNotUsed[j]) nextSyst=true;;
+            }   
+            if (nextSyst==true) continue;
+
             if(syst == "syst_pt_top")
                 datacard.addProcSystToCard(syst, "shape", ttbarList, "signal",true);
             else if (syst == "syst_em_trig") {
@@ -525,18 +575,26 @@ int main(int argc, char** argv){
 		    datacard.addSystToCard("RelativeSample_"+year+"_jec"+ timebin[k], "shape", ttbarList);
 		    if (jecOption==0) datacard.addSystToCard("FlavorQCD_jec"+ timebin[k], "shape", ttbarList);
 		    else if (jecOption==2){
-			datacard.addSystToCard("FlavorPureGluon_jec"+ timebin[k], "shape", ttbarList);
-			datacard.addSystToCard("FlavorPureQuark_jec"+ timebin[k], "shape", ttbarList);
-			datacard.addSystToCard("FlavorPureCharm_jec"+ timebin[k], "shape", ttbarList);
-			datacard.addSystToCard("FlavorPureBottom_jec"+ timebin[k], "shape", ttbarList);
+			//datacard.addSystToCard("FlavorPureGluon_jec"+ timebin[k], "shape", ttbarList);
+			//datacard.addSystToCard("FlavorPureQuark_jec"+ timebin[k], "shape", ttbarList);
+			//datacard.addSystToCard("FlavorPureCharm_jec"+ timebin[k], "shape", ttbarList);
+			//datacard.addSystToCard("FlavorPureBottom_jec"+ timebin[k], "shape", ttbarList);
 		    }
 
 		}
 	    }
 	}
+	datacard.addSystToCard("FlavorPureGluon_jec", "shape", ttbarList);
+	datacard.addSystToCard("FlavorPureBottom_jec", "shape", ttbarList);
         //else datacard.addSystToCard("jec", "shape", ttbarList);
 
         for(std::string const& syst : systematicTimeList){
+	    bool nextSyst = false;
+	    for (unsigned int j=0; j<listNotUsed.size(); j++){
+		if (syst==listNotUsed[j]) nextSyst=true;;
+	    }
+	    if (nextSyst==true) continue;
+
             if (syst == "lumi_flat") continue;
 	    //if (syst != "emu_trig" && syst != "lumi_stability" && syst != "lumi_linearity") datacard.addSystToCard(syst, "shape", ttbarList);
 	    if (syst == "lumi_stability" || syst == "lumi_linearity") datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);

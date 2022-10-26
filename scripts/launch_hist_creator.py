@@ -18,12 +18,12 @@ observables = [
     'b1_pt',
     'j1_pt',
     'j1_eta',
-#    'b1_eta'
-##    'b2_pt',
+    'b1_eta',
     'j2_pt',
     'j2_eta',
-##    'b2_eta',
     'pt_emu'
+##    'b2_pt',
+##    'b2_eta',
 ##    'dijet_m'
 ]
 

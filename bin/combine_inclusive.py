@@ -13,8 +13,8 @@ from ROOT import TLegend, TApplication, TRatioPlot, TPad
 
 #nbin = 24
 
-#doShapeOnly = True
-doShapeOnly = False
+doShapeOnly = True
+#doShapeOnly = False
 
 ################################################################################
 ## Initialisation stuff
@@ -36,6 +36,7 @@ TH1.SetDefaultSumw2(1)
 ################################################################################
 
 def applyNominalNorm(histo, hnom):
+    print histo.GetName()
     area = histo.Integral()
     histo.Scale(hnom.Integral()/area)
 
@@ -71,7 +72,7 @@ for l in mc_file.GetListOfKeys():
         if l.GetName()==proc:
             h_nom.append(mc_file.Get(l.GetName()))
 
-    if doShapeOnly:
+    if doShapeOnly==True:
         curname = histograms[-1].GetName()
         for h in h_nom:
             proc = h.GetName()
@@ -147,15 +148,16 @@ for l in mc_jec_file.GetListOfKeys():
 
     hist.SetName(newname_year)
     hist.SetTitle(newname_year)
+    histograms.append(hist)
 
     if doShapeOnly:
         curname = histograms[-1].GetName()
         for h in h_nom:
             proc = h.GetName()
             if TString(curname).Contains(proc):
-                applyNominalNorm(hist, h)
+                applyNominalNorm(histograms[-1], h)
 
-    histograms.append(hist)
+    #histograms.append(hist)
 
 
 out = './combine/'+year+'/inclusive/inputs/'

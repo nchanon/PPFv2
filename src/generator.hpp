@@ -213,7 +213,8 @@ class Generator{
                           std::vector<double> const& correction_p,
                           std::string         const& rootOption_p,
                           bool                       correctedLumi,
-                          bool                       clean_p = true
+                          bool                       clean_p = true,
+                          bool                       doForComp = false
                          );
 
         void generateDataTimed(namelist            const& sampleList_p,

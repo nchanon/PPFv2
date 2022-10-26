@@ -28,14 +28,26 @@ parser.add_argument('observable', help='display your observable')
 parser.add_argument('year', help='year of samples')
 parser.add_argument('wilson', help='wilson coefficent (cLXX, cRXX, ...)', default='cLXX')
 parser.add_argument('singletop', help='signal or singletop', default='signal')
+parser.add_argument('timebin', help='display the time bin')
 
 args = parser.parse_args()
 observable = args.observable
 year = args.year
 wilson = args.wilson
 singletop = args.singletop
+timebin = int(args.timebin)
 
-print observable+' '+wilson+' '+singletop
+stimebin="";
+if (timebin==-1):
+     stimebin = "_puold";
+if (timebin==-2):
+     stimebin = "_punew";
+if (timebin==-3):
+     stimebin = "_puinc";
+if (timebin>=0):
+     stimebin = "_put"+str(timebin);
+
+print observable+' '+year+' '+wilson+' '+singletop+' '+str(timebin)
 
 legend_coordinates = [0.65, 0.75, 0.87, 0.87] 
 TH1.SetDefaultSumw2(1)
@@ -47,8 +59,9 @@ syst_up_integral = 0
 syst_down_integral = 0
 canvas = TCanvas('sme modulations','sme modulations', 700, 700)
 canvas.UseCurrentStyle()
-
 gStyle.SetPalette(55);
+
+doResponseMatrix = True
 
 ################################################################################
 ## Create Histo 
@@ -102,13 +115,12 @@ if (observable=='n_bjets'):
 ## Apply response matrix 
 ################################################################################
 
-doResponseMatrix = False
 doNormalizeByColumn = True
 
 hist_kinbin_rec = []
 
 if doResponseMatrix:
-    fResponseMatrix = TFile("results/"+year+"/flattree/"+observable+".root")
+    fResponseMatrix = TFile("results/"+year+"/flattree/"+observable+stimebin+".root")
     hResponseMatrix = fResponseMatrix.Get(singletop+"_responseMatrix")
 
     nbinX = hResponseMatrix.GetNbinsX()

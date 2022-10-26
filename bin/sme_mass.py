@@ -24,24 +24,44 @@ parser.add_argument('observable', help='display your observable')
 parser.add_argument('year', help='year of samples')
 parser.add_argument('title', help='display your observable title')
 parser.add_argument('wilson',nargs='?', help='wilson coefficent (cLXX, cRXX, ...)', default='cLXX')
+parser.add_argument('timebin', help='display the time bin')
+
 
 args = parser.parse_args()
 observable = args.observable
 year = args.year
 title = args.title
 wilson = args.wilson
+timebin = int(args.timebin)
+
+stimebin="";
+if (timebin==-1):
+     stimebin = "_puold";
+if (timebin==-2):
+     stimebin = "_punew";
+if (timebin==-3):
+     stimebin = "_puinc";
+if (timebin>=0):
+     stimebin = "_put"+str(timebin);
+
+
+doResponseMatrix = True
+cmunu = 0.01
+
 
 def integral_complete(histo, max_bin): 
      return histo.Integral()
 #    return histo.Integral()+histo.GetBinContent(int(max_bin+1))+histo.GetBinContent(0)
 
+################################################################################
+## Create Canvas 
+################################################################################
 
 nbin = 0
 min_bin = 0
 max_bin = 0
 legend_coordinates = observable_values(observable)[1]
 TH1.SetDefaultSumw2(1)
-signal_integral = 0
 background_integral_i = []
 background_integral = 0
 data_integral = 0
@@ -49,16 +69,6 @@ syst_up_integral = 0
 syst_down_integral = 0
 canvas = TCanvas('stack_'+observable,'stack_'+observable, 800, 800)
 canvas.UseCurrentStyle()
-
-#datafile_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
-rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'.root')
-sme_file = TFile('./results/'+year+'/flattree/'+observable+'_sme.root')
-
-
-################################################################################
-## Create Histo 
-################################################################################
-
 
 r = 0.3
 epsilon = 0.1
@@ -71,28 +81,17 @@ pad1.Draw()
 pad1.cd()
 
 
-###########
-# data part
-###########
-#hist_data = datafile_input.Get('data_obs')
-#data_integral = integral_complete(hist_data, max_bin)
+################################################################################
+## Get particle-level time modulations 
+################################################################################
 
+rootfile_input = TFile('./results/'+year+'/flattree/'+observable+stimebin+'.root')
+sme_file = TFile('./results/'+year+'/flattree/'+observable+'_sme.root')
 
-# convenient variables
-#nbin    = hist_data.GetNbinsX()
-#min_bin = hist_data.GetXaxis().GetXmin()
-#max_bin = hist_data.GetXaxis().GetXmax()
-
-###########
-# mc part
-###########
-
-cmunu = 0.01
 
 # signal observable
 hist_signal = rootfile_input.Get('signal')
-#hist_signal.Scale(1./24)
-signal_integral = integral_complete(hist_signal, max_bin)
+hist_signal.Scale(1./24)
 
 nbin    = hist_signal.GetNbinsX()
 min_bin = hist_signal.GetXaxis().GetXmin()
@@ -103,16 +102,65 @@ sme_inclusive = sme_file.Get(wilson)
 sme_inclusive.Scale(cmunu)
 #binmax_sme_inclusive = sme_inclusive.GetMaximumBin()
 
-sme_kinbin = []
+sme_time_kinbin = []
 if observable=="m_dilep":
     for i in range(8):
         if (i>0):
-            sme_kinbin.append(sme_file.Get(wilson+"_"+str(i)))
-            sme_kinbin[-1].Scale(cmunu)
+            sme_time_kinbin.append(sme_file.Get(wilson+"_"+str(i)))
+            sme_time_kinbin[-1].Scale(cmunu)
 if observable=="pt_emu":
     for i in range(7):
-        sme_kinbin.append(sme_file.Get(wilson+"_"+str(i)))
-        sme_kinbin[-1].Scale(cmunu)
+        sme_time_kinbin.append(sme_file.Get(wilson+"_"+str(i)))
+        sme_time_kinbin[-1].Scale(cmunu)
+if observable=="n_bjets":
+    for i in range(6):
+        sme_time_kinbin.append(sme_file.Get(wilson+"_"+str(i)))
+        sme_time_kinbin[-1].Scale(cmunu)
+
+
+################################################################################
+## Apply response matrix 
+################################################################################
+
+doNormalizeByColumn = True
+
+sme_time_kinbin_rec = []
+
+if doResponseMatrix:
+    fResponseMatrix = TFile("results/"+year+"/flattree/"+observable+stimebin+".root")
+    hResponseMatrix = fResponseMatrix.Get("signal_responseMatrix") #singletop+"_responseMatrix")
+
+    nbinX = hResponseMatrix.GetNbinsX()
+    nbinY = hResponseMatrix.GetNbinsY()
+    #print('ResponseMatrix nbinX='+str(nbinX)+' nbinY='+str(nbinY))
+
+    if doNormalizeByColumn:
+        for ix in range(nbinX):
+            area = hResponseMatrix.Integral(1+ix, 1+ix, 1, nbinY)
+            for iy in range(nbinY):
+                bincontent = hResponseMatrix.GetBinContent(ix+1,iy+1)
+                hResponseMatrix.SetBinContent(ix+1, iy+1, bincontent/area)
+
+    for ix in range(nbinX):
+        sme_time_kinbin_rec.append(sme_time_kinbin[ix].Clone())
+        for it in range(sme_time_kinbin[ix].GetNbinsX()):
+            recbincontent = 0
+            for iy in range(nbinY):
+                if iy==0:
+                    genbin = nbinY-1
+                else:
+                    genbin = iy-1
+                #print('ix='+str(ix)+' iy='+str(iy)+' genbin='+str(genbin))
+                recbincontent += hResponseMatrix.GetBinContent(1+ix,1+iy)*sme_time_kinbin[genbin].GetBinContent(1+it)
+            sme_time_kinbin_rec[ix].SetBinContent(1+it, recbincontent)
+        sme_time_kinbin[ix] = sme_time_kinbin_rec[ix]
+
+if (observable=='n_bjets' and doResponseMatrix):
+    nhist_max = 4
+
+#######################
+# Observable histograms
+#######################
 
 
 hist_sme_inclusive = hist_signal.Clone()
@@ -128,13 +176,13 @@ for i in range(24):
     hist_sme_kin.append(hist_signal.Clone())
     hist_sme_kin[-1].SetName("sme_"+str(i))
     hist_sme_kin[-1].SetTitle("sme_"+str(i))
-    for m in range(nbin):
+    for m in range(nbinX):
         val_t = hist_signal.GetBinContent(m+1)
-	ft_m = sme_kinbin[m].GetBinContent(i+1)
+	ft_m = sme_time_kinbin[m].GetBinContent(i+1)
 	hist_sme_kin[-1].SetBinContent(m+1, val_t*(1+ft_m))
 	if (max < hist_sme_kin[-1].GetMaximum()): max = hist_sme_kin[-1].GetMaximum()
 
-usedbins = [0, 5, 9, 12]
+usedbins = [2, 5, 9, 12]
 
 # background
 #background_integral = 0
@@ -158,11 +206,14 @@ if observable=='m_dilep':
     skin='m_{ll}'
 if observable=='pt_emu':
     skin='p_{T,ll}'
+if observable=='n_bjets':
+    skin='n_{bjets}'
 
-legend_args = (0.45, 0.7, 0.985, 0.91, '', 'NDC')
+legend_args = (0.57, 0.7, 0.95, 0.91, '', 'NDC')
 legend = TLegend(*legend_args)
 legend.AddEntry(hist_signal, "t#bar{t} SM any time bin", "l")
-legend.AddEntry(hist_sme_inclusive, "SME "+skin+"-inclusive, max time bin", "l")
+legend.SetTextSize(0.03)
+#legend.AddEntry(hist_sme_inclusive, "SME "+skin+"-inclusive, max time bin", "l")
 legend.AddEntry(hist_sme_kin[usedbins[0]], "SME "+skin+"-dependent, "+str(usedbins[0])+"-"+str(usedbins[0]+1)+"h", "l")
 legend.AddEntry(hist_sme_kin[usedbins[1]], "SME "+skin+"-dependent, "+str(usedbins[1])+"-"+str(usedbins[1]+1)+"h", "l")
 legend.AddEntry(hist_sme_kin[usedbins[2]], "SME "+skin+"-dependent, "+str(usedbins[2])+"-"+str(usedbins[2]+1)+"h", "l")
@@ -183,7 +234,7 @@ legend.AddEntry(hist_sme_kin[usedbins[3]], "SME "+skin+"-dependent, "+str(usedbi
 #stack.Draw("E HIST")
 #hist_data.Draw("E SAME")
 
-gStyle.SetPalette(55);
+gStyle.SetPalette(55)
 
 hist_signal.GetXaxis().SetLabelSize(0);
 hist_signal.GetYaxis().SetRangeUser(0, max*1.2)
@@ -191,24 +242,24 @@ hist_signal.SetLineWidth(2)
 hist_signal.SetLineColor(1)
 hist_signal.Draw("E HIST")
 
-hist_sme_inclusive.SetLineWidth(2)
-hist_sme_inclusive.SetLineColor(2)
-hist_sme_inclusive.Draw("histsame")
+#hist_sme_inclusive.SetLineWidth(2)
+#hist_sme_inclusive.SetLineColor(2)
+#hist_sme_inclusive.Draw("histsame")
 
 hist_sme_kin[usedbins[0]].SetLineWidth(2)
-hist_sme_kin[usedbins[0]].SetLineColor(gStyle.GetColorPalette((usedbins[0])*255/24))
+hist_sme_kin[usedbins[0]].SetLineColor(2)
 hist_sme_kin[usedbins[0]].Draw("histsame")
 
 hist_sme_kin[usedbins[1]].SetLineWidth(2)
-hist_sme_kin[usedbins[1]].SetLineColor(gStyle.GetColorPalette((usedbins[1])*255/24))
+hist_sme_kin[usedbins[1]].SetLineColor(9)
 hist_sme_kin[usedbins[1]].Draw("histsame")
 
 hist_sme_kin[usedbins[2]].SetLineWidth(2)
-hist_sme_kin[usedbins[2]].SetLineColor(gStyle.GetColorPalette((usedbins[2])*255/24))
+hist_sme_kin[usedbins[2]].SetLineColor(800)
 hist_sme_kin[usedbins[2]].Draw("histsame")
 
 hist_sme_kin[usedbins[3]].SetLineWidth(2)
-hist_sme_kin[usedbins[3]].SetLineColor(gStyle.GetColorPalette((usedbins[3])*255/24))
+hist_sme_kin[usedbins[3]].SetLineColor(823)
 hist_sme_kin[usedbins[3]].Draw("histsame")
 
 legend.Draw("SAME")
@@ -282,9 +333,9 @@ h_one.SetLineColor(1)
 h_denom = hist_signal
 ratio = THStack()
 
-h_inc = hist_sme_inclusive.Clone()
-h_inc.Divide(h_denom)
-ratio.Add(h_inc)
+#h_inc = hist_sme_inclusive.Clone()
+#h_inc.Divide(h_denom)
+#ratio.Add(h_inc)
 h_0 = hist_sme_kin[usedbins[0]].Clone()
 h_0.SetName("h_0")
 h_0.Divide(h_denom)
@@ -318,7 +369,7 @@ ratio.GetXaxis().SetLabelOffset(0.01)
 
 ratio.Draw("HIST")
 h_one.Draw("histSAME")
-h_inc.Draw("histSAME")
+#h_inc.Draw("histSAME")
 h_0.Draw("histSAME")
 h_1.Draw("histSAME")
 h_2.Draw("histSAME")
@@ -329,6 +380,8 @@ h_3.Draw("histSAME")
 ################################################################################
 
 resultname = './results/'+year+'/other/sme_'+observable+'_'+wilson
+if doResponseMatrix==True:
+    resultname += '_reco_'+year
 
 #rootfile_output = TFile(resultname+'.root', "RECREATE")
 #canvas.Write()
@@ -342,7 +395,7 @@ resultname = './results/'+year+'/other/sme_'+observable+'_'+wilson
 canvas.SaveAs(resultname+'.pdf')
 #rootfile_output.Close()
 
-raw_input('exit')
+#raw_input('exit')
 
 #print 'Signal integral     : ','%.2f'%signal_integral
 #for i in background_integral_i:

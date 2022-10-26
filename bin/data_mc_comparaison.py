@@ -48,7 +48,7 @@ syst_down_integral = 0
 canvas = TCanvas('stack_'+observable,'stack_'+observable, 800, 800)
 canvas.UseCurrentStyle()
 
-datafile_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
+datafile_input = TFile('./results/'+year+'/flattree/'+observable+'_data_forComp.root')
 stimebin="";
 if (timebin==-1):
      stimebin = "_puold";

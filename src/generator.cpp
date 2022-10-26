@@ -1117,22 +1117,28 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
 
     std::string filename_p = "./results/"+year+"/flattree/"+observable+"_jec"+sinc+cleaned+stimebin+".root";
     
-    for(size_t jl = 0; jl < jecList_p.size(); ++jl)
-    {
-        for(size_t n = 0; n < sampleList_p.size(); ++n){
-            
+    TFile** file = new TFile*[sampleList_p.size()];
+    for(size_t n = 0; n < sampleList_p.size(); ++n){
+	std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/NtupleProducer/tree.root";
+        file[n] = new TFile(filename.c_str());
+    }
+ 
+    for(size_t jl = 0; jl < jecList_p.size(); ++jl){
+	for(size_t n = 0; n < sampleList_p.size(); ++n){
+ 
+
             //td::cout << " -> " << jecList_p[jl] << " : " << sampleList_p[n] << "  " << correction_p[jl][n] << std::endl;
             std::cout << " -> " << jecList_p[jl] << " : " << sampleList_p[n] << "  " << correction_p[n] << std::endl;
             
             //std::string filename = "./inputs/"+year+"/JEC/"+jecList_p[jl]+'/'+sampleList_p[n]+"/NtupleProducer/tree.root";
-	    std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/NtupleProducer/tree.root";
+	    //std::string filename = "./inputs/"+year+"/MC/"+sampleList_p[n]+"/NtupleProducer/tree.root";
 
             bool doResponseMatrix = false;
             if ((TString(sampleList_p[n]).Contains("signal") || TString(sampleList_p[n]).Contains("singletop")) && isTimed_p) doResponseMatrix = true;
 
-            TFile* file = new TFile(filename.c_str());
+            //TFile* file = new TFile(filename.c_str());
             TTree *tree;
-            file->GetObject("events", tree);
+            file[n]->GetObject("events", tree);
             TCanvas *canvas = new TCanvas(("canvas_"+jecList_p[jl]+sampleList_p[n]).c_str());
             TH1F* hist      = new TH1F((jecList_p[jl]+sampleList_p[n]).c_str(), (jecList_p[jl]+sampleList_p[n]).c_str(), nBin, minBin, maxBin);
 
@@ -1206,7 +1212,7 @@ void Generator::generateJecMC(namelist            const& sampleList_p,
             //delete canvas;
             //delete tree;
             //delete file;
-            file->Close();
+            //file->Close();
         }
         groupingMC(list[jl], groupList_p, jecList_p[jl], clean_p);
 	if(isTimed_p){
@@ -1806,7 +1812,8 @@ void Generator::generateData(namelist            const& sampleList_p,
                              std::vector<double> const& correction_p,
                              std::string         const& rootOption_p,
                              bool                       correctedLumi,
-                             bool                       clean_p
+                             bool                       clean_p,
+			     bool			doForComp
                             )
 {
     TH1F::SetDefaultSumw2(1);
@@ -1819,10 +1826,10 @@ void Generator::generateData(namelist            const& sampleList_p,
     std::string cleaned;
     if(!clean_p) cleaned = "_unclean";
     std::string filename_p = "./results/"+year+"/flattree/"+observable;
-    if(correctedLumi){
-            filename_p += "_lumicorrected";
-    }
-    filename_p += cleaned+"_data.root";
+    if(correctedLumi) filename_p += "_lumicorrected";
+    filename_p += cleaned+"_data";
+    if(doForComp)  filename_p += "_forComp";
+    filename_p += ".root";
 
     std::map<unsigned int, bool> isFilled;  
     for(size_t n = 0; n < sampleList_p.size(); ++n){

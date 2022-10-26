@@ -199,7 +199,7 @@ int main(int argc, char** argv){
     }
     else if(launch == "data"){
         gen.generateData(sampleList_DATA, triggerList, data, 
-                         succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean);       
+                         succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean, false);
     }
     else if(launch == "alt"){
         gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, true, timebin);
@@ -214,8 +214,8 @@ int main(int argc, char** argv){
     else if(launch == "forComp"){
         gen.generateMCforComp(sampleList_MC, triggerList, ttbarList, 
                        mc_rescale, "RECREATE", isIndividualSampleClean,timebin);    
-        //gen.generateData(sampleList_DATA, triggerList, data, 
-        //                 succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean);   
+        gen.generateData(sampleList_DATA, triggerList, data, 
+                         succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean, true);   
     }
     else if(launch == "altInclusive"){
         gen.generateAltMC(sampleList_ALT, systematicAltList, triggerList,alt_mc_rescale, isIndividualSampleClean, false, timebin);
@@ -246,7 +246,7 @@ int main(int argc, char** argv){
     }
     else if(launch == "dataAll"){
         gen.generateData(sampleList_DATA, triggerList, data,
-                         succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean);
+                         succedJobs, "RECREATE", isDataCorrected, isIndividualSampleClean, false);
         gen.generateDataTimed(sampleList_DATA, triggerList, data,
                                succedJobs, 24, isDataCorrected, isIndividualSampleClean);
     }
@@ -259,7 +259,9 @@ int main(int argc, char** argv){
         gen.generateMCforComp(sampleList_MC, triggerList, ttbarList, 
                        mc_rescale, "RECREATE", isIndividualSampleClean,timebin);
         gen.generateData(sampleList_DATA, triggerList, data,
-                         succedJobs, "RECREATE", isDataCorrected,  isIndividualSampleClean);
+                         succedJobs, "RECREATE", isDataCorrected,  isIndividualSampleClean, false);
+        gen.generateData(sampleList_DATA, triggerList, data,
+                         succedJobs, "RECREATE", isDataCorrected,  isIndividualSampleClean, true);
 	//differential    
         gen.generateMC(sampleList_MC, triggerList, ttbarList, 
                        systematicList,systematicTimeList,

@@ -43,13 +43,13 @@ TH1.SetDefaultSumw2(1)
 signal_integral = 0
 background_integral_i = []
 background_integral = 0
-data_integral = 0
+#data_integral = 0
 syst_up_integral = 0
 syst_down_integral = 0
 #canvas = TCanvas('compare_'+observable,'stack_'+observable, 800, 800)
 #canvas.UseCurrentStyle()
 
-datafile_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
+#datafile_input = TFile('./results/'+year+'/flattree/'+observable+'_data.root')
 stimebin="";
 if (timebin==-1):
      stimebin = "_puold";
@@ -59,7 +59,7 @@ if (timebin==-3):
      stimebin = "_puinc";
 if (timebin>=0):
      stimebin = "_put"+str(timebin);
-rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'_forComp'+stimebin+'.root')
+rootfile_input = TFile('./results/'+year+'/flattree/'+observable+'_inclusive'+stimebin+'.root')
 
 ################################################################################
 ## Create Histo 
@@ -182,4 +182,4 @@ canvas.SaveAs(resultname+'.pdf')
 #print 'Data integral       : ', data_integral
 #print 'Data/MC agreement  : ', '%.1f'%(100*(signal_integral+background_integral-data_integral)/(signal_integral+background_integral)), '%'
 
-raw_input('exit')
+#raw_input('exit')

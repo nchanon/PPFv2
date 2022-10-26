@@ -29,17 +29,24 @@ observable = [
     #'2017'
 #]
 
+do_mc = True
+do_alt = True
+do_jec = True
+do_time = False
 
-large_syst_list = []
+if do_mc==False:
+    large_syst_list = []
 
 #Complete list
-large_syst_list = systematic_list
+if do_mc==True:
+    large_syst_list = systematic_list
 
-i=0
-for jec_syst in jec_list[year]:
-    if i%2==0:
-        large_syst_list.append(jec_syst[:-3])
-    i=i+1
+if do_jec==True:
+    i=0
+    for jec_syst in jec_list[year]:
+        if i%2==0:
+            large_syst_list.append(jec_syst[:-3])
+        i=i+1
 
 #large_syst_list.append('Total')
 #large_syst_list.append('Absolute')
@@ -49,15 +56,21 @@ for jec_syst in jec_list[year]:
 #large_syst_list.append('BBEC1_'+year)
 #large_syst_list.append('RelativeBal')
 #large_syst_list.append('RelativeSample_'+year)
-large_syst_list.append('CP5')
-large_syst_list.append('hdamp')
-large_syst_list.append('erd')
-large_syst_list.append('QCD')
-large_syst_list.append('GluonMove')
-large_syst_list.append('mtop')
+
+if do_alt==True:
+    large_syst_list.append('CP5')
+    large_syst_list.append('hdamp')
+    large_syst_list.append('erd')
+    large_syst_list.append('QCD')
+    large_syst_list.append('GluonMove')
+    large_syst_list.append('mtop')
+
 #Adding timed uncertainties
-if(timed=="timed"):
-    large_syst_list.append('emu_trig_'+year)
+
+if(timed=="timed" and do_time==True):
+    #large_syst_list.append('emu_trig_stat_'+year)
+    large_syst_list.append('emu_trig_syst_'+year)
+    large_syst_list.append('emu_trig_stat_'+year)
     large_syst_list.append('lumi_stability_'+year)
     large_syst_list.append('lumi_linearity_'+year)
 
