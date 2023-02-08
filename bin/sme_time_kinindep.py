@@ -65,13 +65,15 @@ cmunu = 0.01
 
 sme_file = TFile('./results/2016/flattree/'+observable+'_sme.root')
 
-hist_XX = sme_file.Get(prefix+wilson+'XX_details')
+skinbin="2"
+
+hist_XX = sme_file.Get(prefix+wilson+'XX_details'+skinbin)
 hist_XX.Scale(cmunu)
-hist_XY = sme_file.Get(prefix+wilson+'XY_details')
+hist_XY = sme_file.Get(prefix+wilson+'XY_details'+skinbin)
 hist_XY.Scale(cmunu)
-hist_XZ = sme_file.Get(prefix+wilson+'XZ_details')
+hist_XZ = sme_file.Get(prefix+wilson+'XZ_details'+skinbin)
 hist_XZ.Scale(cmunu)
-hist_YZ = sme_file.Get(prefix+wilson+'YZ_details')
+hist_YZ = sme_file.Get(prefix+wilson+'YZ_details'+skinbin)
 hist_YZ.Scale(cmunu)
 
 '''
@@ -192,6 +194,8 @@ tdr.cmsPrel(-1,13.)
 latex = TLatex()
 latex.SetTextSize(0.65*gStyle.GetPadTopMargin())
 latex.SetNDC()
+if skinbin!="":
+    latex.DrawLatex(0.2,0.9,"Particle level, n_{bjets}="+skinbin);
 
 #if(year=='2016'):
 #    tdr.cmsPrel(35900.,13.)
@@ -203,6 +207,8 @@ latex.SetNDC()
 ################################################################################
 
 resultname = './results/2016/other/'+observable+'_sme_time_'+wilson+suffix+'_kinindep'
+if skinbin!="":
+    resultname += "_"+skinbin
 
 #rootfile_output = TFile(resultname+'.root', "RECREATE")
 #canvas.Write()
