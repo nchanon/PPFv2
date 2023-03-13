@@ -27,6 +27,7 @@ cross_section_2016 = {
     'MC_dibosons_WZ2'            :47.13,                # dibosons WZ2         
     'MC_dibosons_ZZ'             :16.523,               # dibosons ZZ          
     'MC_dibosons_ZZ2'            :16.523,               # dibosons ZZ2         
+#    'MC_signal_alldecay_M2T4'	 :833.922,		# signal M2T4 tune
     'MC_signal_dilep'            :89.048226,            # signal dilep       
     'MC_signal_hadronic'         :377.96006,            # signal hadronic    
     'MC_signal_semilep'          :366.91429,            # signal semilep     
@@ -61,6 +62,7 @@ cross_sec_2016 = [ # alphabetic order
     16.523,               # dibosons ZZ          
     16.523,               # dibosons ZZ2         
 
+#    833.922,		   # signal M2T4 tune
     89.048226,            # signal dilep       
     377.96006,            # signal hadronic    
     366.91429,            # signal semilep     
@@ -124,6 +126,7 @@ systematic_rate_2016 = [ # AN2019-228 v5, TOP-20-006
 ]
 
 alt_list_2016 = [
+'MC_signal_dilep_LO',
 'alt_MC_CP5Down',              
 'alt_MC_CP5Down_pmx',          
 'alt_MC_CP5Up',          
@@ -141,6 +144,8 @@ alt_list_2016 = [
 ]
 
 cross_sec_2016_alt = [
+    89.048226,            # signal dilep LO      
+
     89.048226,            # signal dilep       
     89.048226,            # signal dilep       
     89.048226,            # signal dilep       
@@ -271,6 +276,7 @@ systematic_rate_2017 = [ # AN2019-228 v5, TOP-20-006
 ]
 
 alt_list_2017 = [
+    'MC_signal_dilep_LO',
     'alt_MC_CP5Down',        
     'alt_MC_CP5Down_pmx',    
     'alt_MC_CP5Up',          
@@ -290,6 +296,8 @@ alt_list_2017 = [
 ]
 
 cross_sec_2017_alt = [
+    89.048226,            # signal dilep LO     
+
     89.048226,            # signal dilep       
     89.048226,            # signal dilep       
     89.048226,            # signal dilep       
@@ -623,7 +631,8 @@ alt_syst_list = [
     'mtop175',
     'erdOn',
     'QCD',
-    'GluonMove'
+    'GluonMove',
+    'LO'
 ]
 
 systematic_time_list = [

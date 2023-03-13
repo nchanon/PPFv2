@@ -11,13 +11,14 @@
 #include <TString.h>
 #include <TList.h>
 #include <TLorentzVector.h>
-#include <ROOT/RDataFrame.hxx>
+//#include <ROOT/RDataFrame.hxx>
+//#include "sme.hpp"
 
 //using namespace ROOT;
 
 using namespace std;
 
-const double OMEGA_GMST = 7.2722052e-05; //Omega_sideral, was 7.2722e-5;
+const double OMEGA_SIDEREAL = 7.2722052e-05; //Omega_sideral, was 7.2722e-5;
 const double OMEGA_UTC  = 7.2921159e-05; //Omega_UNIX, was 7.2921e-5;
 const double T0_2016    = 1451606400.; //OK
 const double T0_2017    = 1483228800.;
@@ -97,9 +98,9 @@ time_t Generator::utcConverter(std::string const& time)
 double Generator::siderealTime(double time_p)
 {
     if(year == "2017")
-        return (OMEGA_UTC * (time_p - T0_2016) + PHASE)/OMEGA_GMST;
+        return (OMEGA_UTC * (time_p - T0_2016) + PHASE)/OMEGA_SIDEREAL;
     else if(year == "2016")
-        return (OMEGA_UTC * (time_p - T0_2016) + PHASE)/OMEGA_GMST;
+        return (OMEGA_UTC * (time_p - T0_2016) + PHASE)/OMEGA_SIDEREAL;
     else
         return 0;
 }
@@ -192,6 +193,20 @@ std::string Generator::generateWeightString(bool isTimed, int timebin)
       string_weight += "*weight_sf_em_trig";
 
   return string_weight;
+}
+
+std::string Generator::generateWeightSmeString(std::string wilson_p, 
+				    std::string dir, 
+				    float cmunu, 
+				    int timebin)
+{
+
+    //std::string string_weight = "(1+"+std::to_string(cmunu)+"*Events.lhe_weights_"+wilson_p+"_"+dir+"->at("+std::to_string(timebin)+"))";
+    std::string string_weight = "(1+"+std::to_string(cmunu)+"*Events.lhe_weights_"+wilson_p+"_"+dir+"["+std::to_string(timebin)+"])";
+
+    return string_weight;
+
+
 }
 
 double Generator::generateSystematics(TTree            * tree_p,
@@ -484,7 +499,8 @@ std::string Generator::isTriggerPassedString(namelist const&    triggerList_p,
     else{
         for(size_t i = 0; i < triggerList_p.size(); ++i){
 	    //string_triggered +=  "*(" + triggerList_p[i] + "==1)";
-	    string_triggered +=  "||(" + triggerList_p[i] + "[0]==1)";
+	    string_triggered +=  "||(" + triggerList_p[i] + "[0]==1)"; //Was this line (up to March 10)
+	    //string_triggered +=  "||(" + triggerList_p[i] + "==1)";
 	}
     }
     
@@ -686,6 +702,32 @@ void Generator::write(std::string       const& filename,
     output->Close();
 }
 
+void Generator::groupingMC_suffix(std::vector<TH1F>      & list,
+                           namelist          const& groupList_p,
+			   std::string suffix,
+                           bool                     clean
+                          )
+{
+
+    double nbin = list[0].GetNbinsX();
+    double min = list[0].GetXaxis()->GetXmin();
+    double max = list[0].GetXaxis()->GetXmax();
+
+    for(std::string group : groupList_p){
+        TH1F h((group+"_"+suffix).c_str(), (group+"_"+suffix).c_str(), nbin, min, max);
+        std::string grp = group.substr(0,group.size()-1); //Changed March 8th
+        //std::string grp = group.substr(1,group.size()-1);
+        //cout << "Grouping "<<group<< " grp="<<grp<<endl;
+        for(size_t i = 0; i < list.size(); ++i){
+            if(TString(list[i].GetName()).Contains(grp))
+                //if (TString(grp).Contains("O")) cout << "Grouping "<< list[i].GetName() << endl;
+                                h.Add(&list[i]);
+        }
+        list.push_back(h);
+    }
+    if(clean)
+        list.erase(list.begin(), list.end()-groupList_p.size());
+}
 
 void Generator::groupingMC(std::vector<TH1F>      & list,
                            namelist          const& groupList_p,
@@ -699,9 +741,12 @@ void Generator::groupingMC(std::vector<TH1F>      & list,
 
     for(std::string group : groupList_p){
         TH1F h((group).c_str(), (group).c_str(), nbin, min, max);
-        std::string grp = group.substr(1,group.size()-1);
+	std::string grp = group.substr(0,group.size()-1); //Changed March 8th
+        //std::string grp = group.substr(1,group.size()-1);
+	//cout << "Grouping "<<group<< " grp="<<grp<<endl;
         for(size_t i = 0; i < list.size(); ++i){
             if(TString(list[i].GetName()).Contains(grp))
+		//if (TString(grp).Contains("O")) cout << "Grouping "<< list[i].GetName() << endl;
                 h.Add(&list[i]);
         }
         list.push_back(h);
@@ -726,7 +771,8 @@ void Generator::groupingMC(std::vector<TH2F>      & list,
 
     for(std::string group : groupList_p){
         TH2F h((group+"_"+name).c_str(), (group+"_"+name).c_str(), nbinX, minX, maxX, nbinY, minY, maxY);
-        std::string grp = group.substr(1,group.size()-1);
+	std::string grp = group.substr(0,group.size()-1); //Changed March 8th
+        //std::string grp = group.substr(1,group.size()-1);
         for(size_t i = 0; i < list.size(); ++i){
             if(TString(list[i].GetName()).Contains(grp))
                 h.Add(&list[i]);
@@ -1087,7 +1133,6 @@ void Generator::groupingLHEweightSystematics(std::vector<TH2F>      & listLHE,
 // Public methods
 /////////////////////////////////
 
-
 void Generator::generateJecMC(namelist            const& sampleList_p,
                                namelist            const& jecList_p,
                                namelist            const& groupList_p,
@@ -1240,6 +1285,10 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
 {
     TH1F::SetDefaultSumw2(1);
     std::vector<TH1F> list;
+    std::vector<TH1F> list_SME;
+    std::vector<TH2F> listResponseMatrix;
+    std::vector<TH2F> listResponseMatrix_SME;
+
 
     std::string cleaned="";
     if(!clean_p) cleaned = "_unclean";
@@ -1263,9 +1312,12 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
         file->GetObject("events", tree);
         TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
         TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
-
+	TH2F* hist_responseMatrix;
+	std::vector<TH2F*> hist_responseMatrix_SME;
         std::cout << "ALT -> " << sampleList_p[n] << "  " << correction_p[n] << std::endl;
 	
+	bool doResponseMatrix = false;
+
 	if (doLoop){
 	    for(int i = 0; i < tree->GetEntriesFast(); ++i){
 		tree->GetEntry(i);
@@ -1290,9 +1342,57 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
             std::string string_weight = generateWeightString(isTimed_p, timebin);
             std::string string_triggered = isTriggerPassedString(triggerList_p,true);
             drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
+
+	    if ((TString(sampleList_p[n]).Contains("LO"))) doResponseMatrix = true;
+
+	    TFile* fileGEN;
+	    TTree* treeGEN;
+	    std::string filename_gen;
+	    if (doResponseMatrix){
+		std::string genSample = sampleList_p[n];
+		genSample = genSample.substr(3, genSample.size()-1);
+		filename_gen = "./inputs/"+year+"/GEN/"+genSample+"_NanoGEN_"+year+"_selection_particle.root";
+		std::cout <<"Gen events from "<<filename_gen<<std::endl;
+		fileGEN = new TFile(filename_gen.c_str(),"READ");
+		treeGEN = (TTree*)fileGEN->Get("Events");
+		tree->AddFriend(treeGEN);
+                if (observable=="n_bjets") {
+		    hist_responseMatrix = new TH2F((sampleList_p[n] + "_responseMatrix").c_str(), observable.c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
+		    drawHisto2D(tree, observable, "(Events.gen_matched==0)?-1:Events.gen_"+observable, string_eventSelection, string_weight, string_triggered, hist_responseMatrix);
+		    std::string scoeff[4]; scoeff[0] = "cL"; scoeff[1] = "cR"; scoeff[2] = "c"; scoeff[3] = "d";
+		    std::string sdir[4]; sdir[0] = "XX"; sdir[1] = "XY"; sdir[2] = "XZ"; sdir[3] = "YZ";
+		    for (int ic=0; ic<4; ic++){
+			for (int id=0; id<4; id++){
+			    for (int it=0; it<24; it++){
+		    		std::string string_weight_SME = generateWeightSmeString(scoeff[ic], sdir[id], 0.01, it);
+		    		TH2F* hist_responseMatrix_SME_tmp = new TH2F(("signal_dilep_LO_responseMatrix_" + scoeff[ic] + "_" + sdir[id] + "_" + std::to_string(it)).c_str(), observable.c_str(), nBin, minBin, maxBin, nBin+2, -1, maxBin);
+		    		drawHisto2D(tree, observable, "(Events.gen_matched==0)?-1:Events.gen_"+observable, string_eventSelection, string_weight+"*"+string_weight_SME, string_triggered, hist_responseMatrix_SME_tmp);
+				hist_responseMatrix_SME.push_back(hist_responseMatrix_SME_tmp);
+			    }
+			}
+		    }
+		}
+	    }
+
 	}
+	std::cout << "A" << std::endl;
         hist->Scale(correction_p[n]);
+	if (doResponseMatrix){
+            hist_responseMatrix->Scale(correction_p[n]);
+	    for (unsigned int j=0; j<hist_responseMatrix_SME.size(); j++){
+		std::cout << "j="<<j << std::endl;
+	        hist_responseMatrix_SME[j]->Scale(correction_p[n]);
+	    }
+	}
+        std::cout << "B" << std::endl;
         list.push_back(*hist);
+        if (doResponseMatrix){
+            listResponseMatrix.push_back(*hist_responseMatrix);
+	    for (unsigned int j=0; j<hist_responseMatrix_SME.size(); j++){
+	        listResponseMatrix_SME.push_back(*(hist_responseMatrix_SME[j]));
+	    }
+	}
+        std::cout << "C" << std::endl;
 
         //delete hist;
         //delete canvas;
@@ -1301,6 +1401,9 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
         file->Close();
     }
     groupingMC(list, groupList_p, clean_p);
+    std::vector<std::string> groupList_responseMatrix;
+    groupList_responseMatrix.push_back("signal_dilep_LO");
+    groupingMC(listResponseMatrix, groupList_responseMatrix, "responseMatrix", clean_p);
 
     for (unsigned int i=0; i<list.size(); i++){
       std::cout << list.at(i).GetName() << std::endl;
@@ -1313,6 +1416,9 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
     }
 
     write(filename_p, list, "RECREATE");
+    write(filename_p, listResponseMatrix, "UPDATE");
+    write(filename_p, listResponseMatrix_SME, "UPDATE");
+
 }
 
 
@@ -1717,6 +1823,7 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
 {
     TH1F::SetDefaultSumw2(1);
     std::vector<TH1F> list;
+    std::vector<TH1F> list_noHLT;
     //std::vector<TH1D> list2;
 
     std::string cleaned;
@@ -1739,6 +1846,8 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
         file->GetObject("events", tree);
         //TCanvas *canvas = new TCanvas(sampleList_p[n].c_str());
 	TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
+        TH1F* hist_noHLT      = new TH1F((sampleList_p[n]+"_noHLT").c_str(), observable.c_str(), nBin, minBin, maxBin);
+
         //TH1D* hist      = new TH1D(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
 
         std::cout << " -> " << sampleList_p[n] << "  " << correction_p[n] << std::endl;
@@ -1766,6 +1875,8 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
 	    std::string string_weight = generateWeightString(false,timebin);
 	    std::string string_triggered = isTriggerPassedString(triggerList_p,true);
 	    drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
+            drawHisto1D(tree, observable, string_eventSelection, string_weight, "1", hist_noHLT);
+	    std::cout << "HLT efficiency: " << hist->Integral()/hist_noHLT->Integral() << std::endl;
 	    //std::string string_cut = "(" + string_eventSelection + ")*" + string_weight + "*" + string_triggered;
 	    //std::cout << "Cut: " << string_cut<<std::endl;
 	    //std::string string_obs_redirected = observable + " >> " + sampleList_p[n];
@@ -1793,6 +1904,8 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
 	}
         hist->Scale(correction_p[n]);
         list.push_back(*hist);
+        hist_noHLT->Scale(correction_p[n]);
+        list_noHLT.push_back(*hist_noHLT);
 
         delete hist;
         //delete canvas;
@@ -1801,8 +1914,10 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
     }
     std::cout << "E"<<std::endl;
     groupingMC(list, groupList_p, clean_p);
+    groupingMC_suffix(list_noHLT, groupList_p, "noHLT", clean_p);
     std::cout << "F"<<std::endl;
     write(filename_p, list, option_p);
+    write(filename_p, list_noHLT, "UPDATE");
     std::cout << "Wrote "<<filename_p<<std::endl;
 }
 

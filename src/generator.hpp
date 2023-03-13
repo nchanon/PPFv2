@@ -36,6 +36,11 @@ class Generator{
         double generateWeight(TTree *tree_p, bool isTimed=true);
         std::string generateWeightString(bool isTimed=true, int timebin=-1);
 
+	std::string generateWeightSmeString(std::string wilson_p,
+                                    std::string dir,
+                                    float cmunu,
+                                    int timebin);
+
         double generateSystematics(TTree            * tree_p,
                                    std::string const& systematicName,
                                    bool               isUp
@@ -90,6 +95,11 @@ class Generator{
                    std::string       const& option_p
                   );
 
+        void groupingMC_suffix(std::vector<TH1F>      & list,
+                        namelist          const& groupList_p,
+			std::string 	         suffix,
+                        bool                     clean
+                       );
 
         void groupingMC(std::vector<TH1F>      & list,
                         namelist          const& groupList_p,

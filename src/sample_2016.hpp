@@ -45,7 +45,8 @@ namelist systematicAltList {
     "mtop175",
     "erdOn",
     "QCD",
-    "GluonMove"
+    "GluonMove",
+    "LO"
 };
 
 namelist systematicTimeList {
@@ -183,6 +184,7 @@ namelist sampleList_MC_2016 {
 };
 
 namelist sampleList_ALT_2016 {
+    "MC_signal_dilep_LO",
     "alt_MC_CP5Down",
     "alt_MC_CP5Down_pmx",
     "alt_MC_CP5Up",
@@ -278,6 +280,7 @@ std::vector<double> mc_rescale_2016 {
 };
 
 std::vector<double> alt_mc_rescale_2016 {
+    3.28032880275,
     0.003086798274,
     0.003086798274,
     0.00298863599552,
