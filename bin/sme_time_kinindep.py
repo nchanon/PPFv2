@@ -16,7 +16,7 @@ from ROOT import TLegend, TApplication, TRatioPlot, TPad, TFrame
 from ROOT import TGraphAsymmErrors
 from ROOT import TStyle, gStyle, TColor, TLatex
 
-import tools.tdrstyle as tdr
+import tools.tdrstyleNew as tdr
 tdr.setTDRStyle()
 
 ################################################################################
@@ -45,8 +45,20 @@ background_integral = 0
 data_integral = 0
 syst_up_integral = 0
 syst_down_integral = 0
-canvas = TCanvas('sme modulations','sme modulations', 700, 700)
+canvas = TCanvas('sme modulations','sme modulations', 800, 700)
 canvas.UseCurrentStyle()
+pad1 = TPad("pad1","pad1",0,0,1,1)
+#pad1.SetLeftMargin(0.1)
+#pad1.SetBottomMargin(0.1)
+#pad1.SetRightMargin(0.12)
+
+tm = gStyle.GetPadTopMargin()
+print 'TopMargin: '+str(tm)+' -> '+str(1.5*tm)
+gStyle.SetPadTopMargin(1.5*tm)
+pad1.SetTopMargin(1.5*tm)
+
+pad1.Draw()
+pad1.cd()
 
 gStyle.SetPalette(55);
 
@@ -127,8 +139,9 @@ if (wilson=="d"):
 #smassbin = [20,60,100,140,180,220,260]
 #sptemubin = [0,35,70,105,140,175,210,245]
 
-legend = TLegend(0.66,0.8,0.93,0.94)
-legend.SetTextSize(0.023)
+legend = TLegend(0.7,0.75,0.94,0.9)
+legend.SetBorderSize(0)
+legend.SetTextSize(0.028)
 
 legend.AddEntry(hist_XX, modwilson1, 'l')
 legend.AddEntry(hist_XY, modwilson2, 'l')
@@ -181,7 +194,7 @@ hist_XX.GetYaxis().SetTitleSize(0.04)
 hist_XX.GetYaxis().SetLabelSize(0.04)
 
 hist_XX.GetXaxis().SetRangeUser(0,24)
-hist_XX.GetXaxis().SetTitle('sidereal time (h)')
+hist_XX.GetXaxis().SetTitle('Sidereal time (h)')
 hist_XX.GetXaxis().SetTitleSize(0.04)
 hist_XX.GetXaxis().SetLabelSize(0.04)
 
@@ -192,10 +205,10 @@ if(is_center):
 tdr.cmsPrel(-1,13.)
 
 latex = TLatex()
-latex.SetTextSize(0.65*gStyle.GetPadTopMargin())
+latex.SetTextSize(0.45*gStyle.GetPadTopMargin())
 latex.SetNDC()
 if skinbin!="":
-    latex.DrawLatex(0.2,0.9,"Particle level, n_{bjets}="+skinbin);
+    latex.DrawLatex(0.2,0.87,"Particle level, n_{b jets}="+skinbin);
 
 #if(year=='2016'):
 #    tdr.cmsPrel(35900.,13.)

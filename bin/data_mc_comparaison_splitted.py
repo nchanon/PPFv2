@@ -23,7 +23,7 @@ tdr.setTDRStyle()
 parser = argparse.ArgumentParser()
 parser.add_argument('observable', help='display your observable')
 parser.add_argument('year', help='year of samples')
-parser.add_argument('title', help='display your observable title')
+parser.add_argument('title', help='display your observable title') # number of b jets
 parser.add_argument('timebin', help='display the time bin')
 
 args = parser.parse_args()
@@ -384,7 +384,7 @@ h_one.Draw("SAME")
 #h_num.Draw("SAME")
 #h_one.Draw("SAME")
 
-style_labels_counting(ratio, 'Ratio data/mc', title)
+style_labels_counting(ratio, 'Data/mc', title)
 ratio.GetYaxis().SetLabelSize(0.1)
 ratio.GetYaxis().SetTitleSize(0.1)
 ratio.GetYaxis().SetTitleOffset(0.5)

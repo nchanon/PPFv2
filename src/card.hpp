@@ -44,6 +44,13 @@ class Card
 
         void addSystToCard_alternative(bool isSME = false);
 
+	void addMultiProcessSystToCard(std::string const& systName_p,
+                             std::string const& shape_p,
+                             namelist    const& groupList_p,
+                             std::string const& value_p,
+                             std::vector<std::string> & process_list_p);
+
+
         void addProcSystToCard(std::string const& systName_p,
                                      std::string const& shape_p,
                                      namelist    const& groupList_p,

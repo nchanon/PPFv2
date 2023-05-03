@@ -53,6 +53,38 @@ if process=='signal' or process=='singletop':
 elif process=='signal_dilep_LO':
     f = TFile("results/"+year+"/flattree/"+observable+"_alt"+stimebin+".root")
 
+def getMaxRelDiffWithSM(SMEparam):
+
+    hSM = f.Get(process+"_responseMatrix")
+    hBSM = f.Get(process+"_responseMatrix_"+SMEparam)
+
+    nbinX = hSM.GetNbinsX()
+    nbinY = hSM.GetNbinsY()
+
+    doNormalizeByColumn = True
+
+    if doNormalizeByColumn:
+        for ix in range(nbinX):
+            areaSM = hSM.Integral(1+ix, 1+ix, 1, nbinY)
+            areaBSM = hBSM.Integral(1+ix, 1+ix, 1, nbinY)
+            for iy in range(nbinY):
+                bincontentSM = hSM.GetBinContent(ix+1,iy+1)
+                bincontentBSM = hBSM.GetBinContent(ix+1,iy+1)
+                hSM.SetBinContent(ix+1, iy+1, bincontentSM/areaSM)
+                hBSM.SetBinContent(ix+1, iy+1, bincontentBSM/areaBSM)
+
+    dist = 0
+    for ix in range(nbinX):
+        for iy in range(nbinY):
+	    dist_tmp = 0
+	    dist_tmp = abs(hSM.GetBinContent(ix+1,iy+1) - hBSM.GetBinContent(ix+1,iy+1))
+	    #if hSM.GetBinContent(ix+1,iy+1)>0:
+	        #dist_tmp = abs(hSM.GetBinContent(ix+1,iy+1) - hBSM.GetBinContent(ix+1,iy+1))/hSM.GetBinContent(ix+1,iy+1)
+	    if dist_tmp>dist:
+		dist = dist_tmp
+
+    return dist
+
 def plotResponseMatrix(SMEparam):
 
     if SMEparam=="":
@@ -125,16 +157,24 @@ def plotResponseMatrix(SMEparam):
     else:
 	canvas.SaveAs("results/"+year+"/other/"+observable+"_responseMatrix_"+process+"_"+year+"_"+SMEparam+".pdf")
 
-plotResponseMatrix("") #SM
+    return h
+
+#plotResponseMatrix("") #SM
 
 if process=='signal_dilep_LO':
     scoeff_list = ["cL","cR","c","d"]
     sdir_list = ["XX","XY","XZ","YZ"]
     for scoeff in scoeff_list:
 	for sdir in sdir_list:
+	    dist = 0
 	    for it in range(24):
-		print scoeff+"_"+sdir+"_"+str(it)    
-	        plotResponseMatrix(scoeff+"_"+sdir+"_"+str(it))
+		#print scoeff+"_"+sdir+"_"+str(it)    
+	        #plotResponseMatrix(scoeff+"_"+sdir+"_"+str(it))
+		dist_tmp = getMaxRelDiffWithSM(scoeff+"_"+sdir+"_"+str(it))
+		#print 'Max relative distance to SM: '+str(dist)
+		if dist_tmp > dist:
+		    dist = dist_tmp
+	    print scoeff+"_"+sdir+" : "+str(dist)
 
 raw_input()
 exit()

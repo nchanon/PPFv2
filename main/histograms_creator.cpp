@@ -111,6 +111,9 @@ int main(int argc, char** argv){
     else if (observable == "m_lb"){
         binning[0] = 7; binning[1] = 0; binning[2] = 350;
     }
+    else if (observable=="sme_matrices"){
+	binning[0] = 100; binning[1] = -100; binning[2] = 100;
+    }
 
 // ------------------------------------------------------------- //
 

@@ -61,7 +61,17 @@ canvas = TCanvas('sme modulations','sme modulations', 700, 700)
 canvas.UseCurrentStyle()
 gStyle.SetPalette(55);
 
+#doResponseMatrix = False
 doResponseMatrix = True
+
+doResponseMatrixLO = True
+
+doLOparticle = True #from dedicated MiniAOD
+#doLOparticle = False
+
+#doLOreco =  True #from dedicated MiniAOD
+doLOreco = False
+
 
 ################################################################################
 ## Create Histo 
@@ -74,11 +84,17 @@ if singletop=='singletop':
     prefix='singletop_'
     suffix='_singletop'
 
+if doLOreco:
+    prefix = 'reco_'+year+'_'
+
+if doLOparticle:
+    prefix = 'signal_miniAOD_LO_'+year+'_'
+
 cmunu = 0.01
 
-sme_file = TFile('./results/2016/flattree/'+observable+'_sme.root')
-hist = sme_file.Get(prefix+wilson+'_details')
-hist.Scale(cmunu)
+sme_file = TFile('./results/'+year+'/flattree/'+observable+'_sme.root')
+#hist = sme_file.Get(prefix+wilson+'_details')
+#hist.Scale(cmunu)
 
 smassbin = [20,60,100,140,180,220,260]
 sptemubin = [0,35,70,105,140,175,210,245]
@@ -102,9 +118,12 @@ for i in range(8):
     if (observable=='pt_emu' and i<7):
         hist_kinbin.append(sme_file.Get(prefix+wilson+'_details'+str(i)))
         hist_kinbin[-1].Scale(cmunu)
-    if (observable=='n_bjets' and i<6):
+    if (observable=='n_bjets' and i<6 and doLOreco==False):
         hist_kinbin.append(sme_file.Get(prefix+wilson+'_details'+str(i)))
         hist_kinbin[-1].Scale(cmunu)
+    if (observable=='n_bjets' and i>=1 and i<=4 and doLOreco==True):
+	hist_kinbin.append(sme_file.Get(prefix+wilson+'_details'+str(i)))
+	hist_kinbin[-1].Scale(cmunu)
 
 
 nhist_max = 7
@@ -120,8 +139,12 @@ doNormalizeByColumn = True
 hist_kinbin_rec = []
 
 if doResponseMatrix:
-    fResponseMatrix = TFile("results/"+year+"/flattree/"+observable+stimebin+".root")
-    hResponseMatrix = fResponseMatrix.Get(singletop+"_responseMatrix")
+    if doResponseMatrixLO==False:
+        fResponseMatrix = TFile("results/"+year+"/flattree/"+observable+stimebin+".root")
+        hResponseMatrix = fResponseMatrix.Get(singletop+"_responseMatrix")
+    if doResponseMatrixLO==True:
+	fResponseMatrix = TFile("results/"+year+"/flattree/"+observable+"_alt"+stimebin+".root")
+        hResponseMatrix = fResponseMatrix.Get("signal_dilep_LO_responseMatrix")
 
     nbinX = hResponseMatrix.GetNbinsX()
     nbinY = hResponseMatrix.GetNbinsY()
@@ -148,7 +171,7 @@ if doResponseMatrix:
 	    hist_kinbin_rec[ix].SetBinContent(1+it, recbincontent)
 	hist_kinbin[ix] = hist_kinbin_rec[ix]
 
-if (observable=='n_bjets' and doResponseMatrix):
+if (observable=='n_bjets' and (doResponseMatrix or doLOreco)):
     nhist_max = 4
 
 ################################################################################
@@ -156,14 +179,14 @@ if (observable=='n_bjets' and doResponseMatrix):
 ################################################################################
 
 slegendtitle = ''
-if doResponseMatrix==False:
+if doResponseMatrix==False and doLOreco==False:
     slegendtitle = 'Generator level'
-if doResponseMatrix==True:
+if doResponseMatrix==True or doLOreco==True:
     slegendtitle = 'Reconstructed level'
 
 
-legend = TLegend(0.66,0.64,0.93,0.94, slegendtitle)
-
+legend = TLegend(0.68,0.64,0.9,0.94, slegendtitle)
+legend.SetBorderSize(0)
 if doResponseMatrix==False:
     legend.SetTextSize(0.023)
 else:
@@ -171,20 +194,20 @@ else:
 
 
 if (observable!='n_bjets'):
-    legend.AddEntry(hist, 'inclusive ('+svar+'>'+str(skinbin[0])+' GeV)', 'l')
+    #legend.AddEntry(hist, 'inclusive ('+svar+'>'+str(skinbin[0])+' GeV)', 'l')
     for i in range(nhist_max):
         legend.AddEntry(hist_kinbin[i], str(skinbin[i])+'<'+svar+'<'+str(skinbin[i+1])+' GeV', 'l')
     legend.AddEntry(hist_kinbin[6], svar+'>'+str(skinbin[6])+' GeV', 'l')
 
 if (observable=='n_bjets'):
-    if doResponseMatrix==False:
+    if doResponseMatrix==False and doLOreco==False:
 	#legend.AddEntry(hist, 'inclusive ('+svar+'>='+str(skinbin[0])+')', 'l')
         for i in range(nhist_max-2):
             legend.AddEntry(hist_kinbin[i], svar+'='+str(skinbin[i]), 'l')
         legend.AddEntry(hist_kinbin[nhist_max-2], svar+'#geq'+str(skinbin[nhist_max-2]), 'l')
 	legend.AddEntry(hist_kinbin[nhist_max-1], 'out of acceptance', 'l')
 
-    if doResponseMatrix==True:
+    if doResponseMatrix==True or doLOreco:
         for i in range(nhist_max-1):
             legend.AddEntry(hist_kinbin[i], svar+'='+str(skinbin[i+1]), 'l')
         legend.AddEntry(hist_kinbin[nhist_max-1], svar+'#geq'+str(skinbin[nhist_max]), 'l')
@@ -198,12 +221,12 @@ if (observable=='n_bjets'):
 min = 99.
 max = -99.
 
-if doResponseMatrix==False:
-    min = hist.GetMinimum()
-    max = hist.GetMaximum()
-    hist.SetLineColor(1)
-    hist.SetLineWidth(2)
-    hist.Draw("hist")
+#if doResponseMatrix==False:
+#    min = hist.GetMinimum()
+#    max = hist.GetMaximum()
+#    hist.SetLineColor(1)
+#    hist.SetLineWidth(2)
+#    hist.Draw("hist")
 
 for i in range(nhist_max):
     if (hist_kinbin[i].GetMinimum() < min): min = hist_kinbin[i].GetMinimum()
@@ -213,7 +236,7 @@ for i in range(nhist_max):
     else:
 	if doResponseMatrix==False:
 	    hist_kinbin[i].SetLineColor(gStyle.GetColorPalette(255-(i+1)*255/7))
-	if doResponseMatrix==True:
+	if doResponseMatrix==True or doLOreco:
 	    hist_kinbin[i].SetLineColor(gStyle.GetColorPalette((i+1)*255/5))
     hist_kinbin[i].SetLineWidth(2)
     #if doResponseMatrix==True:
@@ -243,7 +266,7 @@ hist_kinbin[0].GetYaxis().SetTitleSize(0.04)
 hist_kinbin[0].GetYaxis().SetLabelSize(0.04)
 
 hist_kinbin[0].GetXaxis().SetRangeUser(0,24)
-hist_kinbin[0].GetXaxis().SetTitle('sidereal time (h)')
+hist_kinbin[0].GetXaxis().SetTitle('Sidereal time (h)')
 hist_kinbin[0].GetXaxis().SetTitleSize(0.04)
 hist_kinbin[0].GetXaxis().SetLabelSize(0.04)
 
@@ -251,9 +274,9 @@ if(is_center):
     hist_kinbin[0].GetXaxis().CenterTitle()
     hist_kinbin[0].GetYaxis().CenterTitle()
 
-if doResponseMatrix==False:
+if doResponseMatrix==False and doLOreco==False:
     tdr.cmsPrel(-1,13.)
-if doResponseMatrix==True:
+if doResponseMatrix==True or doLOreco==True:
     if(year=='2016'):
         tdr.cmsPrel(35900., 13.,simOnly=True,thisIsPrelim=True)
     elif(year=='2017'):
@@ -286,6 +309,14 @@ if (wilson=="dYZ"): modwilson = "d_{YZ}=d_{ZY}=" + str(cmunu)
 
 latex.DrawLatex(0.25,0.9,modwilson)
 
+if doLOreco:
+    latex.DrawLatex(0.25,0.85,"LO reco sample "+year)
+if doLOparticle and doResponseMatrix==False:
+    latex.DrawLatex(0.25,0.85,"LO particle sample "+year)
+if doLOparticle and doResponseMatrix==True:
+    latex.DrawLatex(0.25,0.85,"LO particle sample "+year+" + response matrix")
+
+
 #if(year=='2016'):
 #    tdr.cmsPrel(35900.,13.)
 #elif(year=='2017'):
@@ -297,8 +328,16 @@ latex.DrawLatex(0.25,0.9,modwilson)
 
 if doResponseMatrix==False:
     resultname = './results/'+year+'/other/'+observable+'_sme_time_'+wilson+suffix
-if doResponseMatrix:
+if doResponseMatrix and doLOreco==False and doLOparticle==False:
     resultname = './results/'+year+'/other/'+observable+'_sme_time_'+wilson+suffix+'_reco_'+year
+if doLOreco:
+    resultname = './results/'+year+'/other/'+observable+'_sme_time_'+wilson+suffix+'_directreco_'+year 
+if doLOparticle:
+    resultname = './results/'+year+'/other/'+observable+'_sme_time_'+wilson+suffix+'_miniAODparticle_'+year
+if doResponseMatrix and doLOreco==False and doLOparticle==True:
+    resultname = './results/'+year+'/other/'+observable+'_sme_time_'+wilson+suffix+'_miniAODparticleResponseMatrix_'+year
+if doResponseMatrix and doResponseMatrixLO and doLOreco==False and doLOparticle==True:
+    resultname = './results/'+year+'/other/'+observable+'_sme_time_'+wilson+suffix+'_miniAODparticleResponseMatrixLO_'+year
 
 
 #rootfile_output = TFile(resultname+'.root', "RECREATE")

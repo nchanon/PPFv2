@@ -48,10 +48,14 @@ int main(int argc, char** argv){
 
     bool doPuTime = true;
     //bool doPuTime = false;
-    
+   
+    bool doDecorrelateBtag = true;
+ 
     bool doAllWilson = false;
     if (wilson=="sme_all") doAllWilson = true;
     std::string wilsonList[16] = {"cLXX","cLXY","cLXZ","cLYZ","cRXX","cRXY","cRXZ","cRYZ","cXX","cXY","cXZ","cYZ","dXX","dXY","dXZ","dYZ"};
+    std::vector<std::string> vecWilsonList;
+    for (int i=0; i<16; i++) vecWilsonList.push_back(wilsonList[i]);
 
     //int jecOption = -1; //no jec
     //int jecOption = 0; //reduced jec
@@ -193,6 +197,9 @@ int main(int argc, char** argv){
 		else if (syst=="stat_muon_iso" || syst=="stat_muon_id"){
 		     datacard.addSystToCard(syst + "_" + year + timebin, "shape", ttbarList);
 		}
+		else if (doDecorrelateBtag && (syst == "syst_b_correlated" || syst == "syst_l_correlated")){
+                    datacard.addSystToCard(syst + "_" + year + timebin, "shape", ttbarList);
+		}
 		else if (syst == "syst_b_uncorrelated" || syst == "syst_l_uncorrelated")
 		    datacard.addSystToCard(syst + "_" + year + timebin, "shape", ttbarList);
 		else if (syst == "syst_qcdscale"){
@@ -333,6 +340,9 @@ int main(int argc, char** argv){
                 datacard.addProcSystToCard(syst, "shape", ttbarList, "signal",false);
             else if (syst == "syst_em_trig" || syst=="stat_muon_iso" || syst=="stat_muon_id")
                 datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
+            else if (doDecorrelateBtag && (syst == "syst_b_correlated" || syst == "syst_l_correlated")){
+                datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
+            }
             else if (syst == "syst_b_uncorrelated" || syst == "syst_l_uncorrelated")
                 datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
             else if (syst == "syst_qcdscale"){
@@ -512,6 +522,11 @@ int main(int argc, char** argv){
                 }
                 else datacard.addSystToCard(syst + "_" + year, "shape", ttbarList);
 	    }
+            else if (doDecorrelateBtag && (syst == "syst_b_correlated" || syst == "syst_l_correlated")){
+                if (doExpTimeNuisance) {
+                    for (int k=0; k<24; k++) datacard.addSystToCard(syst + "_" + year + timebin[k], "shape", ttbarList);
+                }
+            }
             else if (syst == "syst_b_uncorrelated" || syst == "syst_l_uncorrelated") {
                 if (doExpTimeNuisance) {
 		    for (int k=0; k<24; k++) datacard.addSystToCard(syst + "_" + year + timebin[k], "shape", ttbarList);
@@ -615,6 +630,12 @@ int main(int argc, char** argv){
 
         std::string systMC = "MCstat_binobs";
 	for (int k=0; k<nBinObs; k++){
+	    if (wilson!="sme_all")
+	        datacard.addProcSystToCard(systMC + std::to_string(k) + "_sme_" + year, "shape", ttbarList, wilson,false);
+	    else {
+		//for (unsigned int iw=0; iw<16; iw++)
+	        datacard.addMultiProcessSystToCard(systMC + std::to_string(k) + "_sme_" + year, "shape", ttbarList,"1",vecWilsonList);
+	    }
             datacard.addProcSystToCard(systMC + std::to_string(k) + "_signal_" + year, "shape", ttbarList, "signal",true);
             datacard.addProcSystToCard(systMC + std::to_string(k) + "_singletop_" + year, "shape", ttbarList, "singletop",false);
             datacard.addProcSystToCard(systMC + std::to_string(k) + "_dibosons_" + year, "shape", ttbarList, "dibosons",false);

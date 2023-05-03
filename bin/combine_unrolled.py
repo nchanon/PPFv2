@@ -34,8 +34,11 @@ doSMEkindep = True
 doResponseMatrix = True
 #doResponseMatrix = False
 
-#doShapeOnly = False
-doShapeOnly = True
+doDirectRecoSignal = True
+#doDirectRecoSignal = False
+
+doShapeOnly = False
+#doShapeOnly = True
 
 ################################################################################
 ## Initialisation stuff
@@ -102,7 +105,7 @@ hist_lumi_corr = lumisyst_file.Get('hIntegratedLumi_sidereal_mcweight')
 
 #lumi_file = TFile('./inputs/timed/AllTimedSyst_'+year+'.root')
 triggersyst_file = TFile('./inputs/timed/TriggerSF_'+year+'.root')
-triggersystNovtx_file = TFile('./inputs/timed/TriggerSF_'+year+'_noNvtx.root')
+triggersystNovtx_file = TFile('./inputs/timed/TriggerSF_'+year+'_noNvtx_new.root')
 
 if triggerOption==0:
     hist_triggerSF_stat = triggersyst_file.Get('h_SF_emu_sidereel_nominal')
@@ -484,8 +487,14 @@ observable_forSME = observable
 #    doSMEkindep = False
 
 hist_sme = []
-
-sme_file = TFile('./results/'+year+'/flattree/'+observable_forSME+'_sme.root')
+if doDirectRecoSignal==True:
+    #sme_file_signal = TFile('./results/'+year+'/flattree/'+observable_forSME+'_sme.root')
+    sme_file_signal = TFile('./results/'+year+'/flattree/sme_matrices_alt_puinc.root')
+    sme_file_singletop = TFile('./results/'+year+'/flattree/'+observable_forSME+'_sme.root')
+if doResponseMatrix==True and doDirectRecoSignal==False:
+    #sme_file_signal = TFile('./inputs/pheno/signal_miniAOD_LO_Comb_n_bjets_13TeVCMSnanoGEN_particle.root')
+    sme_file_signal = TFile('./results/'+year+'/flattree/'+observable_forSME+'_sme.root')
+    sme_file_singletop = TFile('./results/'+year+'/flattree/'+observable_forSME+'_sme.root')
 
 wilsonList = ["cLXX","cLXY","cLXZ","cLYZ","cRXX","cRXY","cRXZ","cRYZ","cXX","cXY","cXZ","cYZ","dXX","dXY","dXZ","dYZ"]
 wilsonListSingleTop = ["cLXX","cLXY","cLXZ","cLYZ"]
@@ -518,11 +527,24 @@ for putimebin in range(nputimebin):
 
 for wilson in wilsonList:
 
-	sme_sig = sme_file.Get(wilson)
+	sme_sig = sme_file_signal.Get(wilson)
 	sme_sig_kinbin = []
+	sme_sig_kinbin_directreco = []
+	sme_sig_kinbin_directreco_MCstatUp = []
+	sme_sig_kinbin_directreco_MCstatDown = []
+        hist_sme_MCstatUp = []
+        hist_sme_MCstatDown = []
+
 	for k in range(nbingenkin):
 	    print(wilson+"_"+str(k))
-	    sme_sig_kinbin.append(sme_file.Get(wilson+"_"+str(k)))
+	    #sme_sig_kinbin.append(sme_file_signal.Get(wilson+"_"+str(k)))
+	    sme_sig_kinbin.append(sme_file_signal.Get("signal_miniAOD_LO_Comb_"+wilson+"_"+str(k)))
+	for k in range(nbinkin):
+	    if doDirectRecoSignal:
+	        #sme_sig_kinbin_directreco.append(sme_file_signal.Get("reco_"+year+"_"+wilson+"_"+str(k+1)))
+		sme_sig_kinbin_directreco.append(sme_file_signal.Get("reco_"+year+"_central_"+wilson+"_"+str(k+1)))
+		sme_sig_kinbin_directreco_MCstatUp.append(sme_file_signal.Get("reco_"+year+"_central_"+wilson+"_MCstatUp_"+str(k+1)))
+                sme_sig_kinbin_directreco_MCstatDown.append(sme_file_signal.Get("reco_"+year+"_central_"+wilson+"_MCstatDown_"+str(k+1)))
 
 	for g in hist_unrolled:
 	    if g.GetName().find('signal') != -1:
@@ -530,10 +552,46 @@ for wilson in wilsonList:
 		name = wilson+hist_sme[-1].GetName()[6:]
 		hist_sme[-1].SetName(name)
 		hist_sme[-1].SetTitle(name)
-		for i in range(nbintime):
-		  for j in range(nbinkin):
+
+		if g.GetName()=='signal':
+                  for k in range(nbinkin):
+                    if doSMEkindep:
+                      hist_sme_MCstatUp.append(g.Clone())
+                      hist_sme_MCstatUp[-1].SetName(name + '_MCstat_binobs'+str(k)+'_sme_'+year+'Up')
+                      hist_sme_MCstatDown.append(g.Clone())
+                      hist_sme_MCstatDown[-1].SetName(name + '_MCstat_binobs'+str(k)+'_sme_'+year+'Down')
+		      for j in range(nbinkin):
+                          for i in range(nbintime):
+				if j==k:
+				    coeff_stat_up = sme_sig_kinbin_directreco_MCstatUp[j].GetBinContent(i+1)
+				    coeff_stat_down = sme_sig_kinbin_directreco_MCstatDown[j].GetBinContent(i+1)
+				    #coeff_stat_up = sme_sig_kinbin_directreco[j].GetBinContent(i+1) * (1 + sme_sig_kinbin_directreco_MCstatUp[j].GetBinContent(i+1)/sme_sig_kinbin_directreco[j].GetBinContent(i+1))
+				    #coeff_stat_down = sme_sig_kinbin_directreco[j].GetBinContent(i+1) * (1 - sme_sig_kinbin_directreco_MCstatDown[j].GetBinContent(i+1)/sme_sig_kinbin_directreco[j].GetBinContent(i+1))
+				    #coeff_stat_up = (1+ sme_sig_kinbin_directreco[j].GetBinContent(i+1)) * (1 + sme_sig_kinbin_directreco_MCstatUp[j].GetBinContent(i+1)/sme_sig_kinbin_directreco[j].GetBinContent(i+1)) -1
+                                    #coeff_stat_down = (1+ sme_sig_kinbin_directreco[j].GetBinContent(i+1)) * (1 + sme_sig_kinbin_directreco_MCstatDown[j].GetBinContent(i+1)/sme_sig_kinbin_directreco[j].GetBinContent(i+1)) -1
+				    #coeff_stat_up = -1 + (1+ cmunu*sme_sig_kinbin_directreco[j].GetBinContent(i+1)) * abs(sme_sig_kinbin_directreco_MCstatUp[j].GetBinContent(i+1)/sme_sig_kinbin_directreco[j].GetBinContent(i+1))
+				    #coeff_stat_down =  -1 + (1+ cmunu*sme_sig_kinbin_directreco[j].GetBinContent(i+1)) * abs(sme_sig_kinbin_directreco_MCstatDown[j].GetBinContent(i+1)/sme_sig_kinbin_directreco[j].GetBinContent(i+1))
+				else: 
+				    coeff_stat_up = cmunu*sme_sig_kinbin_directreco[j].GetBinContent(i+1)
+				    coeff_stat_down = coeff_stat_up
+				hist_sme_MCstatUp[-1].SetBinContent(j + i*nbinkin + 1,
+						g.GetBinContent(j + i*nbinkin + 1)*(1+coeff_stat_up))
+				hist_sme_MCstatUp[-1].SetBinError(j + i*nbinkin + 1,
+						g.GetBinError(j + i*nbinkin + 1)*(1+coeff_stat_up))
+				hist_sme_MCstatDown[-1].SetBinContent(j + i*nbinkin + 1,
+						g.GetBinContent(j + i*nbinkin + 1)*(1+coeff_stat_down))
+				hist_sme_MCstatDown[-1].SetBinError(j + i*nbinkin + 1,
+						g.GetBinError(j + i*nbinkin + 1)*(1+coeff_stat_down))
+
+                for j in range(nbinkin):
+                  for i in range(nbintime):
 		    if doSMEkindep:
-		        if doResponseMatrix:
+			if doDirectRecoSignal:
+                            hist_sme[-1].SetBinContent(j + i*nbinkin + 1,
+                                                g.GetBinContent(j + i*nbinkin + 1)*(1+cmunu*sme_sig_kinbin_directreco[j].GetBinContent(i+1)))
+                            hist_sme[-1].SetBinError(j + i*nbinkin + 1,
+                                                g.GetBinError(j + i*nbinkin + 1)*(1+cmunu*sme_sig_kinbin_directreco[j].GetBinContent(i+1)))
+		        elif doResponseMatrix:
 			    bincontent_i_j = 0
 			    for jgen in range(nbingenkin):
 				jreco = j
@@ -578,7 +636,12 @@ for wilson in wilsonList:
 			hist_sme[-1].SetBinError(j + i*nbinkin + 1,
 						g.GetBinError(j + i*nbinkin + 1)*(1+cmunu*sme_sig.GetBinError(i+1)))
 
-		print(hist_sme[-1].GetName()+' g_Integral='+str(g.Integral())+' hist_sme_integral='+str(hist_sme[-1].Integral()))+' ratio='+str(hist_sme[-1].Integral()/g.Integral()) 
+	for k in range(nbinkin):
+            if doDirectRecoSignal:	
+		hist_sme.append(hist_sme_MCstatUp[k])
+		hist_sme.append(hist_sme_MCstatDown[k])
+
+		#print(hist_sme[-1].GetName()+' g_Integral='+str(g.Integral())+' hist_sme_integral='+str(hist_sme[-1].Integral()))+' ratio='+str(hist_sme[-1].Integral()/g.Integral()) 
 
 
 for wilson in wilsonListSingleTop:
@@ -588,17 +651,17 @@ for wilson in wilsonListSingleTop:
 	elif wilson[2:]=='XZ' or wilson[2:]=='YZ':
 	    cmunu_singletop = cmunu*10
 
-        sme_singletop = sme_file.Get('singletop_'+wilson)
+        sme_singletop = sme_file_singletop.Get('singletop_'+wilson)
         if TString(wilson).Contains('cR'):
-            sme_singletop = sme_file.Get('singletop_cL'+wilson[2:])
+            sme_singletop = sme_file_singletop.Get('singletop_cL'+wilson[2:])
 
         sme_singletop_kinbin = []
         for k in range(nbingenkin):
             print(wilson+"_"+str(k))
             if TString(wilson).Contains('cR'):
-                sme_singletop_kinbin.append(sme_file.Get('singletop_cL'+wilson[2:]+"_"+str(k)))
+                sme_singletop_kinbin.append(sme_file_singletop.Get('singletop_cL'+wilson[2:]+"_"+str(k)))
             else:
-                sme_singletop_kinbin.append(sme_file.Get('singletop_'+wilson+"_"+str(k)))
+                sme_singletop_kinbin.append(sme_file_singletop.Get('singletop_'+wilson+"_"+str(k)))
 
         for g in hist_unrolled:
 	    if g.GetName()=='singletop': #How to treat single top sme decay uncertainty when multiple wilson in the datacard?
@@ -677,7 +740,8 @@ for h in hist_unrolled:
             h_nom.append(h.Clone())
 
     #Uncorrelated between year
-    if TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_em_trig') or TString(h.GetName()).Contains('stat_muon'):
+    if TString(h.GetName()).Contains('syst_b') or TString(h.GetName()).Contains('syst_l') or TString(h.GetName()).Contains('syst_em_trig') or TString(h.GetName()).Contains('stat_muon'):
+    #if TString(h.GetName()).Contains('syst_b_uncorrelated') or TString(h.GetName()).Contains('syst_l_uncorrelated') or TString(h.GetName()).Contains('syst_em_trig') or TString(h.GetName()).Contains('stat_muon'):
         curname = h.GetName()
         found = curname.find('Up')
         if (found==-1):

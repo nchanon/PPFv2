@@ -23,6 +23,17 @@ const double OMEGA_UTC  = 7.2921159e-05; //Omega_UNIX, was 7.2921e-5;
 const double T0_2016    = 1451606400.; //OK
 const double T0_2017    = 1483228800.;
 const double PHASE      = 3.2829000; //was 3.2830;
+string sOMEGA_SIDEREAL = to_string(OMEGA_SIDEREAL);
+string sT0_2016 = to_string(T0_2016);
+
+constexpr double LATITUDE = 46.309/180*M_PI;
+string sLATITUDE = to_string(LATITUDE);
+constexpr double AZIMUT   = 101.2790/180*M_PI;
+string sAZIMUT = to_string(AZIMUT);
+//constexpr double OMEGA_GMST = 7.2722e-5;
+constexpr double TILT = -atan(1.23 / 100);
+string sTILT = to_string(TILT);
+
 
 
 /////////////////////////////////
@@ -123,7 +134,39 @@ double Generator::luminosityCorrection(TTree *tree_p, double lumiavg)
 
     return w;
 }
+/*
+string Generator::a1(string Axx, string Azz)
+{   
+    string a1_XXtilt = "pow(sin("+sTILT+") * cos("+sAZIMUT+") * sin("+sLATITUDE+") + cos("+sTILT+") * cos("+sLATITUDE+"), 2) + sin("+sAZIMUT+") * sin("+sAZIMUT+") * sin("+sLATITUDE+") * sin("+sLATITUDE+")";
+    string a1_ZZtilt = "pow(sin("+sTILT+") * cos("+sLATITUDE+") - cos("+sTILT+") * cos("+sAZIMUT+") * sin("+sLATITUDE+"), 2)";
 
+    return a1_XXtilt+"*"+Axx +"+"+ a1_ZZtilt +"*"+ Azz;
+}
+
+string Generator::a2(string Axx, string Azz)
+{
+    string a2_XXtilt = "cos("+sAZIMUT+") * cos("+sAZIMUT+") + sin("+sTILT+") * sin("+sTILT+") * sin("+sAZIMUT+") * sin("+sAZIMUT+")";
+    string a2_ZZtilt = "cos("+sTILT+"+) * cos("+sTILT+") * sin("+sAZIMUT+") * sin("+sAZIMUT+")";
+
+    return a2_XXtilt +"*"+ Axx +"+"+ a2_ZZtilt +"*"+ Azz;
+}
+
+string Generator::a3(string Axx, string Azz)
+{
+    string a3_XXtilt = "-cos("+sAZIMUT+") * sin("+sAZIMUT+") * sin("+sLATITUDE+") + (sin("+sTILT+") * cos("+sAZIMUT+") * sin("+sLATITUDE+") + cos("+sTILT+") * cos("+sLATITUDE+")) * sin("+sTILT+") * sin("+sAZIMUT+")";
+    string a3_ZZtilt = "-(sin("+sTILT+") * cos("+sLATITUDE+") - cos("+sTILT+") * cos("+sAZIMUT+") * sin("+sLATITUDE+")) * cos("+sTILT+") * sin("+sAZIMUT+")";
+
+    return a3_XXtilt +"*"+ Axx +"+"+ a3_ZZtilt +"*"+ Azz;
+}
+*/
+/*
+string Generator::fXX_primitive(string Axx, string Azz, string st)
+{
+    string part1 = "(("+a1(Axx,Azz)+"-"+a2(Axx,Azz)+")/2)*sin(2*"+sOMEGA_SIDEREAL+"*"+st+")/(2*"+sOMEGA_SIDEREAL+")";
+    string part2 = a3(Axx,Azz)+"*cos(2*"+sOMEGA_SIDEREAL+"*"+st+")/(-2*"+sOMEGA_SIDEREAL+")";
+    return "2*("+part1+"+"+part2+")";
+}
+*/
 void Generator::drawHisto1D(TTree* tree, std::string obs, std::string string_eventSelection, std::string string_weight, std::string string_triggered, TH1F* hist){
 
     std::string string_cut = "(" + string_eventSelection + ")*" + string_weight + "*" + string_triggered;
@@ -1288,7 +1331,10 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
     std::vector<TH1F> list_SME;
     std::vector<TH2F> listResponseMatrix;
     std::vector<TH2F> listResponseMatrix_SME;
-
+    std::vector<TH1F> list_sme_matrices;
+    std::vector<TH1F> list_sme_amplitudes;
+    std::vector<TH1F> list_sme_modulations;
+    //std::vector<TH1F> list_sme_modulations_MCstat;
 
     std::string cleaned="";
     if(!clean_p) cleaned = "_unclean";
@@ -1314,6 +1360,11 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
         TH1F* hist      = new TH1F(sampleList_p[n].c_str(), observable.c_str(), nBin, minBin, maxBin);
 	TH2F* hist_responseMatrix;
 	std::vector<TH2F*> hist_responseMatrix_SME;
+	std::vector<TH1F*> hist_sme_matrices;
+        std::vector<TH1F*> hist_sme_amplitudes;
+        std::vector<TH1F*> hist_sme_modulations;
+
+
         std::cout << "ALT -> " << sampleList_p[n] << "  " << correction_p[n] << std::endl;
 	
 	bool doResponseMatrix = false;
@@ -1341,8 +1392,9 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
             std::string string_eventSelection = eventSelectionString();
             std::string string_weight = generateWeightString(isTimed_p, timebin);
             std::string string_triggered = isTriggerPassedString(triggerList_p,true);
-            drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
-
+            if (observable!="sme_matrices") {
+		drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
+	    }
 	    if ((TString(sampleList_p[n]).Contains("LO"))) doResponseMatrix = true;
 
 	    TFile* fileGEN;
@@ -1372,24 +1424,127 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
 			}
 		    }
 		}
+		if (observable=="sme_matrices"){
+		    std::string observable_A_tmp = "";
+                    std::string observable_AF_tmp = "";
+		    std::string category_tmp;
+		    for (int ib=1; ib<5; ib++){
+			if (ib==4) category_tmp = "n_bjets>="+std::to_string(ib);
+			else category_tmp = "n_bjets=="+std::to_string(ib);
+
+			//Amunu distributions
+			bool doAmunu = false;
+			if (doAmunu){
+			    std::vector<double> sme_matrix_values_Aqq;
+			    std::vector<double> sme_matrix_values_Agg;
+			    std::vector<double> sme_matrix_values_AF;
+			    for (int im=0; im<16; im++){
+				TH1F* hist_sme_Aqq_tmp = new TH1F((sampleList_p[n]+"_Aqq_"+std::to_string(im)+"_n_bjets_"+std::to_string(ib)).c_str(), observable.c_str(), 1000000, -10000, 10000);
+				TH1F* hist_sme_Agg_tmp = new TH1F((sampleList_p[n]+"_Agg_"+std::to_string(im)+"_n_bjets_"+std::to_string(ib)).c_str(), observable.c_str(), 1000000, -10000, 10000);
+				TH1F* hist_sme_AF_tmp = new TH1F((sampleList_p[n]+"_AF_"+std::to_string(im)+"_n_bjets_"+std::to_string(ib)).c_str(), observable.c_str(), 1000000, -10000, 10000);
+				observable_A_tmp = "Events.lhe_sme_A["+std::to_string(im)+"]"; //split in gg (lhelist_prodMode==0) and qq (lhelist_prodMode==1)
+				observable_AF_tmp = "Events.lhe_sme_AF["+std::to_string(im)+"]";
+				drawHisto1D(tree, observable_A_tmp, string_eventSelection+" && "+category_tmp+" && Events.lhe_prod_mode==1", string_weight, string_triggered, hist_sme_Aqq_tmp);
+				drawHisto1D(tree, observable_A_tmp, string_eventSelection+" && "+category_tmp+" && Events.lhe_prod_mode==0", string_weight, string_triggered, hist_sme_Agg_tmp);
+				drawHisto1D(tree, observable_AF_tmp, string_eventSelection+" && "+category_tmp, string_weight, string_triggered, hist_sme_AF_tmp);
+				hist_sme_matrices.push_back(hist_sme_Aqq_tmp);
+				hist_sme_matrices.push_back(hist_sme_Agg_tmp);
+				hist_sme_matrices.push_back(hist_sme_AF_tmp);
+				sme_matrix_values_Aqq.push_back(hist_sme_Aqq_tmp->GetMean());
+				sme_matrix_values_Agg.push_back(hist_sme_Agg_tmp->GetMean());
+				sme_matrix_values_AF.push_back(hist_sme_AF_tmp->GetMean());
+			    }
+			    std::string fName = "signal_n_bjets_13TeVCMSminiAODPqqbar_"+std::to_string(ib)+"_reco_"+year;
+			    std::ofstream f1("inputs/pheno/"+fName+".txt", std::ios::out);
+			    f1<<fName<<" "<<std::endl<<std::endl;
+			    f1.precision(8);
+			    f1<<"Events n= "<< hist_sme_matrices[0]->Integral()<<std::endl<<std::endl;
+			    for(int j =0; j<4; j++)
+				f1 << sme_matrix_values_Aqq[4*j] << " " << sme_matrix_values_Aqq[4*j+1] << " " << sme_matrix_values_Aqq[4*j+2] << " " << sme_matrix_values_Aqq[4*j+3] <<std::endl;
+			    f1.close();
+			    fName = "signal_n_bjets_13TeVCMSminiAODP2g_"+std::to_string(ib)+"_reco_"+year;
+			    std::ofstream f2("inputs/pheno/"+fName+".txt", std::ios::out);
+			    f2<<fName<<" "<<std::endl<<std::endl;
+			    f2.precision(8);
+			    f2<<"Events n= "<< hist_sme_matrices[1]->Integral()<<std::endl<<std::endl;
+			    for(int j =0; j<4; j++)
+				f2 << sme_matrix_values_Agg[4*j] << " " << sme_matrix_values_Agg[4*j+1] << " " << sme_matrix_values_Agg[4*j+2] << " " << sme_matrix_values_Agg[4*j+3] <<std::endl;
+			    f2.close();
+			    fName = "signal_n_bjets_13TeVCMSminiAODF_"+std::to_string(ib)+"_reco_"+year;
+			    std::ofstream f3("inputs/pheno/"+fName+".txt", std::ios::out);
+			    f3.precision(8);
+			    f3<<fName<<" "<<std::endl<<std::endl;
+			    f3<<"Events n= "<< hist_sme_matrices[2]->Integral()<<std::endl<<std::endl;
+			    for(int j =0; j<4; j++)
+				f3 << sme_matrix_values_AF[4*j] << " " << sme_matrix_values_AF[4*j+1] << " " << sme_matrix_values_AF[4*j+2] << " " << sme_matrix_values_AF[4*j+3] <<std::endl;
+                            f3.close();
+			}
+
+			//Distribution of f(t) amplitude in each n_bjets and time bin
+			std::string scoeff[4]; scoeff[0] = "cL"; scoeff[1] = "cR"; scoeff[2] = "c"; scoeff[3] = "d";
+			std::string sdir[4]; sdir[0] = "XX"; sdir[1] = "XY"; sdir[2] = "XZ"; sdir[3] = "YZ";
+			for (int ic=0; ic<4; ic++){
+			    for (int id=0; id<4; id++){
+				TH1F* hist_sme_modulations_tmp = new TH1F(("reco_"+year+"_central_"+scoeff[ic]+sdir[id]+"_"+to_string(ib)).c_str(), ("reco_"+year+"_central_"+scoeff[ic]+sdir[id]+"_"+to_string(ib)).c_str(), 24,0,24);
+                                TH1F* hist_sme_modulations_MCstatUp_tmp = new TH1F(("reco_"+year+"_central_"+scoeff[ic]+sdir[id]+"_MCstatUp_"+to_string(ib)).c_str(), ("reco_"+year+"_central_"+scoeff[ic]+sdir[id]+"_MCstatUp_"+to_string(ib)).c_str(), 24,0,24);
+                                TH1F* hist_sme_modulations_MCstatDown_tmp = new TH1F(("reco_"+year+"_central_"+scoeff[ic]+sdir[id]+"_MCstatDown_"+to_string(ib)).c_str(), ("reco_"+year+"_central_"+scoeff[ic]+sdir[id]+"_MCstatDown_"+to_string(ib)).c_str(), 24,0,24);
+				for (int it=0; it<24; it++){
+		                    //std::string string_weight_time = generateWeightString(isTimed_p, it);
+		                    std::string string_weight_noTriggerSF = generateWeightString(true, timebin);
+				    std::string string_weight_SME = generateWeightSmeString(scoeff[ic], sdir[id], 0.01, it);
+	                            TH1F* hist_sme_amplitude_tmp = new TH1F(("signal_dilep_LO_amplitude_" + scoeff[ic] + "_" + sdir[id] + "_n_bjets_"+std::to_string(ib) + "_t" + std::to_string(it)).c_str(), "amplitude", 1000000, -100, 100); 
+				    drawHisto1D(tree, string_weight_SME, string_eventSelection+" && "+category_tmp, string_weight_noTriggerSF, string_triggered, hist_sme_amplitude_tmp);
+				    cout << "signal_dilep_LO_amplitude_" << scoeff[ic] << "_" << sdir[id] << "_n_bjets_" << std::to_string(ib) << "_t" << std::to_string(it) << " Mean="<<hist_sme_amplitude_tmp->GetMean()<<" MeanError="<<hist_sme_amplitude_tmp->GetMeanError()<<" relMeanError="<< hist_sme_amplitude_tmp->GetMeanError()/(hist_sme_amplitude_tmp->GetMean()-1)*100<<"%"<<endl;
+				    hist_sme_amplitudes.push_back(hist_sme_amplitude_tmp);
+                                    double mean = (hist_sme_amplitude_tmp->GetMean()-1);
+				    hist_sme_modulations_tmp->SetBinContent(1+it, 100*mean);
+				    double relMeanError = fabs(hist_sme_amplitude_tmp->GetMeanError()/mean);
+				    hist_sme_modulations_MCstatUp_tmp->SetBinContent(1+it, 100*mean*(1+relMeanError));
+                                    hist_sme_modulations_MCstatDown_tmp->SetBinContent(1+it, 100*mean*(1-relMeanError));
+				}
+			        hist_sme_modulations.push_back(hist_sme_modulations_tmp);
+                                hist_sme_modulations.push_back(hist_sme_modulations_MCstatUp_tmp);
+                                hist_sme_modulations.push_back(hist_sme_modulations_MCstatDown_tmp);
+			    }
+			}
+
+		    }
+		}
 	    }
 
 	}
 	std::cout << "A" << std::endl;
         hist->Scale(correction_p[n]);
 	if (doResponseMatrix){
-            hist_responseMatrix->Scale(correction_p[n]);
-	    for (unsigned int j=0; j<hist_responseMatrix_SME.size(); j++){
-		std::cout << "j="<<j << std::endl;
-	        hist_responseMatrix_SME[j]->Scale(correction_p[n]);
+	    if (observable=="n_bjets") {
+                hist_responseMatrix->Scale(correction_p[n]);
+	        for (unsigned int j=0; j<hist_responseMatrix_SME.size(); j++){
+		   std::cout << "j="<<j << std::endl;
+	            hist_responseMatrix_SME[j]->Scale(correction_p[n]);
+	        }
+	    }
+	    if (observable=="sme_matrices"){ 
+		for (unsigned int j=0; j<hist_sme_matrices.size(); j++){
+		    hist_sme_matrices[j]->Scale(correction_p[n]);
+		}
 	    }
 	}
         std::cout << "B" << std::endl;
         list.push_back(*hist);
         if (doResponseMatrix){
-            listResponseMatrix.push_back(*hist_responseMatrix);
-	    for (unsigned int j=0; j<hist_responseMatrix_SME.size(); j++){
-	        listResponseMatrix_SME.push_back(*(hist_responseMatrix_SME[j]));
+            if (observable=="n_bjets") { 
+		listResponseMatrix.push_back(*hist_responseMatrix);
+		for (unsigned int j=0; j<hist_responseMatrix_SME.size(); j++){
+		    listResponseMatrix_SME.push_back(*(hist_responseMatrix_SME[j]));
+		}
+	    }
+            if (observable=="sme_matrices"){
+                for (unsigned int j=0; j<hist_sme_matrices.size(); j++)
+		    list_sme_matrices.push_back(*(hist_sme_matrices[j]));
+                for (unsigned int j=0; j<hist_sme_amplitudes.size(); j++)
+		    list_sme_amplitudes.push_back(*(hist_sme_amplitudes[j]));
+		for (unsigned int j=0; j<hist_sme_modulations.size(); j++)
+		    list_sme_modulations.push_back(*(hist_sme_modulations[j]));
 	    }
 	}
         std::cout << "C" << std::endl;
@@ -1400,10 +1555,12 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
         //delete file;
         file->Close();
     }
-    groupingMC(list, groupList_p, clean_p);
+    if (observable!="sme_matrices") groupingMC(list, groupList_p, clean_p);
     std::vector<std::string> groupList_responseMatrix;
     groupList_responseMatrix.push_back("signal_dilep_LO");
-    groupingMC(listResponseMatrix, groupList_responseMatrix, "responseMatrix", clean_p);
+    if (observable=="n_bjets") groupingMC(listResponseMatrix, groupList_responseMatrix, "responseMatrix", clean_p);
+
+    std::cout << "D" << std::endl;
 
     for (unsigned int i=0; i<list.size(); i++){
       std::cout << list.at(i).GetName() << std::endl;
@@ -1415,10 +1572,20 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
       list.at(i).SetName(histname.c_str());
     }
 
-    write(filename_p, list, "RECREATE");
-    write(filename_p, listResponseMatrix, "UPDATE");
-    write(filename_p, listResponseMatrix_SME, "UPDATE");
+    std::cout << "E" << std::endl;
 
+    //write(filename_p, list, "RECREATE");
+    if (observable=="n_bjets") {
+        write(filename_p, list, "RECREATE");
+	write(filename_p, listResponseMatrix, "UPDATE");
+        write(filename_p, listResponseMatrix_SME, "UPDATE");
+    }
+    if (observable=="sme_matrices"){
+        //write(filename_p, list_sme_matrices, "RECREATE");
+	//write(filename_p, list_sme_amplitudes, "UPDATE");
+        //write(filename_p, list_sme_modulations, "UPDATE");
+        write(filename_p, list_sme_modulations, "RECREATE");
+    }
 }
 
 

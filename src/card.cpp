@@ -126,6 +126,35 @@ void Card::addSystToCard_alternative(bool isSME)
 
 }
 
+void Card::addMultiProcessSystToCard(std::string const& systName_p,
+                             std::string const& shape_p,
+                             namelist    const& groupList_p,
+			     std::string const& value_p,
+			     std::vector<std::string> & process_list_p)
+{
+
+    datacard += completeBlock(systName_p, block_syst) 
+            + completeBlock(shape_p, block_proc-block_syst);
+    
+    for(size_t i = 0; i < groupList_p.size(); ++i)
+    { 
+	bool found = false; 
+	for (size_t j = 0; j < process_list_p.size(); ++j){
+ 
+          if(groupList_p[i] == process_list_p[j]){
+              datacard += completeBlock(value_p, block_grp);
+	      found = true;
+	  }
+          
+	}
+
+	if (found==false) datacard += completeBlock("-", block_grp);
+    }
+    datacard += '\n';
+
+}
+
+
 void Card::addProcSystToCard(std::string const& systName_p,
                              std::string const& shape_p,
                              namelist    const& groupList_p,

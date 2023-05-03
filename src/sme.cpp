@@ -44,7 +44,7 @@ SME &SME::operator=(SME const& other)
 }
 
 
-SME::SME(Wilson wilson_p, int bin, std::string observable, bool doSingleTop)
+SME::SME(Wilson wilson_p, int bin, std::string observable, bool doSingleTop, std::string analysis_level)
 {
 
     wilson = wilson_p;
@@ -55,7 +55,7 @@ SME::SME(Wilson wilson_p, int bin, std::string observable, bool doSingleTop)
         exit(0);
     }
 
-    std::vector<double> matrix = generateMatrixPerMassBin(wilson, bin, observable, doSingleTop);
+    std::vector<double> matrix = generateMatrixPerMassBin(wilson, bin, observable, doSingleTop, analysis_level);
     Axx = matrix[0];
     Azz = matrix[10];
 }
@@ -64,7 +64,7 @@ SME::SME(Wilson wilson_p, int bin, std::string observable, bool doSingleTop)
 /////////////////////////////////
 // Private methods
 /////////////////////////////////
-
+/*
 double SME::a1() const
 {
     double part1 = sin(AZIMUT)*sin(AZIMUT)*sin(LATITUDE)*sin(LATITUDE)+cos(LATITUDE)*cos(LATITUDE);
@@ -90,6 +90,46 @@ double SME::a4() const
 double SME::a5() const
 {
     return cos(LATITUDE)*cos(AZIMUT)*sin(AZIMUT)*(Azz-Axx);
+}
+*/
+double SME::a1() const
+{
+    double a1_XXtilt = pow(sin(TILT) * cos(AZIMUT) * sin(LATITUDE) + cos(TILT) * cos(LATITUDE), 2) + sin(AZIMUT) * sin(AZIMUT) * sin(LATITUDE) * sin(LATITUDE);
+    double a1_ZZtilt = pow(sin(TILT) * cos(LATITUDE) - cos(TILT) * cos(AZIMUT) * sin(LATITUDE), 2);
+
+    return a1_XXtilt * Axx + a1_ZZtilt * Azz;
+}
+
+double SME::a2() const
+{
+    double a2_XXtilt = cos(AZIMUT) * cos(AZIMUT) + sin(TILT) * sin(TILT) * sin(AZIMUT) * sin(AZIMUT);
+    double a2_ZZtilt = cos(TILT) * cos(TILT) * sin(AZIMUT) * sin(AZIMUT);
+
+    return a2_XXtilt * Axx + a2_ZZtilt * Azz;
+}
+
+double SME::a3() const
+{
+    double a3_XXtilt = -cos(AZIMUT) * sin(AZIMUT) * sin(LATITUDE) + (sin(TILT) * cos(AZIMUT) * sin(LATITUDE) + cos(TILT) * cos(LATITUDE)) * sin(TILT) * sin(AZIMUT);
+    double a3_ZZtilt = -(sin(TILT) * cos(LATITUDE) - cos(TILT) * cos(AZIMUT) * sin(LATITUDE)) * cos(TILT) * sin(AZIMUT);
+
+    return a3_XXtilt * Axx + a3_ZZtilt * Azz;
+}
+
+double SME::a4() const
+{
+    double a4_XXtilt = sin(AZIMUT) * sin(AZIMUT) * sin(LATITUDE) * cos(LATITUDE) - (sin(TILT) * cos(AZIMUT) * sin(LATITUDE) + cos(TILT) * cos(LATITUDE)) * (cos(TILT) * sin(LATITUDE) - sin(TILT) * cos(AZIMUT) * cos(LATITUDE));
+    double a4_ZZtilt = -(sin(TILT) * cos(LATITUDE) - cos(TILT) * cos(AZIMUT) * sin(LATITUDE)) * (sin(TILT) * sin(LATITUDE) + cos(TILT) * cos(AZIMUT) * cos(LATITUDE));
+
+    return a4_XXtilt * Axx + a4_ZZtilt * Azz;
+}
+
+double SME::a5() const
+{
+    double a5_XXtilt = -cos(AZIMUT) * sin(AZIMUT) * cos(LATITUDE) - sin(TILT) * cos(AZIMUT) * (cos(TILT) * sin(LATITUDE) - sin(TILT) * cos(AZIMUT) * cos(LATITUDE));
+    double a5_ZZtilt = cos(TILT) * sin(AZIMUT) * (sin(TILT) * sin(LATITUDE) + cos(TILT) * cos(AZIMUT) * cos(LATITUDE));
+
+    return a5_XXtilt * Axx + a5_ZZtilt * Azz;
 }
 
 std::vector<double> SME::generateMatrix(Wilson wilson_p, std::string observable, bool doSingleTop) const
@@ -140,15 +180,24 @@ std::vector<double> SME::generateMatrix(Wilson wilson_p, std::string observable,
     return matrix;
 }
 
-std::vector<double> SME::generateMatrixPerMassBin(Wilson wilson_p, int bin, std::string observable, bool doSingleTop) const
+std::vector<double> SME::generateMatrixPerMassBin(Wilson wilson_p, int bin, std::string observable, bool doSingleTop, std::string analysis_level) const
 {
    
     std::string cutName = "13TeVCMSnanoGEN";
     std::string suffix = "_" + std::to_string(bin) + "_particle"; 
-    
-    std::string File_qqbar = "./inputs/pheno/signal_" + observable + "_" + cutName + "Pqqbar" + suffix + ".txt";
-    std::string File_gg = "./inputs/pheno/signal_" + observable + "_" + cutName + "P2g" + suffix + ".txt";
-    std::string File_F = "./inputs/pheno/signal_" + observable + "_" + cutName + "F" + suffix + ".txt";
+    std::string prefix = "signal";
+ 
+    if (analysis_level == "reco_2016" || analysis_level == "reco_2017"){
+	cutName = "13TeVCMSminiAOD";
+	suffix = "_" + std::to_string(bin) + "_" + analysis_level;
+    }
+    if (analysis_level == "signal_miniAOD_LO_2016" || analysis_level == "signal_miniAOD_LO_2017" || analysis_level == "signal_miniAOD_LO_Comb"){
+	prefix = analysis_level;
+    }
+   
+    std::string File_qqbar = "./inputs/pheno/"+prefix+"_" + observable + "_" + cutName + "Pqqbar" + suffix + ".txt";
+    std::string File_gg = "./inputs/pheno/"+prefix+"_" + observable + "_" + cutName + "P2g" + suffix + ".txt";
+    std::string File_F = "./inputs/pheno/"+prefix+"_" + observable + "_" + cutName + "F" + suffix + ".txt";
   
     std::string File_F_singletop = "./inputs/pheno/singletop_" + observable + "_" + cutName + "F" + suffix + ".txt";
     std::cout << "doSingleTop=" << doSingleTop << std::endl;
@@ -346,7 +395,7 @@ void SME::generateModulation(int t0, int nBin, bool doSingleTop)
 
 }
 
-void SME::generateModulationPerMassBin(int t0, int nBin, int binMass, bool doSingleTop)
+void SME::generateModulationPerMassBin(int t0, int nBin, int binMass, bool doSingleTop, std::string analysis_level)
 {
     std::string wilsonName;
     if(wilson == Wilson::L)
@@ -360,6 +409,7 @@ void SME::generateModulationPerMassBin(int t0, int nBin, int binMass, bool doSin
 
     std::string prefix = "";
     if (doSingleTop) prefix = "singletop_";
+    if (analysis_level=="reco_2016" || analysis_level=="reco_2017" || analysis_level=="signal_miniAOD_LO_2016" || analysis_level=="signal_miniAOD_LO_2017" || analysis_level=="signal_miniAOD_LO_Comb") prefix = analysis_level+"_";
 
     TH1F *hXX = new TH1F((prefix+wilsonName+"XX_"+std::to_string(binMass)).c_str(), (prefix+wilsonName+"XX_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);
     TH1F *hXY = new TH1F((prefix+wilsonName+"XY_"+std::to_string(binMass)).c_str(), (prefix+wilsonName+"XY_"+std::to_string(binMass)).c_str(), nBin, 0, nBin);

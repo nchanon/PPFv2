@@ -7,6 +7,7 @@
 constexpr double LATITUDE = 46.309/180*M_PI;
 constexpr double AZIMUT   = 101.2790/180*M_PI;
 constexpr double OMEGA_GMST = 7.2722e-5;
+constexpr double TILT = -atan(1.23 / 100);
 
 enum class Wilson{
     L,
@@ -30,7 +31,7 @@ class SME{
         double a5() const;
 
         std::vector<double> generateMatrix(Wilson wilson_p, std::string observable, bool doSingleTop) const;
-        std::vector<double> generateMatrixPerMassBin(Wilson wilson_p, int bin, std::string observable, bool doSingleTop) const;
+        std::vector<double> generateMatrixPerMassBin(Wilson wilson_p, int bin, std::string observable, bool doSingleTop, std::string analysis_level) const;
         double readNumberOfEvents(std::string const& path_p) const;
         std::vector<double> readElementMatrix(std::string const& path_p) const;
 
@@ -51,12 +52,12 @@ class SME{
         SME();
         SME(Wilson wilson_p, std::string observable, bool doSingleTop);
         SME(SME const& other);
-        SME(Wilson wilson_p, int bin, std::string observable, bool doSingleTop);
+        SME(Wilson wilson_p, int bin, std::string observable, bool doSingleTop,std::string analysis_level);
 
         SME &operator=(SME const& other);
 
         void generateModulation(int t0,int nBin = 24, bool doSingleTop = false);
-	void generateModulationPerMassBin(int t0, int nBin, int binMass, bool doSingleTop = false);
+	void generateModulationPerMassBin(int t0, int nBin, int binMass, bool doSingleTop = false, std::string analysis_level = "particle");
 
 	//bool doSingleTop = false;
         //std::string observable;

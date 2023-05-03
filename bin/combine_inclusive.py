@@ -13,8 +13,8 @@ from ROOT import TLegend, TApplication, TRatioPlot, TPad
 
 #nbin = 24
 
-doShapeOnly = True
-#doShapeOnly = False
+#doShapeOnly = True
+doShapeOnly = False
 
 ################################################################################
 ## Initialisation stuff
@@ -79,7 +79,8 @@ for l in mc_file.GetListOfKeys():
             if TString(curname).Contains(proc):
 		applyNominalNorm(histograms[-1], h)
 
-    if TString(l.GetName()).Contains('syst_em_trig') or TString(l.GetName()).Contains('syst_b_uncorrelated') or TString(l.GetName()).Contains('syst_l_uncorrelated') or TString(l.GetName()).Contains('stat'):
+    if TString(l.GetName()).Contains('syst_em_trig') or TString(l.GetName()).Contains('syst_b') or TString(l.GetName()).Contains('syst_l') or TString(l.GetName()).Contains('stat'):
+    #if TString(l.GetName()).Contains('syst_em_trig') or TString(l.GetName()).Contains('syst_b_uncorrelated') or TString(l.GetName()).Contains('syst_l_uncorrelated') or TString(l.GetName()).Contains('stat'):
         curname = histograms[-1].GetName()
         found = curname.find('Up')
         if (found==-1):

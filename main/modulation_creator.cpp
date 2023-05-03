@@ -64,15 +64,51 @@ int main(int argc, char** argv){
 
 	for (int m=0; m<nKinBin; m++){
 	  std::vector<SME> smePerMassBin{
-              SME(Wilson::L, m, obs, false),
-              SME(Wilson::R, m, obs, false),
-              SME(Wilson::C, m, obs, false),
-              SME(Wilson::D, m, obs, false)
+              SME(Wilson::L, m, obs, false, "particle"),
+              SME(Wilson::R, m, obs, false, "particle"),
+              SME(Wilson::C, m, obs, false, "particle"),
+              SME(Wilson::D, m, obs, false, "particle")
           };
 	  for(size_t j = 0; j < 4; ++j){
-            smePerMassBin[j].generateModulationPerMassBin(t0, binage, m, false);
+            smePerMassBin[j].generateModulationPerMassBin(t0, binage, m, false, "particle");
           }
 	}
+
+        for (int m=1; m<=4; m++){
+          std::vector<SME> smePerMassBin{
+              SME(Wilson::L, m, obs, false, "reco_"+year[i]),
+              SME(Wilson::R, m, obs, false, "reco_"+year[i]),
+              SME(Wilson::C, m, obs, false, "reco_"+year[i]),
+              SME(Wilson::D, m, obs, false, "reco_"+year[i])
+          };
+          for(size_t j = 0; j < 4; ++j){
+            smePerMassBin[j].generateModulationPerMassBin(t0, binage, m, false, "reco_"+year[i]);
+          }
+        }
+
+        for (int m=0; m<nKinBin; m++){
+          std::vector<SME> smePerMassBin{
+              SME(Wilson::L, m, obs, false, "signal_miniAOD_LO_"+year[i]),
+              SME(Wilson::R, m, obs, false, "signal_miniAOD_LO_"+year[i]),
+              SME(Wilson::C, m, obs, false, "signal_miniAOD_LO_"+year[i]),
+              SME(Wilson::D, m, obs, false, "signal_miniAOD_LO_"+year[i])
+          };
+          for(size_t j = 0; j < 4; ++j){
+            smePerMassBin[j].generateModulationPerMassBin(t0, binage, m, false, "signal_miniAOD_LO_"+year[i]);
+          }
+        }
+
+        for (int m=0; m<nKinBin; m++){
+          std::vector<SME> smePerMassBin{
+              SME(Wilson::L, m, obs, false, "signal_miniAOD_LO_Comb"),
+              SME(Wilson::R, m, obs, false, "signal_miniAOD_LO_Comb"),
+              SME(Wilson::C, m, obs, false, "signal_miniAOD_LO_Comb"),
+              SME(Wilson::D, m, obs, false, "signal_miniAOD_LO_Comb")
+          };
+          for(size_t j = 0; j < 4; ++j){
+            smePerMassBin[j].generateModulationPerMassBin(t0, binage, m, false, "signal_miniAOD_LO_Comb");
+          }
+        }
 
 	//single top decay
         std::vector<SME> sme_singletop{
@@ -87,13 +123,13 @@ int main(int argc, char** argv){
 
         for (int m=0; m<nKinBin; m++){
           std::vector<SME> smePerMassBin_singletop{
-              SME(Wilson::L, m, obs, true),
-              SME(Wilson::R, m, obs, true),
-              SME(Wilson::C, m, obs, true),
-              SME(Wilson::D, m, obs, true)
+              SME(Wilson::L, m, obs, true, "particle"),
+              SME(Wilson::R, m, obs, true, "particle"),
+              SME(Wilson::C, m, obs, true, "particle"),
+              SME(Wilson::D, m, obs, true, "particle")
           };
           for(size_t j = 0; j < 4; ++j){
-            smePerMassBin_singletop[j].generateModulationPerMassBin(t0, binage, m, true);
+            smePerMassBin_singletop[j].generateModulationPerMassBin(t0, binage, m, true, "particle");
           }
         }
 	

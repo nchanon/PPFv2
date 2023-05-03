@@ -10,7 +10,7 @@
 
 
 using  namelist = std::vector<std::string>;
-
+using namespace std;
 
 class Generator{
 
@@ -29,6 +29,12 @@ class Generator{
 
 	double luminositySumOfWeight(TTree *tree_p);
         double luminosityCorrection(TTree *tree_p, double lumiavg);
+
+	//string a1(string Axx, string Azz);
+        //string a2(string Axx, string Azz);
+	//string a3(string Axx, string Azz);
+
+	//string fXX_primitive(string Axx, string Azz, string st);
 
 	void drawHisto1D(TTree* tree, std::string obs, std::string string_eventSelection, std::string string_weight, std::string string_triggered, TH1F* hist);
         void drawHisto2D(TTree* tree, std::string obs1, std::string obs2, std::string string_eventSelection, std::string string_weight, std::string string_triggered, TH2F* hist);

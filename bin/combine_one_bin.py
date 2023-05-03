@@ -27,8 +27,8 @@ puOption = "putime" #pu per time bin
 doScaleLumiTime = True
 #doScaleLumiTime = False
 
-doShapeOnly = True
-#doShapeOnly = False
+#doShapeOnly = True
+doShapeOnly = False
 
 ################################################################################
 ## Initialisation stuff
@@ -81,7 +81,7 @@ hist_lumi_corr = lumisyst_file.Get('hIntegratedLumi_sidereal_mcweight')
 
 #triggersyst_file = TFile('./inputs/timed/AllTimedSyst_'+year+'.root')
 triggersyst_file = TFile('./inputs/timed/TriggerSF_'+year+'.root')
-triggersystNovtx_file = TFile('./inputs/timed/TriggerSF_'+year+'_noNvtx.root')
+triggersystNovtx_file = TFile('./inputs/timed/TriggerSF_'+year+'_noNvtx_new.root') #new includes PU reweighting per time bin
 
 if triggerOption==0:
     hist_triggerSF_stat = triggersyst_file.Get('h_SF_emu_sidereel_nominal')
@@ -176,7 +176,8 @@ for mc_file in mc_file_time:
                 if TString(curname).Contains(proc):
                     applyNominalNorm(histograms[-1], h)
 
-	if TString(l.GetName()).Contains('syst_b_uncorrelated') or TString(l.GetName()).Contains('syst_l_uncorrelated') or TString(l.GetName()).Contains('syst_em_trig') or TString(l.GetName()).Contains('stat'):
+	if TString(l.GetName()).Contains('syst_b') or TString(l.GetName()).Contains('syst_l') or TString(l.GetName()).Contains('syst_em_trig') or TString(l.GetName()).Contains('stat'):
+	#if TString(l.GetName()).Contains('syst_b_uncorrelated') or TString(l.GetName()).Contains('syst_l_uncorrelated') or TString(l.GetName()).Contains('syst_em_trig') or TString(l.GetName()).Contains('stat'):
 	    curname = histograms[-1].GetName()
 	    found = curname.find('Up')
 	    if (found==-1): 
