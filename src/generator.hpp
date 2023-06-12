@@ -41,6 +41,7 @@ class Generator{
 
         double generateWeight(TTree *tree_p, bool isTimed=true);
         std::string generateWeightString(bool isTimed=true, int timebin=-1);
+	std::string generateWeightString(bool isTimed, int timebin, bool doTopReweightingNLOtoData);
 
 	std::string generateWeightSmeString(std::string wilson_p,
                                     std::string dir,

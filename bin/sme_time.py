@@ -61,16 +61,20 @@ canvas = TCanvas('sme modulations','sme modulations', 700, 700)
 canvas.UseCurrentStyle()
 gStyle.SetPalette(55);
 
-#doResponseMatrix = False
-doResponseMatrix = True
+doResponseMatrix = False
+#doResponseMatrix = True
 
 doResponseMatrixLO = True
+#doResponseMatrixLO = False
+#doResponseMatrixBSM = True
+doResponseMatrixBSM = False
 
-doLOparticle = True #from dedicated MiniAOD
-#doLOparticle = False
 
-#doLOreco =  True #from dedicated MiniAOD
-doLOreco = False
+#doLOparticle = True #from dedicated MiniAOD
+doLOparticle = False
+
+doLOreco =  True #from dedicated MiniAOD
+#doLOreco = False
 
 
 ################################################################################
@@ -137,29 +141,49 @@ if (observable=='n_bjets'):
 doNormalizeByColumn = True
 
 hist_kinbin_rec = []
+hResponseMatrixBSM = []
 
 if doResponseMatrix:
-    if doResponseMatrixLO==False:
+    if doResponseMatrixLO==False and doResponseMatrixBSM==False:
         fResponseMatrix = TFile("results/"+year+"/flattree/"+observable+stimebin+".root")
         hResponseMatrix = fResponseMatrix.Get(singletop+"_responseMatrix")
-    if doResponseMatrixLO==True:
+    if doResponseMatrixLO==True and doResponseMatrixBSM==False:
 	fResponseMatrix = TFile("results/"+year+"/flattree/"+observable+"_alt"+stimebin+".root")
         hResponseMatrix = fResponseMatrix.Get("signal_dilep_LO_responseMatrix")
+    if doResponseMatrixBSM==True: #results/2016/flattree/n_bjets_alt_puinc.root
+	fResponseMatrix = TFile("results/"+year+"/flattree/"+observable+"_alt"+stimebin+".root")
+	hResponseMatrix = fResponseMatrix.Get("signal_dilep_LO_responseMatrix")
+	for it in range(24):
+            hResponseMatrixBSM.append(fResponseMatrix.Get("signal_dilep_LO_responseMatrix_"+wilson[:-2]+"_"+wilson[-2:]+"_"+str(it)))
+
+    print fResponseMatrix.GetName()
+    print hResponseMatrix.GetName()
 
     nbinX = hResponseMatrix.GetNbinsX()
     nbinY = hResponseMatrix.GetNbinsY()
     #print('ResponseMatrix nbinX='+str(nbinX)+' nbinY='+str(nbinY))
 
-    if doNormalizeByColumn:
-        for ix in range(nbinX):
-            area = hResponseMatrix.Integral(1+ix, 1+ix, 1, nbinY)
-            for iy in range(nbinY):
-                bincontent = hResponseMatrix.GetBinContent(ix+1,iy+1)
-                hResponseMatrix.SetBinContent(ix+1, iy+1, bincontent/area)
+    if doResponseMatrixBSM==False:
+	if doNormalizeByColumn:
+	    for ix in range(nbinX):
+		area = hResponseMatrix.Integral(1+ix, 1+ix, 1, nbinY)
+		for iy in range(nbinY):
+		    bincontent = hResponseMatrix.GetBinContent(ix+1,iy+1)
+		    hResponseMatrix.SetBinContent(ix+1, iy+1, bincontent/area)
+    if doResponseMatrixBSM==True:
+        if doNormalizeByColumn:
+	    for it in range(24):
+		for ix in range(nbinX):
+		    area = hResponseMatrixBSM[it].Integral(1+ix, 1+ix, 1, nbinY)
+		    for iy in range(nbinY):
+			bincontent = hResponseMatrixBSM[it].GetBinContent(ix+1,iy+1)
+                        hResponseMatrixBSM[it].SetBinContent(ix+1, iy+1, bincontent/area)
 
+    print str(hist_kinbin[ix].GetNbinsX())
     for ix in range(nbinX):
 	hist_kinbin_rec.append(hist_kinbin[ix].Clone())
 	for it in range(hist_kinbin[ix].GetNbinsX()):
+	    #print str(it/100)
 	    recbincontent = 0
 	    for iy in range(nbinY):
 		if iy==0:
@@ -167,7 +191,10 @@ if doResponseMatrix:
 		else:
 		    genbin = iy-1
 		#print('ix='+str(ix)+' iy='+str(iy)+' genbin='+str(genbin))
-	        recbincontent += hResponseMatrix.GetBinContent(1+ix,1+iy)*hist_kinbin[genbin].GetBinContent(1+it)	    
+		if doResponseMatrixBSM==False:
+	            recbincontent += hResponseMatrix.GetBinContent(1+ix,1+iy)*hist_kinbin[genbin].GetBinContent(1+it)	
+		if doResponseMatrixBSM==True:
+		    recbincontent += hResponseMatrixBSM[it/100].GetBinContent(1+ix,1+iy)*hist_kinbin[genbin].GetBinContent(1+it)    
 	    hist_kinbin_rec[ix].SetBinContent(1+it, recbincontent)
 	hist_kinbin[ix] = hist_kinbin_rec[ix]
 
@@ -313,9 +340,12 @@ if doLOreco:
     latex.DrawLatex(0.25,0.85,"LO reco sample "+year)
 if doLOparticle and doResponseMatrix==False:
     latex.DrawLatex(0.25,0.85,"LO particle sample "+year)
-if doLOparticle and doResponseMatrix==True:
+if doLOparticle and doResponseMatrix==True and doResponseMatrixLO==False and doResponseMatrixBSM==False:
     latex.DrawLatex(0.25,0.85,"LO particle sample "+year+" + response matrix")
-
+if doLOparticle and doResponseMatrix==True and doResponseMatrixLO==True and doResponseMatrixBSM==False:
+    latex.DrawLatex(0.25,0.85,"LO particle sample "+year+" + LO response matrix")
+if doLOparticle and doResponseMatrix==True and doResponseMatrixBSM==True:
+    latex.DrawLatex(0.25,0.85,"LO particle sample "+year+" + LO BSM response matrix")
 
 #if(year=='2016'):
 #    tdr.cmsPrel(35900.,13.)
@@ -338,6 +368,8 @@ if doResponseMatrix and doLOreco==False and doLOparticle==True:
     resultname = './results/'+year+'/other/'+observable+'_sme_time_'+wilson+suffix+'_miniAODparticleResponseMatrix_'+year
 if doResponseMatrix and doResponseMatrixLO and doLOreco==False and doLOparticle==True:
     resultname = './results/'+year+'/other/'+observable+'_sme_time_'+wilson+suffix+'_miniAODparticleResponseMatrixLO_'+year
+if doResponseMatrix and doResponseMatrixBSM and doLOreco==False and doLOparticle==True:
+    resultname = './results/'+year+'/other/'+observable+'_sme_time_'+wilson+suffix+'_miniAODparticleResponseMatrixBSM_'+year
 
 
 #rootfile_output = TFile(resultname+'.root', "RECREATE")

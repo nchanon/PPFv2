@@ -238,6 +238,31 @@ std::string Generator::generateWeightString(bool isTimed, int timebin)
   return string_weight;
 }
 
+std::string Generator::generateWeightString(bool isTimed, int timebin, bool doTopReweightingNLOtoData)
+{
+
+  std::string string_weight = "";
+
+  if (timebin==-1) string_weight = "weight_pu";
+  else if (timebin==-2) string_weight = "weight_punew";
+  else if (timebin==-3) string_weight = "weight_puinc";
+  else if (timebin>=0) string_weight = "weight_putime" + std::to_string(timebin);
+
+  string_weight += "*weight_generator";
+  if (doTopReweightingNLOtoData) string_weight += "*weight_top"; //should be only for ttbar
+  string_weight += "*weight_prefiring";
+  string_weight += "*weight_sfe_id";
+  string_weight += "*weight_sfe_reco";
+  string_weight += "*weight_sfm_id";
+  string_weight += "*weight_sfm_iso";
+  string_weight += "*weight_sfb";
+
+  if (!isTimed)
+      string_weight += "*weight_sf_em_trig";
+
+  return string_weight;
+}
+
 std::string Generator::generateWeightSmeString(std::string wilson_p, 
 				    std::string dir, 
 				    float cmunu, 
@@ -1490,7 +1515,7 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
                                 TH1F* hist_sme_modulations_MCstatDown_tmp = new TH1F(("reco_"+year+"_central_"+scoeff[ic]+sdir[id]+"_MCstatDown_"+to_string(ib)).c_str(), ("reco_"+year+"_central_"+scoeff[ic]+sdir[id]+"_MCstatDown_"+to_string(ib)).c_str(), 24,0,24);
 				for (int it=0; it<24; it++){
 		                    //std::string string_weight_time = generateWeightString(isTimed_p, it);
-		                    std::string string_weight_noTriggerSF = generateWeightString(true, timebin);
+		                    std::string string_weight_noTriggerSF = generateWeightString(true, timebin, false);
 				    std::string string_weight_SME = generateWeightSmeString(scoeff[ic], sdir[id], 0.01, it);
 	                            TH1F* hist_sme_amplitude_tmp = new TH1F(("signal_dilep_LO_amplitude_" + scoeff[ic] + "_" + sdir[id] + "_n_bjets_"+std::to_string(ib) + "_t" + std::to_string(it)).c_str(), "amplitude", 1000000, -100, 100); 
 				    drawHisto1D(tree, string_weight_SME, string_eventSelection+" && "+category_tmp, string_weight_noTriggerSF, string_triggered, hist_sme_amplitude_tmp);

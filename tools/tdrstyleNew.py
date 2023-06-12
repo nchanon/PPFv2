@@ -98,12 +98,17 @@ def cmsPrel(lumi,  energy=None,  simOnly=True,  onLeft=True,  sp=0, textScale=1.
   
   latex.SetTextFont(52)
   latex.SetTextSize(textSize*0.76)
-  
+ 
+  simprelim = "" 
   if(simOnly):
-    latex.DrawLatex(simxloc, simyloc,"Simulation")
-  elif thisIsPrelim:
-    latex.DrawLatex(simxloc, simyloc, "Preliminary")
-
+    simprelim = "Simulation"
+    #latex.DrawLatex(simxloc, simyloc,"Simulation")
+  if thisIsPrelim:
+    simprelim = "Preliminary"
+    #latex.DrawLatex(simxloc, simyloc, "Preliminary")
+  if simOnly and thisIsPrelim:
+    simprelim = "Simulation   Preliminary"
+  latex.DrawLatex(simxloc, simyloc, simprelim)
 
 def tdrGrid( gridOn):
   tdrStyle.SetPadGridX(gridOn)

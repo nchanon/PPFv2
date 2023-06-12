@@ -572,16 +572,16 @@ for wilson in wilsonList:
 				    #coeff_stat_up = -1 + (1+ cmunu*sme_sig_kinbin_directreco[j].GetBinContent(i+1)) * abs(sme_sig_kinbin_directreco_MCstatUp[j].GetBinContent(i+1)/sme_sig_kinbin_directreco[j].GetBinContent(i+1))
 				    #coeff_stat_down =  -1 + (1+ cmunu*sme_sig_kinbin_directreco[j].GetBinContent(i+1)) * abs(sme_sig_kinbin_directreco_MCstatDown[j].GetBinContent(i+1)/sme_sig_kinbin_directreco[j].GetBinContent(i+1))
 				else: 
-				    coeff_stat_up = cmunu*sme_sig_kinbin_directreco[j].GetBinContent(i+1)
+				    coeff_stat_up = sme_sig_kinbin_directreco[j].GetBinContent(i+1)
 				    coeff_stat_down = coeff_stat_up
 				hist_sme_MCstatUp[-1].SetBinContent(j + i*nbinkin + 1,
-						g.GetBinContent(j + i*nbinkin + 1)*(1+coeff_stat_up))
+						g.GetBinContent(j + i*nbinkin + 1)*(1+cmunu*coeff_stat_up))
 				hist_sme_MCstatUp[-1].SetBinError(j + i*nbinkin + 1,
-						g.GetBinError(j + i*nbinkin + 1)*(1+coeff_stat_up))
+						g.GetBinError(j + i*nbinkin + 1)*(1+cmunu*coeff_stat_up))
 				hist_sme_MCstatDown[-1].SetBinContent(j + i*nbinkin + 1,
-						g.GetBinContent(j + i*nbinkin + 1)*(1+coeff_stat_down))
+						g.GetBinContent(j + i*nbinkin + 1)*(1+cmunu*coeff_stat_down))
 				hist_sme_MCstatDown[-1].SetBinError(j + i*nbinkin + 1,
-						g.GetBinError(j + i*nbinkin + 1)*(1+coeff_stat_down))
+						g.GetBinError(j + i*nbinkin + 1)*(1+cmunu*coeff_stat_down))
 
                 for j in range(nbinkin):
                   for i in range(nbintime):

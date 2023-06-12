@@ -25,15 +25,19 @@ tdr.setTDRStyle()
 
 parser = argparse.ArgumentParser()
 parser.add_argument('observable', help='display your observable')
-#parser.add_argument('year', help='year of samples')
+parser.add_argument('year', help='year of samples')
 parser.add_argument('wilson', help='wilson coefficent (cL, cR, ...)', default='cL')
 parser.add_argument('singletop', help='year of samples', default='')
 
 args = parser.parse_args()
 observable = args.observable
-#year = args.year
+year = args.year
 wilson = args.wilson
 singletop = args.singletop
+
+
+doLOreco = True
+
 
 print observable+' '+wilson+' '+singletop
 
@@ -69,13 +73,18 @@ gStyle.SetPalette(55);
 prefix=''
 suffix=''
 
+sme_file = TFile('./results/2016/flattree/'+observable+'_sme.root')
+
 if singletop=='singletop':
     prefix='singletop_'
     suffix='_singletop'
+if doLOreco:
+    prefix = 'reco_'+year+'_'
+    suffix='_reco_'+year
+
 
 cmunu = 0.01
 
-sme_file = TFile('./results/2016/flattree/'+observable+'_sme.root')
 
 skinbin="2"
 
@@ -202,18 +211,28 @@ if(is_center):
     hist_XX.GetXaxis().CenterTitle()
     hist_XX.GetYaxis().CenterTitle()
 
-tdr.cmsPrel(-1,13.)
+#tdr.cmsPrel(-1,13.)
 
 latex = TLatex()
 latex.SetTextSize(0.45*gStyle.GetPadTopMargin())
 latex.SetNDC()
 if skinbin!="":
-    latex.DrawLatex(0.2,0.87,"Particle level, n_{b jets}="+skinbin);
+    if doLOreco==False:
+        latex.DrawLatex(0.2,0.87,"Particle level, n_{b jets}="+skinbin)
+    if doLOreco:
+	latex.DrawLatex(0.2,0.87,"Reco level, n_{b jets}="+skinbin)
 
 #if(year=='2016'):
 #    tdr.cmsPrel(35900.,13.)
 #elif(year=='2017'):
 #    tdr.cmsPrel(41530.,13.)
+if doLOreco==False:
+    tdr.cmsPrel(-1,13.)
+else:
+    if(year=='2016'):
+        tdr.cmsPrel(35900., 13.,simOnly=True,thisIsPrelim=True)
+    elif(year=='2017'):
+        tdr.cmsPrel(41500., 13.,simOnly=True,thisIsPrelim=True)
 
 ################################################################################
 ## Save
