@@ -114,6 +114,10 @@ for l in mc_file.GetListOfKeys():
 mc_alt_file = TFile('./results/'+year+'/flattree/'+observable+'_color_reco_inclusive'+stimebin+'.root')
 for l in mc_alt_file.GetListOfKeys():
     hist = mc_alt_file.Get(l.GetName())
+
+    if TString(l.GetName()).Contains('responseMatrix') or TString(l.GetName()).Contains('signal_LO'):
+        continue
+
     histograms.append(hist)
 
     if TString(l.GetName()).Contains('mtop'):

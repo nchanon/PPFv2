@@ -156,7 +156,7 @@ style_histo(hist_vjets, 619, 2, 0, 1005, 0)
 #stack.GetXaxis().SetTitleSize(0)
 
 if(year=='2016'):
-    tdr.cmsPrel(35900., 13.,simOnly=True,thisIsPrelim=True)
+    tdr.cmsPrel(36300., 13.,simOnly=True,thisIsPrelim=True)
 elif(year=='2017'):
    tdr.cmsPrel(41500., 13.,simOnly=True,thisIsPrelim=True)
 

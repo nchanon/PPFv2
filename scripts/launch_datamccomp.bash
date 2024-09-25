@@ -1,14 +1,38 @@
 #!/bin/bash
 
 for i in 2016 2017
-#for i in 2016
+#for i in 2017
 do
+
+
+    #python ./bin/data_mc_comparaison_splitted.py pt_muon ${i} "Muon p_{T} (GeV)" $1
+    #python ./bin/data_mc_comparaison_splitted.py eta_muon ${i} "Muon #eta" $1
+
+    #python ./bin/data_mc_comparaison_splitted.py pt_elec ${i} "Electron p_{T} (GeV)" $1
+    #python ./bin/data_mc_comparaison_splitted.py eta_elec ${i} "Electron #eta" $1
+
+    #python ./bin/data_mc_comparaison_splitted.py m_dilep ${i} "Dilepton mass (GeV)" $1
+    #python ./bin/data_mc_comparaison_splitted.py pt_emu ${i} "Dilepton p_{T} (GeV)" $1
+
+    #python ./bin/data_mc_comparaison_splitted.py j1_pt ${i} "First jet p_{T} (GeV)" $1
+    #python ./bin/data_mc_comparaison_splitted.py j1_eta ${i} "First jet #eta" $1
+    
+    #python ./bin/data_mc_comparaison_splitted.py j2_pt ${i} "Second jet p_{T} (GeV)" $1
+    #python ./bin/data_mc_comparaison_splitted.py j2_eta ${i} "Second jet #eta" $1
+
+    #python ./bin/data_mc_comparaison_splitted.py b1_pt ${i} "First b-jet p_{T} (GeV)" $1
+    #python ./bin/data_mc_comparaison_splitted.py b1_eta ${i} "First b-jet #eta" $1
+
+    #python ./bin/data_mc_comparaison_splitted.py n_jets ${i} "number of jets" $1
+    python ./bin/data_mc_comparaison_splitted.py n_bjets ${i} "Number of b jets" $1
+
+
 #    python ./bin/data_mc_comparaison_splitted.py m_dilep ${i} "Dilepton mass (GeV)" $1
 #    python ./bin/data_mc_comparaison_splitted.py eta_elec ${i} "Electron #eta" $1
 #    python ./bin/data_mc_comparaison_splitted.py pt_elec ${i} "Electron p_{T} (GeV)" $1
 #    python ./bin/data_mc_comparaison_splitted.py eta_muon ${i} "Muon #eta" $1
 #    python ./bin/data_mc_comparaison_splitted.py pt_muon ${i} "Muon p_{T} (GeV)" $1
-#    python ./bin/data_mc_comparaison_splitted.py n_bjets ${i} "number of b jets" $1
+#    python ./bin/data_mc_comparaison_splitted.py n_bjets ${i} "Number of b jets" $1
 #    python ./bin/data_mc_comparaison_splitted.py n_jets ${i} "number of jets" $1
 #    python ./bin/data_mc_comparaison_splitted.py j1_pt ${i} "First jet p_{T} (GeV)" $1
 #    python ./bin/data_mc_comparaison_splitted.py j1_eta ${i} "First jet #eta" $1
@@ -18,9 +42,9 @@ do
 #    python ./bin/data_mc_comparaison_splitted.py j2_eta ${i} "Second jet #eta" $1
 #    python ./bin/data_mc_comparaison_splitted.py pt_emu ${i} "Dilepton p_{T} (GeV)" $1
 
-    python ./bin/mc_comparaison.py pt_emu ${i} "Dilepton p_{T} (GeV)" $1
-    python ./bin/mc_comparaison.py m_dilep ${i} "Dilepton mass (GeV)" $1
-    python ./bin/mc_comparaison.py n_bjets ${i} "number of b jets" $1
+#    python ./bin/mc_comparaison.py pt_emu ${i} "Dilepton p_{T} (GeV)" $1
+#    python ./bin/mc_comparaison.py m_dilep ${i} "Dilepton mass (GeV)" $1
+#    python ./bin/mc_comparaison.py n_bjets ${i} "Number of b jets" $1
 
 done
 

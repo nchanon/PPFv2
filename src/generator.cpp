@@ -809,7 +809,10 @@ void Generator::groupingMC(std::vector<TH1F>      & list,
 
     for(std::string group : groupList_p){
         TH1F h((group).c_str(), (group).c_str(), nbin, min, max);
-	std::string grp = group.substr(0,group.size()-1); //Changed March 8th
+	std::string grp; //Changed August 29th
+	if (group!="vjets") grp = group.substr(0,group.size()-1);
+	else grp = group.substr(1,group.size()-1);
+	//std::string grp = group.substr(0,group.size()-1); //Changed March 8th
         //std::string grp = group.substr(1,group.size()-1);
 	//cout << "Grouping "<<group<< " grp="<<grp<<endl;
         for(size_t i = 0; i < list.size(); ++i){
@@ -1453,13 +1456,14 @@ void Generator::generateAltMC(namelist            const& sampleList_p,
 		    std::string observable_A_tmp = "";
                     std::string observable_AF_tmp = "";
 		    std::string category_tmp;
-		    for (int ib=1; ib<5; ib++){
+		    for (int ib=0; ib<5; ib++){ //was ib=1; changed to ib=0 on 28/05/2024 (time-integrated SME model)
 			if (ib==4) category_tmp = "n_bjets>="+std::to_string(ib);
-			else category_tmp = "n_bjets=="+std::to_string(ib);
+			else if (ib >= 1 && ib <=3) category_tmp = "n_bjets=="+std::to_string(ib);
+			else category_tmp = "n_bjets>=1"; //inclusive case
 
 			//Amunu distributions
 			bool doAmunu = false;
-			if (doAmunu){
+			if (doAmunu && ib!=0){
 			    std::vector<double> sme_matrix_values_Aqq;
 			    std::vector<double> sme_matrix_values_Agg;
 			    std::vector<double> sme_matrix_values_AF;
@@ -2067,8 +2071,8 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
 	    std::string string_weight = generateWeightString(false,timebin);
 	    std::string string_triggered = isTriggerPassedString(triggerList_p,true);
 	    drawHisto1D(tree, observable, string_eventSelection, string_weight, string_triggered, hist);
-            drawHisto1D(tree, observable, string_eventSelection, string_weight, "1", hist_noHLT);
-	    std::cout << "HLT efficiency: " << hist->Integral()/hist_noHLT->Integral() << std::endl;
+            //drawHisto1D(tree, observable, string_eventSelection, string_weight, "1", hist_noHLT);
+	    //std::cout << "HLT efficiency: " << hist->Integral()/hist_noHLT->Integral() << std::endl;
 	    //std::string string_cut = "(" + string_eventSelection + ")*" + string_weight + "*" + string_triggered;
 	    //std::cout << "Cut: " << string_cut<<std::endl;
 	    //std::string string_obs_redirected = observable + " >> " + sampleList_p[n];
@@ -2096,8 +2100,8 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
 	}
         hist->Scale(correction_p[n]);
         list.push_back(*hist);
-        hist_noHLT->Scale(correction_p[n]);
-        list_noHLT.push_back(*hist_noHLT);
+        //hist_noHLT->Scale(correction_p[n]);
+        //list_noHLT.push_back(*hist_noHLT);
 
         delete hist;
         //delete canvas;
@@ -2106,10 +2110,10 @@ void Generator::generateMCforComp(namelist            const& sampleList_p,
     }
     std::cout << "E"<<std::endl;
     groupingMC(list, groupList_p, clean_p);
-    groupingMC_suffix(list_noHLT, groupList_p, "noHLT", clean_p);
+    //groupingMC_suffix(list_noHLT, groupList_p, "noHLT", clean_p);
     std::cout << "F"<<std::endl;
     write(filename_p, list, option_p);
-    write(filename_p, list_noHLT, "UPDATE");
+    //write(filename_p, list_noHLT, "UPDATE");
     std::cout << "Wrote "<<filename_p<<std::endl;
 }
 

@@ -36,6 +36,16 @@ def integral_complete(histo, max_bin):
      return histo.Integral()
 #    return histo.Integral()+histo.GetBinContent(int(max_bin+1))+histo.GetBinContent(0)
 
+def integral_overbins(histo):
+     a = 0
+     b = 0
+     for i in range(histo.GetNbinsX()+1):
+        print str(i)
+	a += histo.GetBinContent(i)
+	b = math.sqrt(b*b+histo.GetBinError(i)*histo.GetBinError(i))
+     print 'a='+str(a)
+     return a,b
+
 
 nbin = 0
 min_bin = 0
@@ -100,6 +110,10 @@ width_bin = (max_bin-min_bin)/nbin
 # signal
 hist_signal = rootfile_input.Get('signal')
 signal_integral = integral_complete(hist_signal, max_bin)
+#signal_integral_alt_err = 0
+#signal_integral_alt = hist_signal.IntegralAndError(0,max_bin,signal_integral_alt_err)
+signal_integral_alt,signal_integral_alt_err = integral_overbins(hist_signal)
+print 'ALT signal : '+str(signal_integral_alt)+' +/- '+str(signal_integral_alt_err)
 
 # backgrounds
 hist_singletop = rootfile_input.Get('singletop')
@@ -346,7 +360,7 @@ stack.GetXaxis().SetLabelSize(0)
 stack.GetXaxis().SetTitleSize(0)
 
 if(year=='2016'):
-    tdr.cmsPrel(35900., 13.,simOnly=False,thisIsPrelim=True)
+    tdr.cmsPrel(36300., 13.,simOnly=False,thisIsPrelim=True)
 elif(year=='2017'):
    tdr.cmsPrel(41500., 13.,simOnly=False,thisIsPrelim=True)
 
